@@ -33,13 +33,65 @@
 
 <h2>Common Logarithms and Antilogarithms</h2>
 
-<p>Common logarithms and antilogarithms (also called Briggsian) are those in which the base $a=10$. The common logarithm of $N$ is denoted by $\log_10 N$ or briefly $\log N$. </p>
+<p>Common logarithms and antilogarithms (also called Briggsian) are those in which the base $a=10$. The common logarithm of $N$ is denoted by $\log_{10} N$ or briefly $\log N$. </p>
 
 <h2>Natural Logarithms and Antilogarithms</h2>
 
 <p>Natural logarithms and antilogarithms (also called Napierian) are those in which the base $a=e=2.71828...$. The natural logarithm of $N$ is denoted by $\log_e N$ or $\ln N$</p>
 
 <h2>Change of Base of Logarithms</h2>
+
+<p>The relationship between logarithms of a number $N$ to different bases $a$ and $b$ is given by:
+  $$\log_a N=\dfrac{\log_b N}{\log_b a}$$
+  In particular,
+  $$\begin{aligned}
+  &\log_e N = \ln N = 2.30258 50929 94 ... \log_{10}N \\\\
+  &\log_{10} N = \log N = 0.43429 44819 03 ... \log_e N
+  \end{aligned}$$
+</p>
+
+<h2>Relationship Between Exponential and Trigonometric Functions</h2>
+
+<p>$$\begin{aligned}
+  & e^{i\theta} = \cos \theta + i\sin \theta \\\\
+  & e^{-i\theta} = \cos \theta - i\sin \theta \\\\
+  & \sin \theta = \frac{e^{i\theta} - e^{-i\theta}}{2i} \\\\
+  & \cos \theta = \frac{e^{i\theta} + e^{-i\theta}}{2i} \\\\
+  & \tan \theta = \frac{e^{i\theta} - e^{-i\theta}}{i\left(e^{i\theta} + e^{-i\theta} \right) = -i\left(\frac{e^{i\theta} - e^{-i\theta}}{e^{i\theta} + e^{-i\theta} \right) \\\\
+  & \cot \theta = i\left(\frac{e^{i\theta} + e^{-i\theta}}{e^{i\theta} - e^{-i\theta} \right) \\\\
+  & \sec \theta = \frac{2}{e^{i\theta} + e^{-i\theta}} \\\\
+  & \csc \theta = \frac{2i}{e^{i\theta} - e^{-i\theta}}
+\end{aligned}$$</p>
+
+<h2>Periodicity of Exponential Functions</h2>
+
+<p> $$ e^{i(\theta + 2k\pi) = e^{i\theta},\quad k=\text{integer}$$
+From this it is seen that $e^x$ has period $2\pi i$.</p>
+
+<h2>Polar Form of Complex Numbers Expressed as an Exponential</h2>
+
+<p>The polar form of a complex number $z = x + yi$ can be written in terms of exponentials as follows:
+  $$z = x + iy = r\left(\cos \theta + i\sin \theta \right) = re^{i\theta}$$
+</p>
+
+<h2>Operations with Complex Numbers in Polar Form</h2>
+
+<p>$$\begin{aligned}
+  & \left( r_1e^{i\theta_1} \right)\left(r_2e^{i\theta_2\right) = r_1r_2e^{i\left( \theta_1 + \theta_2 \right)} \\\\
+  & \frac{r_1e^{i\theta_1}}{r_2e^{i\theta_2}} = \frac{r_1}{r_2}e^{i\left( \theta_1 - \theta_2\right)} \\\\
+  & \left(re^{i\theta} \right)^p = r^p e^{ip\theta},\quad (\text{De Moivre's theorem}) \\\\
+  & \left(re^{i\theta} \right)^{1/n} = \left[re^{i(\theta+2k\pi)} \right]^{1/n} = r^{1/n} e^{i(\theta+2k\pi)/n}
+\end{aligned}$$</p>
+
+<h2>Logarithm of a Complex Number</h2>
+
+<p>$$\ln \left( re^{i\theta} \right) = \ln r + i\theta + 2k\pi,\quad k=\text{integer}$$</p>
+
+
+
+
+
+
 
 
 
