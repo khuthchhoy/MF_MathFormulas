@@ -1,0 +1,230 @@
+<ul>
+  <li>Functions of one variable: $y, p, q, u, g, h, G, H, r, z$</li>
+  
+  <li>Arguments (independent variables): $x, y$</li>
+  
+  <li>Functions of two variables: $f(x,y), M(x,y), N(x,y)$</li>
+  
+  <li>First order derivative: $y^{\prime}, u^{\prime}, \dot{y}, \frac{dy}{dt}$</li>
+  
+  <li>Second order derivatives: $y^{\prime\prime}, \ddot{y}, \frac{d^{2}I}{dt^{2}}$</li>
+  
+  <li>Partial derivatives: $\frac{\partial u}{\partial t}, \frac{\partial^{2}u}{\partial x^{2}}$</li>
+  
+  <li>Natural number: $n$</li>
+  
+  <li>Particular solutions: $y_{1}, Y_{p}$</li>
+  
+  <li>Real numbers: $k, t, C, C_{1}, C_{2}, P, q, \alpha, \beta$</li>
+  
+  <li>Roots of the characteristic equations: $\lambda_{1}, \lambda_{2}$</li>
+  
+  <li>Time: $t$</li>
+  
+  <li>Temperature: $T, S$</li>
+  
+  <li>Population function: $P(t)$</li>
+  
+  <li>Mass of an object: $m$</li>
+  
+  <li>Stiffness of a spring: $k$</li>
+  
+  <li>Displacement of the mass from equilibrium: $y$</li>
+  
+  <li>Amplitude of the displacement: $A$</li>
+  
+  <li>Damping coefficient: $\gamma$</li>
+  
+  <li>Phase angle of the displacement: $\delta$</li>
+  
+  <li>Angular displacement: $\theta$</li>
+  
+  <li>Pendulum length: $L$</li>
+  
+  <li>Acceleration of gravity: $g$</li>
+  
+  <li>Electrical variables: Current ($I$), Resistance ($R$), Inductance ($L$), Capacitance ($C$)</li>
+</ul>
+
+<h2>First Order Ordinary Differential Equations</h2>
+
+<ol>
+  <li>Linear Equations: 
+    $$\dfrac{dy}{dx} + p(x)y = q(x)$$</li>
+  
+  <li>The general solution is 
+    $$y = \dfrac{\int u(x)q(x)dx + C}{u(x)}$$
+    Where $u(x) = \exp(\int p(x)dx)$</li>
+  
+  <li>Separable Equations: 
+    $$\frac{dy}{dx} = f(x,y) = g(x)h(y)$$
+  The general solution is given by 
+    $$\int \frac{dy}{h(y)} = \int g(x)dx + C$$
+  Alternative separable form: $H(y) = G(x) + C$</li>
+
+  <li>Homogeneous Equations<br>
+  The differential equation $\dfrac{dy}{dx}=f(x,y)$ is homogeneous, if the function $f(x,y)$ is homogeneous, that is $f(tx,ty)=f(x,y)$<br>
+  The substitution $z=\dfrac{y}{x}$ (then $y=zx$) leads to the separable equation 
+    $$x\frac{dz}{dx}+z=f(1,z)$$</li>
+
+  <li>Bernoulli Equation
+  $$\dfrac{dy}{dx}+p(x)y=q(x)y^{n}$$
+  The substitution $z=y^{1-n}$ leads to the linear equation
+  $$\dfrac{dz}{dx}+(1-n)p(x)z=(1-n)q(x)$$ </li>
+  
+  <li>Riccati Equation
+  $$\dfrac{dy}{dx}=p(x)+q(x)y+r(x)y^{2}$$ 
+  If a particular solution $y_{1}$ is known, then the general solution can be obtained with the help of substitution $z=\dfrac{1}{y-y_{1}}$ <br>
+This leads to the first order linear equation
+$$\dfrac{dz}{dx}=-[q(x)+2y_{1}r(x)]z-r(x)$$ </li>
+
+  <li>Exact and Nonexact Equations<br>
+  The equation $M(x,y)dx+N(x,y)dy=0$ is called exact if 
+  $$\dfrac{\partial M}{\partial y}=\dfrac{\partial N}{\partial x}$$
+  and nonexact otherwise. <br>
+  The general solution is 
+  $$\int M(x,y)dx+\int N(x,y)dy=C$$ </li>
+  
+  <li>Radioactive Decay
+  $$\dfrac{dy}{dt}=-ky$$ 
+  where $y(t)$ is the amount of radioactive element at time $t$, and $k$ is the rate of decay. <br>
+  The solution is 
+  $$y(t)=y_{0}e^{-kt}$$
+  where $y_{0}=y(0)$ is the initial amount</li>
+  
+  <li>Newton's Law of Cooling
+  $$\dfrac{dT}{dt}=-k(T-S)$$ 
+  where $T(t)$ is the temperature of an object at time $t$, $S$ is the temperature of the surrounding environment, and $k$ is a positive constant. <br>
+  The solution is 
+  $$T(t)=S+(T_{0}-S)e^{-kt}$$
+  where $T_{0}=T(0)$ is the initial temperature of the object at time $t=0$. </li>
+  
+  <li>Population Dynamics (Logistic Model) 
+  $$\dfrac{dP}{dt}=kP(1-\dfrac{P}{M})$$
+  where $P(t)$ is population at time $t$, $k$ is a positive constant, and $M$ is a limiting size for the population. <br>
+  The solution of the differential equation is:
+  $$P(t)=\dfrac{MP_{0}}{P_{0}+(M-P_{0})e^{-kt}}$$
+  where $P_{0}=P(0)$ is the initial population at time $t=0$. </li>
+  
+</ol>
+
+<h2>Second Order Ordinary Differential Equations</h2>
+
+<o>
+  
+  <li>Homogeneous Linear Equations with Constant Coefficients
+  $$y^{\prime\prime}+py^{\prime}+qy=0$$
+  The characteristic equation is:
+  $$\lambda^{2}+p\lambda+q=0$$ 
+  If $\lambda_{1}$ and $\lambda_{2}$ are distinct real roots of the characteristic equation, then the general solution is:
+  $$y=C_{1}e^{({\lambda_{1}x})}+C_{2}e^{({\lambda_{2}x})}$$ 
+  where $C_{1}$ and $C_{2}$ are integration constants. <br>
+  If $\lambda_{1}=\lambda_{2}=-\dfrac{p}{2}$, then the general solution is:
+  $$y=(C_{1}+C_{2}x)e^{-\dfrac{p}{2}x}$$
+  If $\lambda_{1}$ and $\lambda_{2}$ are complex numbers:<br>
+  $\lambda_{1}=\alpha+\beta i, \lambda_{2}=\alpha-\beta i$ , where $\alpha=-\dfrac{p}{2}$ and $\beta=\dfrac{\sqrt{4q-p^{2}}}{2}$. <br>
+  The general solution is:
+  $$y=e^{\alpha x}(C_{1}\cos \beta x+C_{2}\sin \beta x)$$</li>
+  
+  <li>Inhomogeneous Linear Equations with Constant Coefficients<br>
+  $$y^{\prime\prime}+py^{\prime}+qy=f(x)$$
+  The general solution is given by $y=y_{p}+y_{h}$, where $y_{p}$ is a particular solution and $y_{h}$ is the general solution of the associated homogeneous equation. <br>
+  If the right side has the form 
+    $$f(x)=e^{\alpha x}(P_{1}(x)\cos \beta x+P_{2}(x)\sin \beta x)$$
+    then the particular solution $y_{p}$ is:
+  $$y_{p}=x^{k}e^{\alpha x}(R_{1}(x)\cos\beta x+R_{2}(x)\sin \beta x)$$
+  where $R_{1}(x)$ and $R_{2}(x)$ are found using the method of undetermined coefficients. <br>
+  The power $k$ is determined as follows:
+  <ul>
+    <li>$k=0$ if $\alpha+\beta i$ is not a root of the characteristic equation.</li>
+    <li>$k=1$ if $\alpha+\beta i$ is a simple root.</li>
+    <li>$k=2$ if $\alpha+\beta i$ is a double root.</li>
+  </ul> 
+  </li>
+  
+  <li>Differential Equations with $y$ Missing
+  $$y^{\prime\prime}=f(x,y^{\prime})$$
+  Set $u=y^{\prime}$. Then the new equation satisfied by $u$ is:
+  $$u^{\prime}=f(x,u)$$
+  which is a first order differential equation. </li>
+
+  <li>Differential Equations with $x$ Missing
+  $$y^{\prime\prime}=f(y,y^{\prime})$$
+  Set $u=y^{\prime}$. Since $y^{\prime\prime}=\dfrac{du}{dx}=\dfrac{du}{dy}\dfrac{dy}{dx}=u\dfrac{du}{dy}$, we have:
+  $$u\dfrac{du}{dy}=f(y,u)$$
+  which is a first order differential equation. </li>
+  
+  <li>Free Undamped Vibrations <br>
+  The motion of a Mass on a Spring is described by the equation:
+  $$m\ddot{y}+ky=0$$
+  where $m$ is the mass of the object, $k$ is the stiffness of the spring, and $y$ is displacement of the mass from equilibrium. <br>
+  The general solution is:
+  $$y=A\cos(\omega_{0}t-\delta)$$
+  where $A$ is the amplitude of the displacement, $\omega_{0}$ is the fundamental frequency, $T=\dfrac{2\pi}{\omega_{0}}$ is the period, and $\delta$ is the phase angle. <br>
+  This is an example of simple harmonic motion. </li>
+  
+  <li>1178. Free Damped Vibrations 
+  $$m\ddot{y}+\gamma\dot{y}+ky=0$$
+  where $\gamma$ is the damping coefficient. <br>
+  There are 3 cases for the general solution.<br>
+  Case 1. $\gamma^{2}>4km$ (overdamped):
+  $$y(t)=Ae^{\lambda_{1}t}+Be^{\lambda_{2}t}$$
+  where $\lambda_{1}=\dfrac{-\gamma-\sqrt{\gamma^{2}-4km}}{2m}$ and $\lambda_{2}=\dfrac{-\gamma+\sqrt{\gamma^{2}-4km}}{2m}$<br>
+  Case 2. $\gamma^{2}=4km$ (critically damped):
+  $$y(t)=(A+Bt)e^{\lambda t}$$
+  where $\lambda=-\dfrac{\gamma}{2m}$. <br>
+  Case 3. $\gamma^{2}<4km$ (underdamped):
+  $$y(t)=e^{\frac{\gamma}{2m}t}A\cos(\omega t-\delta)$$
+  where $\omega=\sqrt{4km-\gamma^{2}}$. </li>
+  
+  <li>Simple Pendulum
+  $$\dfrac{d^{2}\theta}{dt^{2}}+\dfrac{g}{L}\theta=0$$
+  where $\theta$ is the angular displacement, $L$ is the pendulum length, and $g$ is the acceleration of gravity. <br>
+  The general solution for small angles is:
+  $$\theta(t)=\theta_{max}\sin\sqrt{\dfrac{g}{L}t}$$
+  The period is $T=2\pi\sqrt{\dfrac{L}{g}}$. </li>
+  
+  <li>1180. RLC Circuit
+    $$L\dfrac{d^{2}I}{dt^{2}}+R\dfrac{dI}{dt}+\dfrac{1}{C}I=V^{\prime}(t)=\omega E_{0}\cos(\omega t)$$
+  Where $I$ is the current in an RLC circuit with an ac voltage source $V(t)=E_{0}\sin(\omega t)$. <br>
+  The general solution is:
+  $$I(t)=C_{1}e^{r_{1}t}+C_{2}e^{r_{2}t}+A\sin(\omega t-\varphi)$$
+  Where:
+  $$r_{1,2}=\dfrac{-R\pm\sqrt{R^{2}-\dfrac{4L}{C}}}{2L}$$
+  $$A=\dfrac{\omega E_{0}}{\sqrt{(L\omega^{2}-\dfrac{1}{C})^{2}+R^{2}\omega^{2}}}$$
+  $$\varphi=\arctan\left(\dfrac{L\omega}{R}-\dfrac{1}{RC\omega}\right)$$ 
+  $C_{1}$ and $C_{2}$ are constants depending on initial conditions.</li>  
+</o>
+
+<h2>Some Partial Differential Equations</h2>
+
+<ol>
+  <li>The Laplace Equation
+  $$\dfrac{\partial^{2}u}{\partial x^{2}}+\dfrac{\partial^{2}u}{\partial y^{2}}=0$$
+  This applies to potential energy function $u(x,y)$ for a conservative force field in the $xy$-plane. <br>
+  Partial differential equations of this type are called elliptic. </li>
+  
+  <li>The Heat Equation
+  $$\dfrac{\partial^{2}u}{\partial x^{2}}+\dfrac{\partial^{2}u}{\partial y^{2}}=\dfrac{\partial u}{\partial t}$$
+  This applies to the temperature distribution $u(x,y)$ in the $xy$-plane when heat is allowed to flow from warm areas to cool ones. <br>
+  Equations of this type are called parabolic. </li>
+  
+  <li>The Wave Equation <br>
+  $$\dfrac{\partial^{2}u}{\partial x^{2}}+\dfrac{\partial^{2}u}{\partial y^{2}}=\dfrac{\partial^{2}u}{\partial t^{2}}$$ 
+  This applies to the displacement $u(x,y)$ of vibrating membranes and other wave functions. <br>
+  Equations of this type are called hyperbolic. </li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
