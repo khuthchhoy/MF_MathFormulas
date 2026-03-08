@@ -1,0 +1,204 @@
+<h2>Alternating Series </h2>
+
+<ol>
+
+  <li>The Alternating Series Test (Leibniz's Theorem): <br>
+    
+  Let $\{a_{n}\}$ be a sequence of positive numbers such that $a_{n+1} \lt a_{n}$ for all $n$ and $\lim_{n\rightarrow\infty} a_{n} = 0$. <br>
+    
+  Then the alternating series $\sum_{n=1}^{\infty} (-1)^{n} a_{n}$ and $\sum_{n=1}^{\infty} (-1)^{n-1} a_{n}$ both converge. </li>
+  
+  <li>Absolute Convergence <br>
+    
+  A series $\sum_{n=1}^{\infty} a_{n}$ is absolutely convergent if the series $\sum_{n=1}^{\infty} |a_{n}|$ is convergent. <br>
+
+  If the series $\sum_{n=1}^{\infty}a_{n}$ is absolutely convergent then it is convergent. </li>
+
+  <li>Conditional Convergence <br>
+    
+  A series $\sum_{n=1}^{\infty}a_{n}$ is conditionally convergent if the series is convergent but is not absolutely convergent. </li>
+  
+</ol>
+
+<h2>Power Series </h2>
+  <p>
+    Real numbers: $x, x_{0}$<br>
+    Whole number: $n$<br>
+    Radius of Convergence: $R$ 
+  </p>
+
+<ol>
+
+  <li>Power Series in $x$:
+  $$\sum_{n=0}^{\infty}a_{n}x^{n}=a_{0}+a_{1}x+a_{2}x^{2}+\dots+a_{n}x^{n}+\dots$$</li>
+  <li>Power Series in $(x-x_{0})$:
+    
+  $$\sum_{n=0}^{\infty}a_{n}(x-x_{0})^{n}=a_{0}+a_{1}(x-x_{0})+a_{2}(x-x_{0})^{2}+\dots+a_{n}(x-x_{0})^{n}+\dots$$</li>
+  <li>Interval of Convergence: <br>
+  The set of those values of $x$ for which the function $f(x)=\sum_{n=0}^{\infty}a_{n}(x-x_{0})^{n}$ is convergent is called the interval of convergence.</li>
+
+  <li>Radius of Convergence <br>
+    
+  If the interval of convergence is $(x_{0}-R, x_{0}+R)$ for some $R \ge 0$, then $R$ is called the radius of convergence. It is given as:
+    
+  $$R = \lim_{n \to \infty} \dfrac{1}{\sqrt[n]{|a_{n}|}} \text{ or } R = \lim_{n \to \infty} \left| \dfrac{a_{n}}{a_{n+1}} \right|$$ </li>
+
+</ol>
+
+<h2>Differentiation and Integration of Power Series </h2>
+
+<p>
+  Continuous function: $f(x)$<br>
+  Power series: $\sum_{n=0}^{\infty} a_{n}x^{n}$<br>
+  Whole number: $n$<br>
+  Radius of Convergence: $R$ 
+</p>
+
+<ol>
+
+  <li>Differentiation of Power Series <br>
+    
+  Let $f(x) = \sum_{n=0}^{\infty} a_{n}x^{n} = a_{0} + a_{1}x + a_{2}x^{2} + \dots$ for $|x| \gt R$. <br>
+    
+  Then, for $|x| \lt R$, $f(x)$ is continuous, the derivative $f^{\prime}(x)$ exists and:
+    
+  $$f^{\prime}(x) = \dfrac{d}{dx} a_{0} + \dfrac{d}{dx} a_{1}x + \dfrac{d}{dx} a_{2}x^{2} + \dots $$
+    
+  $$= a_{1} + 2a_{2}x + 3a_{3}x^{2} + \dots = \sum_{n=1}^{\infty} na_{n}x^{n-1} $$ </li>
+
+  <li>Integration of Power Series <br>
+    
+  Let $f(x)=\sum_{n=0}^{\infty}a_{n}x^{n}=a_{0}+a_{1}x+a_{2}x^{2}+\dots$ for $|x|\lt R$. <br>
+      
+  Then, for $|x|\lt R$ the indefinite integral $\int f(x)dx$ exists:
+      
+  $$\int f(x)dx=\int a_{0}dx+\int a_{1}xdx+\int a_{2}x^{2}dx+\dots$$
+      
+  $$=a_{0}x+a_{1}\frac{x^{2}}{2}+a_{2}\frac{x^{3}}{3}+\dots=\sum_{n=0}^{\infty}a_{n}\frac{x^{n+1}}{n+1}+C $$ </li>
+  
+</ol>
+
+<h2>Taylor and Maclaurin Series </h2>
+<p>
+  Whole number: $n$<br>
+  Differentiable function: $f(x)$<br>
+  Remainder term: $R_{n}$
+</p>
+
+<ol>
+
+  <li>Taylor Series:
+    
+  $$f(x)=\sum_{n=0}^{\infty}f^{(n)}(a)\frac{(x-a)^{n}}{n!}=f(a)+f^{\prime}(a)(x-a)+\frac{f^{\prime\prime}(a)(x-a)^{2}}{2!}+\dots+\frac{f^{(n)}(a)(x-a)^{n}}{n!}+R_{n}$$</li>
+    
+  <li>The Remainder After $n+1$ Terms is given by:
+    
+  $$R_{n}=\frac{f^{(n+1)}(\xi)(x-a)^{n+1}}{(n+1)!}, a\lt \xi\lt x $$</li>
+
+  <li>Maclaurin Series:
+    
+  $$f(x)=\sum_{n=0}^{\infty}f^{(n)}(0)\frac{x^{n}}{n!}=f(0)+f^{\prime}(0)x+\frac{f^{\prime\prime}(0)x^{2}}{2!}+\dots+\frac{f^{(n)}(0)x^{n}}{n!}+R_{n}$$ </li>
+  
+</ol>
+
+<h2>Power Series Expansions for Some Functions </h2>
+<p>
+  Whole number: $n$<br>
+  Real number: $x$ <br>
+</p>
+
+<ol>
+
+  <li>Exponential function:
+  $$e^{x}=1+x+\dfrac{x^{2}}{2!}+\dfrac{x^{3}}{3!}+\dots+\dfrac{x^{n}}{n!}+\dots $$</li>
+  
+  <li>General exponential function:
+  $$a^{x}=1+\dfrac{x \ln a}{1!}+\dfrac{(x \ln a)^{2}}{2!}+\dfrac{(x \ln a)^{3}}{3!}+\dots+\dfrac{(x \ln a)^{n}}{n!}+\dots $$</li>
+  
+  <li>Natural logarithm of $(1+x)$ (for $-1 \lt x \le 1$):
+  $$\ln(1+x)=x-\dfrac{x^{2}}{2}+\dfrac{x^{3}}{3}-\dfrac{x^{4}}{4}+\dots+\dfrac{(-1)^{n}x^{n+1}}{n+1}\pm\dots $$</li>
+  
+  <li>Logarithm of a quotient (for $|x|\lt 1$):
+  $$\ln\dfrac{1+x}{1-x}=2\left(x+\dfrac{x^{3}}{3}+\dfrac{x^{5}}{5}+\dfrac{x^{7}}{7}+\dots\right) $$</li>
+  
+  <li>Natural logarithm of $x$ (for $x\gt 0$):
+  $$\ln x=2\left[\dfrac{x-1}{x+1}+\dfrac{1}{3}\left(\dfrac{x-1}{x+1}\right)^{3}+\dfrac{1}{5}\left(\dfrac{x-1}{x+1}\right)^{5}+\dots\right] $$</li>
+  <li>Cosine function:
+  $$\cos x=1-\dfrac{x^{2}}{2!}+\dfrac{x^{4}}{4!}-\dfrac{x^{6}}{6!}+\dots+\dfrac{(-1)^{n}x^{2n}}{(2n)!}\pm\dots $$ </li>
+
+  <li>Sine function:
+    $$ \sin x = x - \dfrac{x^{3}}{3!} + \dfrac{x^{5}}{5!} - \dfrac{x^{7}}{7!} + \dots + \dfrac{(-1)^{n}x^{2n+1}}{(2n+1)!} \pm \dots $$</li>
+  
+  <li>Tangent function ($|x| \lt \frac{\pi}{2}$):
+    $$ \tan x = x + \dfrac{x^{3}}{3} + \dfrac{2x^{5}}{15} + \dfrac{17x^{7}}{315} + \dfrac{62x^{9}}{2835} + \dots $$</li>
+  
+  <li>Cotangent function ($|x| \lt \pi$):
+    $$ \cot x = \dfrac{1}{x} - \left(\dfrac{x}{3} + \dfrac{x^{3}}{45} + \dfrac{2x^{5}}{945} + \dfrac{2x^{7}}{4725} + \dots \right) $$</li>
+  
+  <li>Arcsine function ($|x| \lt 1$):
+    $$ \arcsin x = x + \dfrac{x^{3}}{2 \cdot 3} + \dfrac{1 \cdot 3x^{5}}{2 \cdot 4 \cdot 5} + \dots + \dfrac{1 \cdot 3 \cdot 5 \dots (2n-1)x^{2n+1}}{2 \cdot 4 \cdot 6 \dots (2n)(2n+1)} + \dots $$</li>
+  
+  <li>Arccosine function ($|x| \lt 1$):
+    $$ \arccos x = \dfrac{\pi}{2} - \left(x + \dfrac{x^{3}}{2 \cdot 3} + \dfrac{1 \cdot 3x^{5}}{2 \cdot 4 \cdot 5} + \dots + \dfrac{1 \cdot 3 \cdot 5 \dots (2n-1)x^{2n+1}}{2 \cdot 4 \cdot 6 \dots (2n)(2n+1)} + \dots \right) $$</li>
+  
+  <li>Arctangent function ($|x| \le 1$):
+    $$ \arctan x = x - \dfrac{x^{3}}{3} + \dfrac{x^{5}}{5} - \dfrac{x^{7}}{7} + \dots + \dfrac{(-1)^{n}x^{2n+1}}{2n+1} \pm \dots $$</li>
+  
+  <li>Hyperbolic cosine:
+    $$ \cosh x = 1 + \dfrac{x^{2}}{2!} + \dfrac{x^{4}}{4!} + \dfrac{x^{6}}{6!} + \dots + \dfrac{x^{2n}}{(2n)!} + \dots $$</li>
+  
+  <li>Hyperbolic sine:
+    $$ \sinh x = x + \dfrac{x^{3}}{3!} + \dfrac{x^{5}}{5!} + \dfrac{x^{7}}{7!} + \dots + \dfrac{x^{2n+1}}{(2n+1)!} + \dots $$</li>
+  
+</ol>
+
+<h2>Binomial Series </h2>
+<p>
+  Whole numbers: $n, m$<br>
+  Real number: $x$<br>
+  Combinations: ${}^{n}C_{m}$ 
+</p>
+
+<ol>
+  
+  <li>Binomial expansion:
+  $$(1+x)^{n}=1+{}^{n}C_{1}x+{}^{n}C_{2}x^{2}+\dots+{}^{n}C_{m}x^{m}+\dots+x^{n} $$</li>
+  
+  <li>Combination formula (for $|x|\lt 1$):
+  $${}^{n}C_{m}=\dfrac{n(n-1)\dots[n-(m-1)]}{m!} $$</li>
+  
+  <li>Geometric series expansion for $\frac{1}{1+x}$ ($|x|\lt 1$):
+  $$\dfrac{1}{1+x}=1-x+x^{2}-x^{3}+\dots $$</li>
+  
+  <li>Geometric series expansion for $\frac{1}{1-x}$ ($|x|\lt 1$):
+  $$\dfrac{1}{1-x}=1+x+x^{2}+x^{3}+\dots $$</li>
+  
+  <li>Square root expansion ($|x|\le 1$):
+  $$\sqrt{1+x}=1+\dfrac{x}{2}-\dfrac{x^{2}}{2\cdot4}+\dfrac{1\cdot3x^{3}}{2\cdot4\cdot6}-\dfrac{1\cdot3\cdot5x^{4}}{2\cdot4\cdot6\cdot8}+\dots $$</li>
+  
+  <li>Cube root expansion ($|x|\le 1$):
+  $$\sqrt[3]{1+x}=1+\dfrac{x}{3}-\dfrac{1\cdot2x^{2}}{3\cdot6}+\dfrac{1\cdot2\cdot5x^{3}}{3\cdot6\cdot9}-\dfrac{1\cdot2\cdot5\cdot8x^{4}}{3\cdot6\cdot9\cdot12}+\dots $$ </li>
+  
+</ol>
+
+<h2>11.13 Fourier Series </h2>
+
+<p>
+  Integrable function: $f(x)$<br>
+  Fourier coefficients: $a_{0}, a_{n}, b_{n}$<br> 
+  Whole number: $n$ 
+</p>
+
+<ol>
+
+  <li>Fourier Series expansion:
+    $$ f(x) = \dfrac{a_{0}}{2} + \sum_{n=1}^{\infty} (a_{n} \cos nx + b_{n} \sin nx) $$</li>
+  
+  <li>Fourier coefficient $a_{n}$:
+    $$ a_{n} = \dfrac{1}{\pi} \int_{-\pi}^{\pi} f(x) \cos nx \, dx $$</li>
+  
+  <li>Fourier coefficient $b_{n}$:
+    $$ b_{n} = \dfrac{1}{\pi} \int_{-\pi}^{\pi} f(x) \sin nx \, dx $$</li>
+</ol>
+
+
