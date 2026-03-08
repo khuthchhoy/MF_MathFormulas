@@ -1,7 +1,7 @@
 <p>
   Definite integral of a function: $\displaystyle\int_a ^b f(x)dx,\,\int_a ^b g(x)dx,\,...$<br>
   Riemann sum: $\displaystyle\sum_{i=1}^n f\Big( \xi\Big)\Delta x_i$<br>
-  Small changes: $Delta x_i$<br>
+  Small changes: $\Delta x_i$<br>
   Antiderivatives: $F(x),\, G(x)$<br>
   Limits of integrations: $a,b,c,d$
 </p>
@@ -32,7 +32,8 @@
   <li>$\displaystyle\int_{a}^{b} f(x)dx \le 0 \text{ if } f(x) \le 0 \text{ on } [a, b]$</li>
 
   <li><strong>Fundamental Theorem of Calculus</strong>: 
-    $$\displaystyle\int_{a}^{b}f(x)dx=F(x)|_{a}^{b}=F(b)-F(a)$ if $F^{\prime}(x)=f(x)$$</li>
+    $$\displaystyle\int_{a}^{b}f(x)dx=F(x)|_{a}^{b}=F(b)-F(a)$$ 
+    if $F^{\prime}(x)=f(x)$</li>
   
   <li><strong>Method of Substitution</strong>: If $x=g(t)$, then 
     $$\displaystyle\int_{a}^{b}f(x)dx=\int_{c}^{d}f(g(t))g^{\prime}(t)dt$$
@@ -46,10 +47,18 @@
     <img src="definite_integral_2.png">
   </li>
 
+  <li><strong>Simpson's Rule</strong>: 
+    $$\displaystyle\int_{a}^{b}f(x)dx=\frac{b-a}{3n}[f(x_{0})+4f(x_{1})+2f(x_{2})+4f(x_{3})+2f(x_{4})+...+4f(x_{n-1})+f(x_{n})]$$
+    where $$x_{i}=a+\frac{b-a}{n}i$, for $i=0,1,2,...,n$$
+    <img src="definite_integral_3.png">
+  </li>
 
+  <li><strong>Area Under a Curve</strong>: $S=\displaystyle\int_{a}^{b}f(x)dx=F(b)-F(a)$ , where $F^{\prime}(x)=f(x)$
+    <img src="definite_integral_4.png">
+  </li>
 
-
-
-  
-  
+  <li><strong>Area Between Two Curves</strong>: $S=\displaystyle\int_{a}^{b}[f(x)-g(x)]dx=F(b)-G(b)-F(a)+G(a)$, where $F^{\prime}(x)=f(x)$ and $G^{\prime}(x)=g(x)$
+    <img src="definite_integral_5.png">
+  </li>
+    
 </ol>
