@@ -1,0 +1,183 @@
+<h2>Arithmetic Series</h2>
+
+<p>
+  Initial term: $a_{1}$ <br>
+  Nth term: $a_{n}$ <br>
+  Difference: $d$<br>
+  Number of terms: $n$ <br>
+  Sum of first $n$ terms: $S_{n}$<br>
+</p>
+
+<ol>
+  <li>General term:
+  $$a_{n}=a_{n-1}+d=a_{n-2}+2d=\dots=a_{1}+(n-1)d$$ </li>
+  
+  <li>Property of equidistant terms:
+  $$a_{1}+a_{n}=a_{2}+a_{n-1}=\dots=a_{i}+a_{n+1-i}$$</li>
+  
+  <li>Arithmetic mean property:
+  $$a_{i}=\dfrac{a_{i-1}+a_{i+1}}{2}$$</li>
+  
+  <li>Sum of the first $n$ terms:
+  $$S_{n}=\dfrac{a_{1}+a_{n}}{2}\cdot n=\dfrac{2a_{1}+(n-1)d}{2}\cdot n$$</li>
+  
+</ol>
+
+<h2>Geometric Series</h2>
+
+<p>Initial term: $a_{1}$<br>
+  Nth term: $a_{n}$<br>
+  Common ratio: $q$<br>
+  Number of terms: $n$<br>
+  Sum of first $n$ terms: $S_{n}$<br>
+  Sum to infinity: $S$
+</p>
+
+<ol>
+
+  <li>General term:
+  $$a_{n}=qa_{n-1}=a_{1}q^{n-1}$$</li>
+  
+  <li>Property of equidistant terms:
+  $$a_{1}\cdot a_{n}=a_{2}\cdot a_{n-1}=\dots=a_{i}\cdot a_{n+1-i}$$</li>
+  
+  <li>Geometric mean property:
+  $$a_{i}=\sqrt{a_{i-1}\cdot a_{i+1}}$$</li>
+  
+  <li>Sum of the first $n$ terms:
+  $$S_{n}=\dfrac{a_{n}q-a_{1}}{q-1}=\dfrac{a_{1}(q^{n}-1)}{q-1}$$</li>
+  
+  <li>Sum to infinity (converges for $|q|\lt 1$ as $n\rightarrow\infty$):
+  $$S=\lim_{n\rightarrow\infty}S_{n}=\dfrac{a_{1}}{1-q}$$ </li>
+  
+</ol>
+
+<h2>Some Finite Series</h2>
+
+<p>
+  Number of terms in the series: $n$<br>
+</p>
+
+<ol>
+
+  <li>Sum of the first $n$ natural numbers:
+  $$1+2+3+\dots+n = \dfrac{n(n+1)}{2}$$ </li>
+
+  <li>Sum of the first $n$ even numbers:
+    $$2+4+6+\dots+2n = n(n+1)$$ </li>
+  
+  <li>Sum of the first $n$ odd numbers:
+    $$1+3+5+\dots+(2n-1) = n^2$$ </li>
+  
+  <li>Sum of $n$ consecutive integers starting from $k$:
+    $$k+(k+1)+(k+2)+\dots+(k+n-1) = \dfrac{n(2k+n-1)}{2}$$ </li>
+  
+  <li>Sum of the squares of the first $n$ natural numbers:
+    $$1^2+2^2+3^2+\dots+n^2 = \dfrac{n(n+1)(2n+1)}{6}$$ </li>
+  
+  <li>Sum of the cubes of the first $n$ natural numbers:
+    $$1^3+2^3+3^3+\dots+n^3 = \left[\dfrac{n(n+1)}{2}\right]^2$$ </li>
+  
+  <li>Sum of the squares of the first $n$ odd numbers:
+    $$1^2+3^2+5^2+\dots+(2n-1)^2 = \dfrac{n(4n^2-1)}{3}$$ </li>
+  
+  <li>Sum of the cubes of the first $n$ odd numbers:
+    $$1^3+3^3+5^3+\dots+(2n-1)^3 = n^2(2n^2-1)$$ </li>
+  
+  <li>Sum of an infinite geometric series with $a_1=1$ and $q=\frac{1}{2}$:
+    $$1+\dfrac{1}{2}+\dfrac{1}{4}+\dfrac{1}{8}+\dots+\dfrac{1}{2^n}+\dots = 2$$ </li>
+  
+  <li>Sum of a telescoping series:
+    $$\dfrac{1}{1\cdot2}+\dfrac{1}{2\cdot3}+\dfrac{1}{3\cdot4}+\dots+\dfrac{1}{n(n+1)}+\dots = 1$$ </li>
+  
+  <li>Power series for the exponential constant $e$:
+    $$1+\dfrac{1}{1!}+\dfrac{1}{2!}+\dfrac{1}{3!}+\dots+\dfrac{1}{(n-1)!}+\dots = e$$ </li>
+</ol>
+
+<h2>Infinite Series </h2>
+
+<p>
+  Sequence: $\{a_{n}\}$<br>
+  First term: $a_{1}$<br>
+  Nth term: $a_{n}$
+</p>
+<ol>
+  <li>Infinite Series:
+  $$\sum_{n=1}^{\infty}a_{n}=a_{1}+a_{2}+\dots+a_{n}+\dots$$</li>
+  <li>Nth Partial Sum:
+  $$S_{n}=\sum_{k=1}^{n}a_{k}=a_{1}+a_{2}+\dots+a_{n}$$</li>
+  <li>Convergence of Infinite Series:
+  $$\sum_{n=1}^{\infty}a_{n}=L \text{ if } \lim_{n\rightarrow\infty}S_{n}=L$$
+  </li>
+  <li>Nth Term Test<br>
+  If the series $\sum_{n=1}^{\infty}a_{n}$ is convergent, then $\lim_{n\rightarrow\infty}a_{n}=0$<br>
+  If $\lim_{n\rightarrow\infty}a_{n}\ne0$, then the series is divergent. </li>
+  
+</ol>
+
+<h2>Properties of Convergent Series </h2>
+
+<p>
+  Convergent Series: $\sum_{n=1}^{\infty}a_{n}=A, \sum_{n=1}^{\infty}b_{n}=B$<br>
+  Real number: $c$
+</p>
+
+<ol>
+
+  <li>Sum of series
+$$\sum_{n=1}^{\infty}(a_{n}+b_{n})=\sum_{n=1}^{\infty}a_{n}+\sum_{n=1}^{\infty}b_{n}=A+B$$</li>
+
+  <li>Multiplication by a constant:
+$$\sum_{n=1}^{\infty}ca_{n}=c\sum_{n=1}^{\infty}a_{n}=cA$$ </li>
+
+</ol>
+
+<h2>Convergence Tests</h2>
+
+<ol>
+
+  <li>The Comparison Test: <br>
+  Let $\sum_{n=1}^{\infty}a_{n}$ and $\sum_{n=1}^{\infty}b_{n}$ be series such that $0 \lt a_{n} \le b_{n}$ for all $n$. <br>
+  If $\sum_{n=1}^{\infty}b_{n}$ is convergent, then $\sum_{n=1}^{\infty}a_{n}$ is convergent. <br>
+  If $\sum_{n=1}^{\infty}a_{n}$ is divergent, then $\sum_{n=1}^{\infty}b_{n}$ is divergent. </li>
+  
+  <li>The Limit Comparison Test: <br>
+    
+    Let $\sum_{n=1}^{\infty}a_{n}$ and $\sum_{n=1}^{\infty}b_{n}$ be series such that $a_{n}$ and $b_{n}$ are positive for all $n$. <br>
+      
+    If $0 \lt \lim_{n\rightarrow\infty} \dfrac{a_{n}}{b_{n}} \lt \infty$, then $\sum_{n=1}^{\infty}a_{n}$ and $\sum_{n=1}^{\infty}b_{n}$ are either both convergent or both divergent. <br>
+      
+    If $\lim_{n\rightarrow\infty} \dfrac{a_{n}}{b_{n}} = 0$, then $\sum_{n=1}^{\infty}b_{n}$ convergent implies that $\sum_{n=1}^{\infty}a_{n}$ is also convergent.<br>
+      
+  If $\lim_{n\rightarrow \infty} \dfrac{a_{n}}{b_{n}} = \infty$, then $\sum_{n=1}^{\infty} b_{n}$ divergent implies that $\sum_{n=1}^{\infty} a_{n}$ is also divergent. </li>
+  
+  <li>p-series <br>
+    
+  The p-series $\sum_{n=1}^{\infty} \dfrac{1}{n^{p}}$ converges for $p \gt 1$ and diverges for $0 \lt p \le 1$. </li>
+  
+  <li>The Integral Test <br>
+    
+  Let $f(x)$ be a function which is continuous, positive, and decreasing for all $x \ge 1$. <br>
+    
+  The series $\sum_{n=1}^{\infty} f(n) = f(1) + f(2) + f(3) + \dots + f(n) + \dots$ converges if $\int_{1}^{\infty} f(x)dx$ converges, and diverges if $\int_{1}^{n} f(x)dx \rightarrow \infty$ as $n \rightarrow \infty$. </li>
+  
+  <li>The Ratio Test <br>
+    
+  Let $\sum_{n=1}^{\infty} a_{n}$ be a series with positive terms. <br>
+    
+  If $\lim_{n\rightarrow \infty} \dfrac{a_{n+1}}{a_{n}} \lt 1$, then $\sum_{n=1}^{\infty} a_{n}$ is convergent. <br>
+    
+  If $\lim_{n\rightarrow \infty} \dfrac{a_{n+1}}{a_{n}} \gt 1$, then $\sum_{n=1}^{\infty} a_{n}$ is divergent. <br>
+    
+  If $\lim_{n\rightarrow \infty} \dfrac{a_{n+1}}{a_{n}} = 1$, then the ratio test is inconclusive; some other tests must be used as the series may converge or diverge. </li>
+
+  <li>The Root Test <br>
+  Let $\sum_{n=1}^{\infty} a_{n}$ be a series with positive terms. <br>
+    
+  If $\lim_{n\rightarrow\infty} \sqrt[n]{a_{n}} \lt 1$, then $\sum_{n=1}^{\infty} a_{n}$ is convergent. <br>
+    
+  If $\lim_{n\rightarrow\infty} \sqrt[n]{a_{n}} \gt 1$, then $\sum_{n=1}^{\infty} a_{n}$ is divergent. <br>
+    
+  If $\lim_{n\rightarrow\infty} \sqrt[n]{a_{n}} = 1$, then $\sum_{n=1}^{\infty} a_{n}$ may converge or diverge, and no conclusion can be drawn from this test. </li>
+  
+</ol>
