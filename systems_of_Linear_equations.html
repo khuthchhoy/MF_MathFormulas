@@ -1,0 +1,63 @@
+<h2>Systems of Linear Equations</h2>
+
+<p>
+    Variables: $x, y, z, x_{1}, x_{2}, \dots$,<br>
+    Real numbers: $a_{1}, a_{2}, a_{3}, b_{1}, a_{11}, a_{12}, \dots$<br>
+    Determinants: $D, D_{x}, D_{y}, D_{z}$, <br> 
+    Matrices: $A, B, X$
+</p>
+
+<p>1. System of two linear equations:
+  $$\begin{cases} a_{1}x + b_{1}y = d_{1} \\ a_{2}x + b_{2}y = d_{2} \end{cases}$$</p>
+
+<p>2. Cramer's rule for a $2\times2$ system:
+  $$x = \dfrac{D_{x}}{D}, \quad y = \dfrac{D_{y}}{D}$$
+  where:
+  $$D = \begin{vmatrix} a_{1} & b_{1} \\ a_{2} & b_{2} \end{vmatrix} = a_{1}b_{2} - a_{2}b_{1}$$
+  $$D_{x} = \begin{vmatrix} d_{1} & b_{1} \\ d_{2} & b_{2} \end{vmatrix} = d_{1}b_{2} - d_{2}b_{1}$$
+  $$D_{y} = \begin{vmatrix} a_{1} & d_{1} \\ a_{2} & d_{2} \end{vmatrix} = a_{1}d_{2} - a_{2}d_{1}$$</p>
+
+<p>3. Conditions for solutions ($2\times2$):
+  <ul>
+    <li>If $D \neq 0$, the system has a single solution: $x = \dfrac{D_{x}}{D}, y = \dfrac{D_{y}}{D}$.</li>
+    <li>If $D = 0$ and $D_{x} \neq 0$ (or $D_{y} \neq 0$), the system has no solution.</li>
+    <li>If $D = D_{x} = D_{y} = 0$, the system has infinitely many solutions.</li>
+  </ul>
+</p>
+
+<p>4. System of three linear equations:
+  $$\begin{cases} a_{1}x + b_{1}y + c_{1}z = d_{1} \\ a_{2}x + b_{2}y + c_{2}z = d_{2} \\ a_{3}x + b_{3}y + c_{3}z = d_{3} \end{cases}$$</p>
+
+<p>5. Cramer's rule for a $3\times3$ system:
+  $$x = \dfrac{D_{x}}{D}, \quad y = \dfrac{D_{y}}{D}, \quad z = \dfrac{D_{z}}{D}$$
+  where
+  $$D = \begin{vmatrix} a_{1} & b_{1} & c_{1} \\ a_{2} & b_{2} & c_{2} \\ a_{3} & b_{3} & c_{3} \end{vmatrix}, \quad D_{x} = \begin{vmatrix} d_{1} & b_{1} & c_{1} \\ d_{2} & b_{2} & c_{2} \\ d_{3} & b_{3} & c_{3} \end{vmatrix}, \quad D_{y} = \begin{vmatrix} a_{1} & d_{1} & c_{1} \\ a_{2} & d_{2} & c_{2} \\ a_{3} & d_{3} & c_{3} \end{vmatrix}, \quad D_{z} = \begin{vmatrix} a_{1} & b_{1} & d_{1} \\ a_{2} & b_{2} & d_{2} \\ a_{3} & b_{3} & d_{3} \end{vmatrix}$$</p>
+
+<p>6. Conditions for solutions ($3\times3$):
+  <ul>
+    <li>If $D \neq 0$, the system has a single solution: $x = \dfrac{D_{x}}{D}, y = \dfrac{D_{y}}{D}, z = \dfrac{D_{z}}{D}$.</li>
+    <li>If $D = 0$ and $D_{x} \neq 0$ (or $D_{y} \neq 0$ or $D_{z} \neq 0$), the system has no solution.</li>
+    <li>If $D = D_{x} = D_{y} = D_{z} = 0$, the system has infinitely many solutions.</li>
+  </ul>
+</p>
+
+<p>7. Matrix Form of a System of $n$ Linear Equations in $n$ Unknowns: <br>
+  The set of linear equations:
+  $$\begin{aligned}
+  a_{11}x_{1} + a_{12}x_{2} + \dots + a_{1n}x_{n} &= b_{1} \\
+  a_{21}x_{1} + a_{22}x_{2} + \dots + a_{2n}x_{n} &= b_{2} \\
+  &\vdots \\
+  a_{n1}x_{1} + a_{n2}x_{2} + \dots + a_{nn}x_{n} &= b_{n}
+  \end{aligned}$$
+  can be written in matrix form:
+  $$\begin{pmatrix} a_{11} & a_{12} & \dots & a_{1n} \\ a_{21} & a_{22} & \dots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ a_{n1} & a_{n2} & \dots & a_{nn} \end{pmatrix} \begin{pmatrix} x_{1} \\ x_{2} \\ \vdots \\ x_{n} \end{pmatrix} = \begin{pmatrix} b_{1} \\ b_{2} \\ \vdots \\ b_{n} \end{pmatrix}$$
+  which is represented as:
+  $$A \cdot X = B,$$
+
+  where
+  $$A = \begin{pmatrix} a_{11} & a_{12} & \dots & a_{1n} \\ a_{21} & a_{22} & \dots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ a_{n1} & a_{n2} & \dots & a_{nn} \end{pmatrix}, \quad X = \begin{pmatrix} x_{1} \\ x_{2} \\ \vdots \\ x_{n} \end{pmatrix}, \quad B = \begin{pmatrix} b_{1} \\ b_{2} \\ \vdots \\ b_{n} \end{pmatrix}$$</p>
+
+<p>8. Solution of a Set of $n \times n$ Linear Equations: <br>
+  The solution is given by:
+  $$X = A^{-1} \cdot B,$$
+  where $A^{-1}$ is the inverse of matrix $A$.</p>
