@@ -1,0 +1,70 @@
+
+<h2>Three-Dimensional Coordinate System</h2>
+
+<p>
+    Point coordinates: $x_{0}$, $y_{0}$, $Z_{0}$, $X_{1}$, $y_{1}$ $Z_{1},...$<br>
+
+    Real number: $\lambda$<br>
+
+    Distance between two points: $d$<br>
+
+    Area: $S$<br>
+
+    Volume: $V$
+</p>
+
+<p>1. Distance Between Two Points<br>
+    $d = AB = \sqrt{(x_{2}-x_{1})^{2}+(y_{2}-y_{1})^{2}+(z_{2}-z_{1})^{2}}$
+</p>
+
+<figure style="text-align:center;">
+    <img src="three-Dimensional_coordinate_system_1.png" alt=" ">
+</figure>
+
+<p>2. Dividing a Line Segment in the Ratio $\lambda$<br>
+
+    $x_{0}=\dfrac{x_{1}+\lambda x_{2}}{1+\lambda}, y_{0}=\dfrac{y_{1}+\lambda y_{2}}{1+\lambda}, z_{0}=\dfrac{z_{1}+\lambda z_{2}}{1+\lambda}$<br>
+
+    where<br>
+
+    $\lambda=\dfrac{AC}{CB}, \lambda \neq -1.$
+</p>
+
+<figure style="text-align:center;">
+    <img src="three-Dimensional_coordinate_system_2.png" alt=" ">
+    <figcaption style="font-size:0.9em; color:#555;">
+        Figure: $\lambda \gt 0$
+    </figcaption>
+</figure>
+
+<figure style="text-align:center;">
+    <img src="three-Dimensional_coordinate_system_3.png" alt=" ">
+    <figcaption style="font-size:0.9em; color:#555;">
+        Figure: $\lambda \lt 0$
+    </figcaption>
+</figure>
+
+<p>3. Midpoint of a Line Segment<br>
+    $x_{0}=\dfrac{x_{1}+x_{2}}{2}; y_{0}=\dfrac{y_{1}+y_{2}}{2}, z_{0}=\dfrac{z_{1}+z_{2}}{2}, \lambda=1.$
+</p>
+
+<p>4. Area of a Triangle<br>
+    The area of a triangle with vertices $P_{1}(x_{1},y_{1},z_{1})$, $P_{2}(x_{2},y_{2},z_{2})$ and $P_{3}(x_{3},y_{3},z_{3})$ is given by<br>
+
+    $S=\dfrac{1}{2} \sqrt{ \begin{vmatrix} y_{1} & z_{1} & 1 \\ y_{2} & z_{2} & 1 \\ y_{3} & z_{3} & 1 \end{vmatrix}^{2} + \begin{vmatrix} z_{1} & x_{1} & 1 \\ z_{2} & x_{2} & 1 \\ z_{3} & x_{3} & 1 \end{vmatrix}^{2} + \begin{vmatrix} x_{1} & y_{1} & 1 \\ x_{2} & y_{2} & 1 \\ x_{3} & y_{3} & 1 \end{vmatrix}^{2} }$
+</p>
+
+<p>5. Volume of a Tetrahedron<br>
+    The volume of a tetrahedron with vertices $P_{1}(x_{1},y_{1},z_{1})$, $P_{2}(x_{2},y_{2},z_{2})$, $P_{3}(x_{3},y_{3},z_{3})$, and $P_{4}(x_{4},y_{4},z_{4})$ is given by<br>
+    $V=\pm\dfrac{1}{6} \begin{vmatrix} x_{1} & y_{1} & z_{1} & 1 \\ x_{2} & y_{2} & z_{2} & 1 \\ x_{3} & y_{3} & z_{3} & 1 \\ x_{4} & y_{4} & z_{4} & 1 \end{vmatrix},$<br>
+    or <br>
+    $V=\pm\dfrac{1}{6} \begin{vmatrix} x_{1}-x_{4} & y_{1}-y_{4} & z_{1}-z_{4} \\ x_{2}-x_{4} & y_{2}-y_{4} & z_{2}-z_{4} \\ x_{3}-x_{4} & y_{3}-y_{4} & z_{3}-z_{4} \end{vmatrix}.$<br>
+    <strong>Note:</strong> We choose the sign (+) or (-) so that to get a positive answer for volume.
+</p>
+
+<figure style="text-align:center;">
+    <img src="three-Dimensional_coordinate_system_4.png" alt=" ">
+</figure>
+
+
+
