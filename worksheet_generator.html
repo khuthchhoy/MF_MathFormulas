@@ -1,50 +1,81 @@
-
-  <style>
-    /* iOS System Variables & Base Styles */
+<style>
     :root {
-      --bg-color: #f2f2f7;
+      --bg-color: #f2f2f7; 
       --card-bg: #ffffff;
       --text-main: #000000;
       --text-muted: #8e8e93;
       --primary-blue: #007aff;
-      --primary-blue-active: #005ecb;
-      --border-color: #c6c6c8;
+      --border-color: #d1d1d6;
+      --ios-green: #34c759;
+      --segment-bg: #eeeeef;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #000000;
+        --card-bg: #1c1c1e;
+        --text-main: #ffffff;
+        --text-muted: #8e8e93;
+        --border-color: #38383a;
+        --segment-bg: #2c2c2e;
+      }
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-main);
       margin: 0;
-      padding: 20px;
+      padding-bottom: 50px;
       -webkit-font-smoothing: antialiased;
     }
 
-    h1 {
-      text-align: center;
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 24px;
-      letter-spacing: 0.5px;
+    /* Header */
+    .sticky-bar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background-color: rgba(242, 242, 247, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
+
+    .sticky-bar h1 { margin: 0; font-size: 17px; font-weight: 600; }
+
+    .btn-generate {
+      background-color: var(--primary-blue);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-generate:active { opacity: 0.7; }
 
     .app-container {
       max-width: 600px;
       margin: 0 auto;
+      padding: 16px;
     }
 
-    /* iOS Card Style */
     .section-title {
       font-size: 13px;
       text-transform: uppercase;
       color: var(--text-muted);
-      margin: 0 0 8px 16px;
-      font-weight: normal;
+      margin: 20px 0 8px 16px;
     }
 
     .card {
       background-color: var(--card-bg);
-      border-radius: 10px;
+      border-radius: 12px;
       overflow: hidden;
       margin-bottom: 24px;
     }
@@ -54,380 +85,328 @@
       justify-content: space-between;
       align-items: center;
       padding: 12px 16px;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 0.5px solid var(--border-color);
     }
 
-    .row:last-child {
-      border-bottom: none;
+    .row:last-child { border-bottom: none; }
+
+    /* Difficulty Segmented Control Fix */
+    .segmented-control {
+      display: flex;
+      background: var(--segment-bg);
+      padding: 2px;
+      border-radius: 10px;
+      margin: 12px;
+      height: 32px;
+      align-items: stretch;
     }
 
-    .row label {
-      font-size: 17px;
+    .segment {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.2s, box-shadow 0.2s;
+      color: var(--text-main);
     }
 
-    /* iOS Inputs & Selects */
+    .segment.active {
+      background: var(--card-bg);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    }
+
+    /* Inputs & Select */
     input[type="text"], select {
       font-size: 17px;
       padding: 6px 12px;
       border: 1px solid var(--border-color);
-      border-radius: 6px;
+      border-radius: 8px;
       background: var(--bg-color);
       color: var(--text-main);
-      text-align: right;
-      width: 80px;
       font-family: inherit;
+      outline: none;
     }
 
-    select {
-      width: auto;
-      appearance: none;
-      -webkit-appearance: none;
-      padding-right: 24px;
-      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%238e8e93%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-      background-repeat: no-repeat;
-      background-position: right 8px top 50%;
-      background-size: 10px auto;
-    }
+    input[type="text"] { width: 70px; text-align: right; }
+    select { min-width: 155px; text-align: right; direction: rtl; }
 
-    /* iOS Toggle Switch */
+    /* Toggle Switch Pixel-Perfect Fix */
     .switch {
       position: relative;
       display: inline-block;
-      width: 50px;
-      height: 30px;
+      width: 51px;
+      height: 31px;
     }
 
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+    .switch input { opacity: 0; width: 0; height: 0; }
 
     .slider {
       position: absolute;
       cursor: pointer;
       top: 0; left: 0; right: 0; bottom: 0;
-      background-color: var(--border-color);
-      transition: .4s;
-      border-radius: 30px;
+      background-color: #e9e9eb;
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 31px;
     }
 
     .slider:before {
       position: absolute;
       content: "";
-      height: 26px;
-      width: 26px;
+      height: 27px;
+      width: 27px;
       left: 2px;
       bottom: 2px;
       background-color: white;
-      transition: .4s;
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
       border-radius: 50%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
     }
 
-    input:checked + .slider {
-      background-color: #34c759; /* iOS Green */
-    }
+    input:checked + .slider { background-color: var(--ios-green); }
+    /* 51px total - 27px knob - 2px start = 22px final. Correcting for centering. */
+    input:checked + .slider:before { transform: translateX(20px); }
 
-    input:checked + .slider:before {
-      transform: translateX(20px);
-    }
-
-    /* iOS Buttons */
-    .btn-group {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding: 16px;
-      background: var(--card-bg);
-      border-radius: 10px;
-    }
-
-    button {
-      background-color: var(--primary-blue);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 17px;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-      transition: background-color 0.2s;
-    }
-
-    button:active {
-      background-color: var(--primary-blue-active);
-    }
-
-    button.secondary {
-      background-color: var(--bg-color);
+    .btn-secondary {
+      background-color: var(--card-bg);
       color: var(--primary-blue);
-    }
-
-    /* Worksheet Styling */
-    #TBL {
-      margin-top: 30px;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-
-    table#worksheet {
+      border: none;
+      padding: 16px;
+      font-size: 17px;
       width: 100%;
-      border-collapse: collapse;
-      font-size: 20px;
+      text-align: center;
+      border-top: 0.5px solid var(--border-color);
+      cursor: pointer;
     }
 
-    table#worksheet td {
-      padding: 15px 10px;
-      vertical-align: bottom;
+    /* Worksheet View */
+    #TBL {
+      margin-top: 10px;
+      background: white;
+      padding: 30px 20px;
+      border-radius: 12px;
+      color: black;
+      min-height: 200px;
     }
+
+    table { width: 100%; border-collapse: collapse; }
+    td { padding: 25px 10px; }
 
     .math-problem {
       display: inline-block;
       text-align: right;
       font-family: "Courier New", Courier, monospace;
-      font-size: 24px;
+      font-size: 26px;
       line-height: 1.2;
     }
 
-    .math-problem .bottom-row {
-      border-bottom: 2px solid black;
-      margin-bottom: 5px;
-    }
+    .bottom-line { border-bottom: 2px solid black; margin-bottom: 4px; padding-bottom: 2px; }
+    .answer { color: var(--ios-green); font-weight: 700; height: 30px; }
 
-    /* Hide Debugging by default */
-    #dbg, #test {
-      display: none;
-      font-family: monospace;
-      font-size: 12px;
-      background: #333;
-      color: #0f0;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 20px;
-    }
-
-    /* Print Styles */
     @media print {
-      body * {
-        visibility: hidden;
-      }
-      body {
-        background-color: white;
-      }
-      #TBL, #TBL * {
-        visibility: visible;
-      }
-      #TBL {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        box-shadow: none;
-      }
-      .math-problem {
-        font-size: 20px;
-      }
+      .sticky-bar, .app-container > :not(#TBL) { display: none !important; }
+      body { background: white; }
+      #TBL { padding: 0; margin: 0; }
     }
   </style>
-  <div class="app-container">
-    <h1>Worksheet Generator</h1>
-
-    <h2 class="section-title">Configuration</h2>
-    <div class="card" id="Configuration">
-      <div class="row">
-        <label for="NumProb">Number of Problems</label>
-        <input type="text" id="NumProb" inputmode="numeric" onchange="NewConfig()">
-      </div>
-      <div class="row">
-        <label for="ColPage">Columns per Page</label>
-        <input type="text" id="ColPage" inputmode="numeric" onchange="NewConfig()">
-      </div>
-      <div class="row">
-        <label for="MinVal">Minimum Value</label>
-        <input type="text" id="MinVal" inputmode="numeric" onchange="NewConfig()">
-      </div>
-      <div class="row">
-        <label for="MaxVal">Maximum Value</label>
-        <input type="text" id="MaxVal" inputmode="numeric" onchange="NewConfig()">
-      </div>
-      <div class="row">
-        <label for="ReMax">Top number always larger?</label>
-        <label class="switch">
-          <input type="checkbox" id="ReMax" onchange="NewConfig()">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="row">
-        <label for="MathAction">Worksheet Type</label>
-        <select id="MathAction" onchange="NewConfig()">
-          <option value="add">Addition (+)</option>
-          <option value="sub">Subtraction (-)</option>
-          <option value="mul">Multiplication (×)</option>
-          <option value="div">Division (÷)</option>
-        </select>
-      </div>
-    </div>
-
-    <h2 class="section-title">Actions</h2>
-    <div class="btn-group" id="Actions">
-      <div class="row" style="padding: 0 0 12px 0; border-bottom: none;">
-        <label for="answers">Show Answers</label>
-        <label class="switch">
-          <input type="checkbox" id="answers" onchange="GenerateWS()">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <button onclick="GenerateWS()">Generate Worksheet</button>
-      <button class="secondary" onclick="NewSet()">New random values</button>
-      <button class="secondary" onclick="Scramble()">Scramble current values</button>
-    </div>
-
-    <div id="TBL"></div>
-
-    <div id="dbg"></div>
-    <div id="test"></div>
-
+  <div class="sticky-bar">
+    <h1>Math Master</h1>
+    <button class="btn-generate" onclick="fullRefresh()">Generate</button>
   </div>
 
-<script type="text/javascript">
-  var Debug = false;
-  if (Debug === true) {
-    document.getElementById("dbg").style.display = "block";
-    document.getElementById("test").style.display = "block";
-    document.getElementById("dbg").innerHTML += "DEBUG MODE ACTIVE";
-    document.getElementById("dbg").innerHTML += "<br /> <button onclick=\"ShowConfig()\">show config</button> <button onclick=\"NewConfig()\">load config</button> <br /> <button onclick=\"ClearDebugMessages()\">clear messages</button> <br /> ---- DEBUG MESSAGES BELOW ----";
+  <div class="app-container">
+    
+    <h2 class="section-title">Difficulty</h2>
+    <div class="card">
+      <div class="segmented-control">
+        <div id="seg-easy" class="segment" onclick="setDifficulty('easy')">Easy</div>
+        <div id="seg-med" class="segment active" onclick="setDifficulty('med')">Medium</div>
+        <div id="seg-hard" class="segment" onclick="setDifficulty('hard')">Hard</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Settings</h2>
+    <div class="card">
+      <div class="row">
+        <label>Type</label>
+        <select id="MathAction" onchange="updateState()">
+          <option value="add">Addition</option>
+          <option value="sub">Subtraction</option>
+          <option value="mul">Multiplication</option>
+          <option value="div">Division</option>
+          <option value="mixed">Mixed</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Problems</label>
+        <input type="text" id="NumProb" inputmode="numeric" onchange="updateState()">
+      </div>
+      <div class="row">
+        <label>Columns</label>
+        <input type="text" id="ColPage" inputmode="numeric" onchange="updateState()">
+      </div>
+      <div class="row">
+        <label>Min Value</label>
+        <input type="text" id="MinVal" inputmode="numeric" onchange="updateState()">
+      </div>
+      <div class="row">
+        <label>Max Value</label>
+        <input type="text" id="MaxVal" inputmode="numeric" onchange="updateState()">
+      </div>
+      <div class="row">
+        <label>Top > Bottom</label>
+        <label class="switch">
+          <input type="checkbox" id="ReMax" onchange="updateState()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <label>Show Answers</label>
+        <label class="switch">
+          <input type="checkbox" id="answers" onchange="renderWorksheet(); triggerHaptic();">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <button class="btn-secondary" onclick="scrambleCurrent()">Scramble Order</button>
+    </div>
+
+    <h2 class="section-title">Worksheet Preview</h2>
+    <div id="TBL"></div>
+  </div>
+
+<script>
+  let config = {
+    numProb: 12,
+    cols: 3,
+    min: 10,
+    max: 99,
+    topBigger: true,
+    action: 'add',
+    data: [] 
+  };
+
+  function save() {
+    const toSave = {...config};
+    delete toSave.data; 
+    localStorage.setItem('mathAppConfig', JSON.stringify(toSave));
   }
 
-  var NumberOfProblems = 15;
-  var ColumnsOnPage = 3;
-  var MinimumValue = 0;
-  var MaximumValue = 999;
-  var TopBigger = false;
+  function load() {
+    const saved = localStorage.getItem('mathAppConfig');
+    if (saved) {
+      Object.assign(config, JSON.parse(saved));
+      document.getElementById("NumProb").value = config.numProb;
+      document.getElementById("ColPage").value = config.cols;
+      document.getElementById("MinVal").value = config.min;
+      document.getElementById("MaxVal").value = config.max;
+      document.getElementById("ReMax").checked = config.topBigger;
+      document.getElementById("MathAction").value = config.action;
+    }
+    updateDifficultyUI();
+  }
 
-  document.getElementById("NumProb").value = NumberOfProblems;
-  document.getElementById("ColPage").value = ColumnsOnPage;
-  document.getElementById("MinVal").value = MinimumValue;
-  document.getElementById("MaxVal").value = MaximumValue;
-  document.getElementById("ReMax").checked = TopBigger;
+  function triggerHaptic() {
+    if (navigator.vibrate) navigator.vibrate(15);
+  }
 
-  function RandomSet() {
-    for (var i=0; i<NumberOfProblems; i++) {
-      xvals[i] = (Math.floor(Math.random() * (MaximumValue - MinimumValue + 1)) + parseInt(MinimumValue));
-      if (TopBigger === true) {
-        yvals[i] = (Math.floor(Math.random() * (xvals[i] - MinimumValue + 1)) + parseInt(MinimumValue));
+  function updateDifficultyUI() {
+    document.querySelectorAll('.segment').forEach(s => s.classList.remove('active'));
+    if (config.min == 0 && config.max == 10) document.getElementById('seg-easy').classList.add('active');
+    else if (config.min == 10 && config.max == 99) document.getElementById('seg-med').classList.add('active');
+    else if (config.min == 100 && config.max == 999) document.getElementById('seg-hard').classList.add('active');
+  }
+
+  function updateState() {
+    config.numProb = parseInt(document.getElementById("NumProb").value) || 12;
+    config.cols = parseInt(document.getElementById("ColPage").value) || 3;
+    config.min = parseInt(document.getElementById("MinVal").value) || 0;
+    config.max = parseInt(document.getElementById("MaxVal").value) || 10;
+    config.topBigger = document.getElementById("ReMax").checked;
+    config.action = document.getElementById("MathAction").value;
+    updateDifficultyUI();
+    save();
+    generateNewData();
+  }
+
+  function setDifficulty(level) {
+    if (level === 'easy') { config.min = 0; config.max = 10; }
+    if (level === 'med')  { config.min = 10; config.max = 99; }
+    if (level === 'hard') { config.min = 100; config.max = 999; }
+    document.getElementById("MinVal").value = config.min;
+    document.getElementById("MaxVal").value = config.max;
+    updateState();
+  }
+
+  function generateNewData() {
+    config.data = [];
+    const ops = ['add', 'sub', 'mul', 'div'];
+
+    for (let i = 0; i < config.numProb; i++) {
+      let activeOp = config.action === 'mixed' ? ops[Math.floor(Math.random() * 4)] : config.action;
+      let x, y, ans;
+
+      if (activeOp === 'div') {
+        y = Math.floor(Math.random() * (config.max > 20 ? 11 : 5)) + 2; 
+        ans = Math.floor(Math.random() * (config.max > 50 ? 12 : 6)) + 1;
+        x = y * ans;
       } else {
-        yvals[i] = (Math.floor(Math.random() * (MaximumValue - MinimumValue + 1)) + parseInt(MinimumValue));
+        x = Math.floor(Math.random() * (config.max - config.min + 1)) + config.min;
+        y = config.topBigger 
+            ? Math.floor(Math.random() * (x - config.min + 1)) + config.min 
+            : Math.floor(Math.random() * (config.max - config.min + 1)) + config.min;
+        
+        if (activeOp === 'add') ans = x + y;
+        if (activeOp === 'sub') ans = x - y;
+        if (activeOp === 'mul') ans = x * y;
       }
+      config.data.push({ x, y, op: activeOp, ans });
     }
+    renderWorksheet();
   }
 
-  var xvals = [];
-  var yvals = [];
-  RandomSet();
+  function renderWorksheet() {
+    const showAns = document.getElementById('answers').checked;
+    const symbols = { add: '+', sub: '-', mul: '×', div: '÷' };
+    let html = '<table><tr>';
 
-  function NewSet() {
-    xvals.length = 0;
-    yvals.length = 0;
-    RandomSet();
-    GenerateWS(); // Automatically regenerate to show the new set
-  }
-
-  function randOrd() {
-    return (Math.round(Math.random()) - 0.5);
-  }
-
-  function Scramble() {
-    xvals.sort(randOrd);
-    yvals.sort(randOrd);
-    GenerateWS(); // Automatically regenerate to show the scrambled set
-  }
-
-  // Updated MakeTable to use nicer HTML formatting for the math problems
-  function MakeTable(act) {
-    var tmp = '';
-    var str = '<table id="worksheet"><tr>';
-    var operatorSign = {'add': '+', 'sub': '-', 'mul': '×', 'div': '÷'};
-    var i = 0;
-    
-    while (i < NumberOfProblems) {
-      x = xvals[i];
-      y = yvals[i];
-      
-      if (act == 'add') tmp = x + y; 
-      if (act == 'sub') tmp = x - y; 
-      if (act == 'mul') tmp = x * y; 
-      if (act == 'div') tmp = (x / y).toFixed(2); 
-
-      // Build a clean, formatted math problem block
-      str += '<td align="center"><div class="math-problem">';
-      str += '<div>&nbsp;&nbsp;' + x + '</div>';
-      str += '<div class="bottom-row">' + operatorSign[act] + ' ' + y + '</div>';
-      
-      if (document.getElementById('answers').checked) { 
-        str += '<div>' + tmp + '</div>'; 
-      } else { 
-        str += '<div>&nbsp;</div>'; 
+    config.data.forEach((item, index) => {
+      html += `
+        <td align="center">
+          <div class="math-problem">
+            <div>${item.x}</div>
+            <div class="bottom-line">${symbols[item.op]} ${item.y}</div>
+            <div class="answer">${showAns ? item.ans : '&nbsp;'}</div>
+          </div>
+        </td>`;
+      if ((index + 1) % config.cols === 0 && (index + 1) < config.data.length) {
+        html += '</tr><tr>';
       }
-      
-      str += '</div></td>';
-      i++;  
-      if ((i % ColumnsOnPage) == 0 && i < NumberOfProblems) { 
-        str += '</tr><tr>'; 
-      }
-    }  
-    str += '</tr></table>';
-    return str;
+    });
+
+    html += '</tr></table>';
+    document.getElementById('TBL').innerHTML = html;
   }
 
-  function GenerateWS() {
-    var sel = document.getElementById('MathAction').value;
-    var str = '';
-    switch (sel) {
-      case 'add': 
-      case 'sub': 
-      case 'mul': 
-      case 'div': 
-        str += MakeTable(sel); 
-        break;
-      default: 
-        alert('No choice selected'); 
-        break;
-    }
-    document.getElementById('TBL').innerHTML = str;
-    
-    // Smoothly scroll to the worksheet on mobile
-    document.getElementById('TBL').scrollIntoView({ behavior: 'smooth' });
+  function fullRefresh() {
+    triggerHaptic();
+    generateNewData();
+    document.getElementById('TBL').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function NewConfig() {
-    NumberOfProblems = parseInt(document.getElementById("NumProb").value) || 0;
-    ColumnsOnPage = parseInt(document.getElementById("ColPage").value) || 1;
-    MinimumValue = parseInt(document.getElementById("MinVal").value) || 0;
-    MaximumValue = parseInt(document.getElementById("MaxVal").value) || 0;
-    TopBigger = document.getElementById("ReMax").checked;
-    
-    // Automatically fetch a new set of numbers if the config changes
-    NewSet(); 
+  function scrambleCurrent() {
+    triggerHaptic();
+    config.data.sort(() => Math.random() - 0.5);
+    renderWorksheet();
   }
 
-  function ShowConfig() {
-    document.getElementById("NumProb").value = NumberOfProblems;
-    document.getElementById("ColPage").value = ColumnsOnPage;
-    document.getElementById("MinVal").value = MinimumValue;
-    document.getElementById("MaxVal").value = MaximumValue;
-    document.getElementById("ReMax").checked = TopBigger;
-  }
-
-  function ClearDebugMessages() {
-    document.getElementById("test").innerHTML = "debug messages cleared";
-  }
-
-  // Generate a worksheet automatically on first load
-  window.onload = GenerateWS;
+  window.onload = () => {
+    load();
+    generateNewData();
+  };
 </script>
