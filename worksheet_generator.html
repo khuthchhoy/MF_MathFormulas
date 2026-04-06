@@ -1,225 +1,252 @@
 <style>
+  :root {
+    --bg-color: #f2f2f7; 
+    --card-bg: #ffffff;
+    --text-main: #000000;
+    --text-muted: #8e8e93;
+    --primary-blue: #007aff;
+    --border-color: #d1d1d6;
+    --ios-green: #34c759;
+    --segment-bg: #eeeeef;
+  }
+
+  @media (prefers-color-scheme: dark) {
     :root {
-      --bg-color: #f2f2f7; 
-      --card-bg: #ffffff;
-      --text-main: #000000;
+      --bg-color: #000000;
+      --card-bg: #1c1c1e;
+      --text-main: #ffffff;
       --text-muted: #8e8e93;
-      --primary-blue: #007aff;
-      --border-color: #d1d1d6;
-      --ios-green: #34c759;
-      --segment-bg: #eeeeef;
+      --border-color: #38383a;
+      --segment-bg: #2c2c2e;
     }
+  }
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg-color: #000000;
-        --card-bg: #1c1c1e;
-        --text-main: #ffffff;
-        --text-muted: #8e8e93;
-        --border-color: #38383a;
-        --segment-bg: #2c2c2e;
-      }
-    }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0;
+    padding-bottom: 50px;
+    -webkit-font-smoothing: antialiased;
+  }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      margin: 0;
-      padding-bottom: 50px;
-      -webkit-font-smoothing: antialiased;
-    }
+  /* Header */
+  .sticky-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: var(--card-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
 
-    /* Header */
-    .sticky-bar {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      background-color: var(--card-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-radius: 12px;
-    }
+  .btn-settings {
+    background: none;
+    border: none;
+    color: var(--primary-blue);
+    font-size: 17px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
 
-    .sticky-bar h1 { margin: 0; font-size: 17px; font-weight: 600; }
+  .btn-settings:active { opacity: 0.7; }
 
-    .btn-generate {
-      background-color: var(--primary-blue);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-    }
+  .action-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+    min-width: 140px;
+  }
 
-    .btn-generate:active { opacity: 0.7; }
+  .btn-generate {
+    background-color: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
 
-    .app-container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 16px;
-    }
+  .btn-scramble {
+    background-color: var(--segment-bg);
+    color: var(--primary-blue);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
 
-    .section-title {
-      font-size: 13px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin: 20px 0 8px 16px;
-    }
+  .btn-generate:active, .btn-scramble:active { opacity: 0.7; }
 
-    .card {
-      background-color: var(--card-bg);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 24px;
-    }
+  .app-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 16px;
+  }
 
-    .row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      border-bottom: 0.5px solid var(--border-color);
-    }
+  .section-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 20px 0 8px 16px;
+  }
 
-    .row:last-child { border-bottom: none; }
+  .card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
 
-    /* Difficulty Segmented Control Fix */
-    .segmented-control {
-      display: flex;
-      background: var(--segment-bg);
-      padding: 2px;
-      border-radius: 10px;
-      margin: 12px;
-      height: 32px;
-      align-items: stretch;
-    }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 0.5px solid var(--border-color);
+  }
 
-    .segment {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      border-radius: 8px;
-      transition: background 0.2s, box-shadow 0.2s;
-      color: var(--text-main);
-    }
+  .row:last-child { border-bottom: none; }
 
-    .segment.active {
-      background: var(--card-bg);
-      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
-    }
+  /* Difficulty Segmented Control */
+  .segmented-control {
+    display: flex;
+    background: var(--segment-bg);
+    padding: 2px;
+    border-radius: 10px;
+    margin: 12px;
+    height: 32px;
+    align-items: stretch;
+  }
 
-    /* Inputs & Select */
-    input[type="text"], select {
-      font-size: 17px;
-      padding: 6px 12px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      background: var(--bg-color);
-      color: var(--text-main);
-      font-family: inherit;
-      outline: none;
-    }
+  .segment {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.2s, box-shadow 0.2s;
+    color: var(--text-main);
+  }
 
-    input[type="text"] { width: 70px; text-align: right; }
-    select { min-width: 155px; text-align: right; direction: rtl; }
+  .segment.active {
+    background: var(--card-bg);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+  }
 
-    /* Toggle Switch Pixel-Perfect Fix */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 51px;
-      height: 31px;
-    }
+  /* Inputs & Select */
+  input[type="text"], select {
+    font-size: 17px;
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-color);
+    color: var(--text-main);
+    font-family: inherit;
+    outline: none;
+  }
 
-    .switch input { opacity: 0; width: 0; height: 0; }
+  input[type="text"] { width: 70px; text-align: right; }
+  select { min-width: 155px; text-align: right; direction: rtl; }
 
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #e9e9eb;
-      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
-      border-radius: 31px;
-    }
+  /* Toggle Switch */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 51px;
+    height: 31px;
+  }
 
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 27px;
-      width: 27px;
-      left: 2px;
-      bottom: 2px;
-      background-color: white;
-      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
-      border-radius: 50%;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-    }
+  .switch input { opacity: 0; width: 0; height: 0; }
 
-    input:checked + .slider { background-color: var(--ios-green); }
-    /* 51px total - 27px knob - 2px start = 22px final. Correcting for centering. */
-    input:checked + .slider:before { transform: translateX(20px); }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #e9e9eb;
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 31px;
+  }
 
-    .btn-secondary {
-      background-color: var(--card-bg);
-      color: var(--primary-blue);
-      border: none;
-      padding: 16px;
-      font-size: 17px;
-      width: 100%;
-      text-align: center;
-      border-top: 0.5px solid var(--border-color);
-      cursor: pointer;
-    }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 27px;
+    width: 27px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  }
 
-    /* Worksheet View */
-    #TBL {
-      margin-top: 10px;
-      background-color: var(--card-bg);
-      padding: 30px 20px;
-      border-radius: 12px;
-      color: var(--text-main);
-      min-height: 200px;
-    }
+  input:checked + .slider { background-color: var(--ios-green); }
+  input:checked + .slider:before { transform: translateX(20px); }
 
-    table { width: 100%; border-collapse: collapse; }
-    td { padding: 25px 10px; }
+  /* Worksheet View */
+  #TBL {
+    margin-top: 10px;
+    background-color: var(--card-bg);
+    padding: 30px 20px;
+    border-radius: 12px;
+    color: var(--text-main);
+    min-height: 200px;
+  }
 
-    .math-problem {
-      display: inline-block;
-      text-align: right;
-      font-family: "Courier New", Courier, monospace;
-      font-size: 26px;
-      line-height: 1.2;
-    }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 25px 10px; }
 
-    .bottom-line { border-bottom: 2px solid var(--text-main); margin-bottom: 4px; padding-bottom: 2px; }
-    .answer { color: var(--ios-green); font-weight: 700; height: 30px; }
+  .math-problem {
+    display: inline-block;
+    text-align: right;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 26px;
+    line-height: 1.2;
+  }
 
-    @media print {
-      .sticky-bar, .app-container > :not(#TBL) { display: none !important; }
-      body { background: white; }
-      #TBL { padding: 0; margin: 0; }
-    }
-  </style>
-  <div class="sticky-bar">
-    <h1>Math Master</h1>
+  .bottom-line { border-bottom: 2px solid var(--text-main); margin-bottom: 4px; padding-bottom: 2px; }
+  .answer { color: var(--ios-green); font-weight: 700; height: 30px; }
+
+  @media print {
+    .sticky-bar, .app-container > :not(#TBL) { display: none !important; }
+    body { background: white; }
+    #TBL { padding: 0; margin: 0; }
+  }
+</style>
+
+<div class="sticky-bar">
+  <button class="btn-settings" onclick="toggleSettings()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    Settings
+  </button>
+  <div class="action-stack">
     <button class="btn-generate" onclick="fullRefresh()">Generate</button>
+    <button class="btn-scramble" onclick="scrambleCurrent()">Scramble Order</button>
   </div>
+</div>
 
-  <div class="app-container">
-    
+<div class="app-container">
+  <div id="settings-panel" style="display: none;">
     <h2 class="section-title">Difficulty</h2>
     <div class="card">
       <div class="segmented-control">
@@ -274,12 +301,12 @@
           <span class="slider"></span>
         </label>
       </div>
-      <button class="btn-secondary" onclick="scrambleCurrent()">Scramble Order</button>
     </div>
-
-    <h2 class="section-title">Worksheet Preview</h2>
-    <div id="TBL"></div>
   </div>
+
+  <h2 class="section-title">Worksheet Preview</h2>
+  <div id="TBL"></div>
+</div>
 
 <script>
   let config = {
@@ -291,6 +318,16 @@
     action: 'add',
     data: [] 
   };
+
+  function toggleSettings() {
+    const panel = document.getElementById('settings-panel');
+    if (panel.style.display === 'none') {
+      panel.style.display = 'block';
+    } else {
+      panel.style.display = 'none';
+    }
+    triggerHaptic();
+  }
 
   function save() {
     const toSave = {...config};
@@ -404,6 +441,7 @@
     triggerHaptic();
     config.data.sort(() => Math.random() - 0.5);
     renderWorksheet();
+    document.getElementById('TBL').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   window.onload = () => {
