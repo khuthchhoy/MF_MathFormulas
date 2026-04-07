@@ -220,10 +220,19 @@
     font-weight: bold;
     font-size: 12px;
     text-transform: uppercase;
-    overflow-x: auto;
   }
 
   .katex-display { margin: 0.5em 0 !important; overflow: auto hidden!important;}
+  /* Force long math blocks to wrap text */
+  .katex-display {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+  }
+  
+  /* Ensure the text spans inside KaTeX allow wrapping */
+  .katex-display .text {
+    white-space: normal !important;
+  }
 </style>
 
 
