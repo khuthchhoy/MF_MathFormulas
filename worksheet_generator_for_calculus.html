@@ -1,4 +1,3 @@
-
 <style>
   :root {
     --bg-color: #f2f2f7; 
@@ -61,41 +60,31 @@
     gap: 4px;
   }
 
-  .btn-settings:active { opacity: 0.7; }
-
   .action-stack {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    align-items: stretch;
-    min-width: 140px;
+    gap: 8px;
+    align-items: center;
   }
 
-  .btn-generate, .btn-scramble {
+  button {
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  
+  button:active { opacity: 0.7; }
+
+  .btn-generate {
     border: none;
     border-radius: 8px;
     font-weight: 600;
-    cursor: pointer;
-  }
-
-  .btn-generate {
     background-color: var(--primary-blue);
     color: white;
     padding: 8px 14px;
     font-size: 15px;
   }
 
-  .btn-scramble {
-    background-color: var(--segment-bg);
-    color: var(--primary-blue);
-    padding: 6px 14px;
-    font-size: 13px;
-  }
-
-  .btn-generate:active, .btn-scramble:active { opacity: 0.7; }
-
   .app-container {
-    max-width: 700px;
+    max-width: 800px;
     margin: 0 auto;
     padding: 16px;
   }
@@ -105,6 +94,9 @@
     text-transform: uppercase;
     color: var(--text-muted);
     margin: 20px 0 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
   }
 
   .card {
@@ -112,6 +104,7 @@
     border-radius: 12px;
     overflow: hidden;
     margin-bottom: 24px;
+    transition: max-height 0.3s ease-in-out;
   }
 
   .row {
@@ -124,7 +117,6 @@
 
   .row:last-child { border-bottom: none; }
 
-  /* Difficulty Segmented Control */
   .segmented-control {
     display: flex;
     background: var(--segment-bg);
@@ -153,7 +145,7 @@
     box-shadow: 0 3px 8px rgba(0,0,0,0.12);
   }
 
-  input[type="text"], select {
+  input[type="number"], select {
     font-size: 17px;
     padding: 6px 12px;
     border: 1px solid var(--border-color);
@@ -164,10 +156,9 @@
     outline: none;
   }
 
-  input[type="text"] { width: 70px; text-align: center; }
+  input[type="number"] { width: 70px; text-align: center; }
   select { min-width: 155px; text-align: right; direction: rtl; }
 
-  /* Toggle Switch */
   .switch { position: relative; display: inline-block; width: 51px; height: 31px; }
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e9e9eb; transition: .3s; border-radius: 31px; }
@@ -175,40 +166,38 @@
   input:checked + .slider { background-color: var(--ios-green); }
   input:checked + .slider:before { transform: translateX(20px); }
 
-  /* Worksheet View */
-  #TBL {
-    scroll-margin-top: 120px;
-    margin-top: 10px;
+  #worksheet-grid {
+    display: grid;
+    gap: 40px 30px;
     background-color: var(--card-bg);
     padding: 30px 20px;
     border-radius: 12px;
     color: var(--text-main);
     min-height: 200px;
+    margin-top: 10px;
   }
-
-  table { width: 100%; border-collapse: collapse; }
-  td { padding: 30px 15px; vertical-align: top; border-bottom: 1px dashed var(--border-color); }
-  tr:last-child td { border-bottom: none; }
 
   .math-problem {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     width: 100%;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border-color);
   }
 
   .prob-header {
     font-size: 14px;
     color: var(--text-muted);
     font-weight: bold;
-    margin-bottom: -10px;
-    z-index: 10;
+    margin-bottom: 5px;
   }
 
   .expression {
     width: 100%;
     text-align: left;
     margin-bottom: 15px;
+    overflow-x: auto;
   }
 
   .answer {
@@ -218,24 +207,17 @@
     text-align: left;
   }
 
-  /* Override KaTeX default centering for displayMode */
   .katex-display { margin: 0.5em 0 !important; }
-  
-  @media print {
-    .sticky-bar, .app-container > :not(#TBL) { display: none !important; }
-    body { background: white; }
-    #TBL { padding: 0; margin: 0; box-shadow: none; }
-  }
 </style>
+
 
 <div class="sticky-bar">
   <button class="btn-settings" onclick="toggleSettings()">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     Settings
   </button>
   <div class="action-stack">
     <button class="btn-generate" onclick="fullRefresh()">Generate</button>
-    <!-- <button class="btn-scramble" onclick="scrambleCurrent()">Scramble Order</button> -->
   </div>
 </div>
 
@@ -268,11 +250,11 @@
       </div>
       <div class="row">
         <label>Problems</label>
-        <input type="text" id="NumProb" inputmode="numeric" onchange="updateState()">
+        <input type="number" id="NumProb" min="1" max="100" onchange="updateState()">
       </div>
       <div class="row">
         <label>Columns</label>
-        <input type="text" id="ColPage" inputmode="numeric" onchange="updateState()">
+        <input type="number" id="ColPage" min="1" max="4" onchange="updateState()">
       </div>
     </div>
 
@@ -288,13 +270,13 @@
   </div>
 
   <h2 class="section-title">Worksheet Preview</h2>
-  <div id="TBL"></div>
+  <div id="worksheet-grid"></div>
 </div>
 
 <script>
   let config = {
     numProb: 10,
-    cols: 1, 
+    cols: 2, 
     difficulty: 'easy',
     action: 'mixed',
     data: [] 
@@ -316,13 +298,10 @@
     const saved = localStorage.getItem('calcAppKaTeX');
     if (saved) {
       Object.assign(config, JSON.parse(saved));
-      document.getElementById("NumProb").value = config.numProb;
-      document.getElementById("ColPage").value = config.cols;
-      document.getElementById("MathAction").value = config.action;
-    } else {
-      document.getElementById("NumProb").value = config.numProb;
-      document.getElementById("ColPage").value = config.cols;
     }
+    document.getElementById("NumProb").value = config.numProb;
+    document.getElementById("ColPage").value = config.cols;
+    document.getElementById("MathAction").value = config.action;
     updateDifficultyUI();
   }
 
@@ -365,7 +344,8 @@
       let c = getRnd(1, 6);
       let d = getRnd(1, 6);
       
-      let variant = Math.floor(Math.random() * 15); // 15 advanced variants per hard section
+      // Increased from 15 to 20 forms!
+      let variant = Math.floor(Math.random() * 20); 
 
       if (activeOp === 'arithmetic') {
         if (config.difficulty === 'easy') {
@@ -375,7 +355,7 @@
           expr = `${a} \\times ${b}`;
           ans = `= ${a * b}`;
         } else {
-          // === ADVANCED HARD ARITHMETIC (15 forms) ===
+          // === 20 ADVANCED HARD ARITHMETIC ===
           if (variant === 0) {
             expr = `\\frac{${Math.abs(a)}}{${b}} + \\frac{${c}}{${d}}`;
             let num = Math.abs(a) * d + c * b;
@@ -420,9 +400,25 @@
           } else if (variant === 13) {
             expr = `(${a}^{${b}})^{${c}} \\div ${d}`;
             ans = `= ${Math.pow(a, b*c) / d}`;
-          } else {
+          } else if (variant === 14) {
             expr = `\\log_{10}(${b}) \\times ${a}`;
             ans = `\\approx ${Math.round(a * Math.log10(b))}`;
+          } else if (variant === 15) {
+            expr = `\\frac{\\frac{${Math.abs(a)}}{${b}}}{\\frac{${c}}{${d}}}`;
+            ans = `= \\frac{${Math.abs(a)*d}}{${b*c}}`;
+          } else if (variant === 16) {
+            expr = `(${Math.abs(a)} \\times 10^{${c}}) \times (${b} \\times 10^{${d}})`;
+            ans = `= ${Math.abs(a)*b} \\times 10^{${c+d}}`;
+          } else if (variant === 17) {
+            let factA = Math.abs(a) + 3; // Ensure at least 3
+            expr = `\\frac{${factA}!}{(${factA}-2)!}`;
+            ans = `= ${factA * (factA-1)}`;
+          } else if (variant === 18) {
+            expr = `\\log_{${b}}(${b}^{${c}}) + \\ln(e^{${d}})`;
+            ans = `= ${c + d}`;
+          } else {
+            expr = `\\sqrt{${c*c} \\cdot ${d}}`;
+            ans = `= ${c}\\sqrt{${d}}`;
           }
         }
       }
@@ -440,7 +436,7 @@
           let lastStr = last > 0 ? `+ ${last}` : `- ${Math.abs(last)}`;
           ans = `= x^2 ${midStr} ${lastStr}`;
         } else {
-          // === ADVANCED HARD ALGEBRA (15 forms) ===
+          // === 20 ADVANCED HARD ALGEBRA ===
           if (variant === 0) {
             let base = getRnd(2, 4);
             let val = getRnd(1, 3);
@@ -493,11 +489,26 @@
             expr = `\\text{Inequality: } x^2 - ${c}x + ${d} > 0`;
             ans = `x < ${Math.min(c,d)} \\text{ or } x > ${Math.max(c,d)}`;
           } else if (variant === 13) {
-            expr = `\\frac{x^2 - 9}{x-3} = x + k \\quad \\text{find } k`;
-            ans = `k = 3`;
-          } else {
+            expr = `\\frac{x^2 - ${c*c}}{x-${c}} = x + k \\quad \\text{find } k`;
+            ans = `k = ${c}`;
+          } else if (variant === 14) {
             expr = `\\text{Complete square: } x^2 + ${b}x = ${c}`;
             ans = `\\left(x + \\frac{${b}}{2}\\right)^2 = ${c + (b*b)/4}`;
+          } else if (variant === 15) {
+            expr = `\\frac{${a}}{x} + \\frac{${b}}{x} = ${c}`;
+            ans = `x = \\frac{${a+b}}{${c}}`;
+          } else if (variant === 16) {
+            expr = `2^{x} = 4^{x - ${c}}`;
+            ans = `x = ${2*c}`;
+          } else if (variant === 17) {
+            expr = `f(x) = ${Math.abs(a)}x+${b}, g(x) = x^2, \\text{find } f(g(${c}))`;
+            ans = `= ${Math.abs(a) * c * c + b}`;
+          } else if (variant === 18) {
+            expr = `|x - ${c}| < ${d}`;
+            ans = `${c-d} < x < ${c+d}`;
+          } else {
+            expr = `\\text{Find inverse of } f(x) = \\frac{x + ${c}}{${b}}`;
+            ans = `f^{-1}(x) = ${b}x - ${c}`;
           }
         }
       }
@@ -512,7 +523,7 @@
           expr = `\\sin^2(${Math.abs(a)}x) + \\cos^2(${Math.abs(a)}x)`;
           ans = `= 1`;
         } else {
-          // === ADVANCED HARD TRIG (15 forms) ===
+          // === 20 ADVANCED HARD TRIG ===
           if (variant === 0) {
             expr = `\\cos^2(${b}x) - \\sin^2(${b}x)`;
             ans = `= \\cos(${2 * b}x)`;
@@ -555,9 +566,24 @@
           } else if (variant === 13) {
             expr = `\\sin(2x) = 2\\sin(x)\\cos(x) \\quad \\text{prove identity}`;
             ans = `\\text{Identity holds}`;
-          } else {
+          } else if (variant === 14) {
             expr = `\\frac{1 - \\cos(2x)}{\\sin(2x)}`;
             ans = `= \\tan(x)`;
+          } else if (variant === 15) {
+            expr = `\\sin\\left(\\frac{\\pi}{12}\\right) \\cos\\left(\\frac{\\pi}{12}\\right)`;
+            ans = `= \\frac{1}{4}`;
+          } else if (variant === 16) {
+            expr = `\\cos^4(x) - \\sin^4(x)`;
+            ans = `= \\cos(2x)`;
+          } else if (variant === 17) {
+            expr = `\\tan\\left(\\arccos\\left(\\frac{${c}}{\\sqrt{${c*c + d*d}}}\\right)\\right)`;
+            ans = `= \\frac{${d}}{${c}}`;
+          } else if (variant === 18) {
+            expr = `\\sin(x) + \\sin(x)\\cot^2(x)`;
+            ans = `= \\csc(x)`;
+          } else {
+            expr = `\\text{Period of } y = ${Math.abs(a)}\\tan\\left(\\frac{\\pi}{${b}}x\\right)`;
+            ans = `= ${b}`;
           }
         }
       }
@@ -570,7 +596,7 @@
           expr = `\\lim_{x \\to ${c}} \\frac{x^2 - ${cSq}}{x - ${c}}`;
           ans = `= ${2 * c}`;
         } else {
-          // === ADVANCED HARD LIMITS (15 forms) ===
+          // === 20 ADVANCED HARD LIMITS ===
           if (variant === 0) {
             expr = `\\lim_{x \\to \\infty} \\frac{${b}x^2 + ${c}x}{${d}x^2 - 1}`;
             ans = `= \\frac{${b}}{${d}}`;
@@ -579,8 +605,8 @@
             let top = b * b;
             ans = `= \\frac{${top}}{2}`;
           } else if (variant === 2) {
-            expr = `\\lim_{x \\to 0} \\frac{\\sin(${a}x)}{${b}x}`;
-            ans = `= \\frac{${a}}{${b}}`;
+            expr = `\\lim_{x \\to 0} \\frac{\\sin(${Math.abs(a)}x)}{${b}x}`;
+            ans = `= \\frac{${Math.abs(a)}}{${b}}`;
           } else if (variant === 3) {
             expr = `\\lim_{x \\to 0} \\frac{e^{${b}x} - 1}{x}`;
             ans = `= ${b}`;
@@ -591,8 +617,8 @@
             expr = `\\lim_{x \\to \\infty} \\frac{\\ln(x + ${c})}{x}`;
             ans = `= 0`;
           } else if (variant === 6) {
-            expr = `\\lim_{x \\to \\infty} \\frac{${a}x^3 + ${b}x^2}{x^3 + ${c}}`;
-            ans = `= ${a}`;
+            expr = `\\lim_{x \\to \\infty} \\frac{${Math.abs(a)}x^3 + ${b}x^2}{x^3 + ${c}}`;
+            ans = `= ${Math.abs(a)}`;
           } else if (variant === 7) {
             expr = `\\lim_{x \\to 0} \\frac{\\sin(x) - x}{x^3}`;
             ans = `= -\\frac{1}{6}`;
@@ -614,9 +640,25 @@
           } else if (variant === 13) {
             expr = `\\lim_{x \\to 0} \\frac{\\sin(3x) - 3x}{x^3}`;
             ans = `= -\\frac{9}{2}`;
-          } else {
+          } else if (variant === 14) {
             expr = `\\lim_{x \\to \\infty} \\left(1 + \\frac{${b}}{x}\\right)^{x}`;
             ans = `= e^{${b}}`;
+          } else if (variant === 15) {
+            expr = `\\lim_{x \\to \\infty} \\frac{\\ln(x)}{x^{${c}}}`;
+            ans = `= 0`;
+          } else if (variant === 16) {
+            expr = `\\lim_{x \\to ${c}^-} \\frac{|x - ${c}|}{x - ${c}}`;
+            ans = `= -1`;
+          } else if (variant === 17) {
+            expr = `\\lim_{x \\to 0} x^2 \\sin\\left(\\frac{1}{x}\\right)`;
+            ans = `= 0`;
+          } else if (variant === 18) {
+            let limitA = Math.abs(a);
+            expr = `\\lim_{x \\to \\infty} \\left( \\sqrt{x^2 + ${2*limitA}x} - x \\right)`;
+            ans = `= ${limitA}`;
+          } else {
+            expr = `\\lim_{h \\to 0} \\frac{(${c}+h)^2 - ${c*c}}{h}`;
+            ans = `= ${2*c}`;
           }
         }
       } 
@@ -632,7 +674,7 @@
           expr = `\\frac{d}{dx} \\left[ ${a}${funcs[r]} \\right]`;
           ans = `= ${sign}${Math.abs(a * b)}${ansFuncs[r].replace(/-?${b}/, '')}`;
         } else {
-          // === ADVANCED HARD DERIVATIVES (15 forms) ===
+          // === 20 ADVANCED HARD DERIVATIVES ===
           if (variant === 0) {
             expr = `\\frac{d}{dx} \\left[ \\ln(${b}x^2 + ${c}) \\right]`;
             ans = `= \\frac{${2 * b}x}{${b}x^2 + ${c}}`;
@@ -640,8 +682,8 @@
             expr = `\\frac{d}{dx} \\left[ e^{${b}x^2 + ${c}} \\right]`;
             ans = `= ${2 * b}x \\, e^{${b}x^2 + ${c}}`;
           } else if (variant === 2) {
-            expr = `\\frac{d}{dx} \\left[ \\sin(${a}x^2 + ${b}) \\right]`;
-            ans = `= ${2 * a}x \\, \\cos(${a}x^2 + ${b})`;
+            expr = `\\frac{d}{dx} \\left[ \\sin(${Math.abs(a)}x^2 + ${b}) \\right]`;
+            ans = `= ${2 * Math.abs(a)}x \\, \\cos(${Math.abs(a)}x^2 + ${b})`;
           } else if (variant === 3) {
             let n = d + 1;
             expr = `\\frac{d}{dx} \\left[ (${b}x + ${c})^{${n}} \\right]`;
@@ -653,14 +695,14 @@
             expr = `\\frac{d}{dx} \\left[ \\sqrt{${b}x^2 + ${c}} \\right]`;
             ans = `= \\frac{${b}x}{\\sqrt{${b}x^2 + ${c}}}`;
           } else if (variant === 6) {
-            expr = `\\frac{d}{dx} \\left[ \\cos(3x^2 + ${a}) \\right]`;
-            ans = `= -6x \\sin(3x^2 + ${a})`;
+            expr = `\\frac{d}{dx} \\left[ \\cos(3x^2 + ${Math.abs(a)}) \\right]`;
+            ans = `= -6x \\sin(3x^2 + ${Math.abs(a)})`;
           } else if (variant === 7) {
             expr = `\\frac{d}{dx} \\left[ e^{x} \\sin(x) \\right]`;
             ans = `= e^{x} (\\sin(x) + \\cos(x))`;
           } else if (variant === 8) {
-            expr = `\\frac{d}{dx} \\left[ \\frac{${a}x + ${b}}{x^2 + ${c}} \\right]`;
-            ans = `= \\frac{${a}(x^2 + ${c}) - (2x)(a x + b)}{(x^2 + ${c})^2}`;
+            expr = `\\frac{d}{dx} \\left[ \\frac{${Math.abs(a)}x + ${b}}{x^2 + ${c}} \\right]`;
+            ans = `= \\frac{${Math.abs(a)}(x^2 + ${c}) - (2x)(${Math.abs(a)}x + ${b})}{(x^2 + ${c})^2}`;
           } else if (variant === 9) {
             expr = `\\frac{d}{dx} \\left[ \\ln(\\sin(${b}x)) \\right]`;
             ans = `= ${b} \\cot(${b}x)`;
@@ -676,9 +718,24 @@
           } else if (variant === 13) {
             expr = `\\frac{d}{dx} \\left[ \\arctan(${b}x) \\right]`;
             ans = `= \\frac{${b}}{1 + (${b}x)^2}`;
-          } else {
+          } else if (variant === 14) {
             expr = `\\frac{d}{dx} \\left[ \\ln(x^2 + \\sqrt{x^4 + 1}) \\right]`;
             ans = `= \\frac{2x}{\\sqrt{x^4 + 1}}`;
+          } else if (variant === 15) {
+            expr = `\\frac{d}{dx} \\left[ x^{\\ln x} \\right]`;
+            ans = `= 2x^{\\ln x - 1} \\ln x`;
+          } else if (variant === 16) {
+            expr = `\\frac{dy}{dx} \\text{ for } x^2 + y^2 = ${c*c}`;
+            ans = `= -\\frac{x}{y}`;
+          } else if (variant === 17) {
+            expr = `\\frac{d}{dx} \\left[ \\arcsin(${c}x) \\right]`;
+            ans = `= \\frac{${c}}{\\sqrt{1 - ${c*c}x^2}}`;
+          } else if (variant === 18) {
+            expr = `\\frac{d}{dx} \\left[ \\frac{\\sin x}{x} \\right]`;
+            ans = `= \\frac{x\\cos x - \\sin x}{x^2}`;
+          } else {
+            expr = `\\frac{d^2}{dx^2} \\left[ \\sin(${b}x) \\right]`;
+            ans = `= -${b*b}\\sin(${b}x)`;
           }
         }
       } 
@@ -691,7 +748,7 @@
           expr = `\\int ${a * b} \\cos(${b}x) \\, dx`;
           ans = `= ${a} \\sin(${b}x) + C`;
         } else {
-          // === ADVANCED HARD INTEGRALS (15 forms) ===
+          // === 20 ADVANCED HARD INTEGRALS ===
           if (variant === 0) {
             expr = `\\int x e^{${b}x} \\, dx`;
             ans = `= \\frac{1}{${b}} x e^{${b}x} - \\frac{1}{${b * b}} e^{${b}x} + C`;
@@ -707,8 +764,8 @@
             expr = `\\int \\sin(${b}x) \\, dx`;
             ans = `= -\\frac{1}{${b}} \\cos(${b}x) + C`;
           } else if (variant === 4) {
-            expr = `\\int e^{${a}x} \\, dx`;
-            ans = `= \\frac{1}{${a}} e^{${a}x} + C`;
+            expr = `\\int e^{${Math.abs(a)}x} \\, dx`;
+            ans = `= \\frac{1}{${Math.abs(a)}} e^{${Math.abs(a)}x} + C`;
           } else if (variant === 5) {
             expr = `\\int \\frac{1}{x^2 + ${b}^2} \\, dx`;
             ans = `= \\frac{1}{${b}} \\arctan\\left(\\frac{x}{${b}}\\right) + C`;
@@ -734,11 +791,26 @@
             expr = `\\int \\frac{1}{\\sqrt{x^2 + ${b}^2}} \\, dx`;
             ans = `= \\ln|x + \\sqrt{x^2 + ${b}^2}| + C`;
           } else if (variant === 13) {
-            expr = `\\int e^{-${b}x} \\sin(${a}x) \\, dx`;
-            ans = `= \\frac{e^{-${b}x}}{${b^2 + a^2}} (-${b}\\sin(${a}x) - ${a}\\cos(${a}x)) + C`;
-          } else {
+            expr = `\\int e^{-${b}x} \\sin(${Math.abs(a)}x) \\, dx`;
+            ans = `= \\frac{e^{-${b}x}}{${b*b + Math.abs(a)*Math.abs(a)}} (-${b}\\sin(${Math.abs(a)}x) - ${Math.abs(a)}\\cos(${Math.abs(a)}x)) + C`;
+          } else if (variant === 14) {
             expr = `\\int \\frac{x}{\\sqrt{x^2 + ${c}}} \\, dx`;
             ans = `= \\sqrt{x^2 + ${c}} + C`;
+          } else if (variant === 15) {
+            expr = `\\int x \\cos(${b}x) \\, dx`;
+            ans = `= \\frac{1}{${b}} x \\sin(${b}x) + \\frac{1}{${b*b}} \\cos(${b}x) + C`;
+          } else if (variant === 16) {
+            expr = `\\int \\frac{1}{x^2 - ${c*c}} \\, dx`;
+            ans = `= \\frac{1}{${2*c}} \\ln\\left|\\frac{x-${c}}{x+${c}}\\right| + C`;
+          } else if (variant === 17) {
+            expr = `\\int_{1}^{\\infty} \\frac{1}{x^2} \\, dx`;
+            ans = `= 1`;
+          } else if (variant === 18) {
+            expr = `\\int \\tan(${b}x) \\, dx`;
+            ans = `= \\frac{1}{${b}} \\ln|\\sec(${b}x)| + C`;
+          } else {
+            expr = `\\int x \\sqrt{x^2 + ${c}} \\, dx`;
+            ans = `= \\frac{1}{3}(x^2 + ${c})^{3/2} + C`;
           }
         }
       }
@@ -756,7 +828,7 @@
           expr = `a_n = ${first} \\cdot ${ratio}^{n-1} \\quad (n = ${n})`;
           ans = `= ${first * Math.pow(ratio, n-1)}`;
         } else {
-          // === ADVANCED HARD SEQUENCES (15 forms) ===
+          // === 20 ADVANCED HARD SEQUENCES ===
           if (variant === 0) {
             let t1 = getRnd(3,12), t2 = t1 + getRnd(2,6), t3 = t2 + getRnd(2,6);
             expr = `a_1 = ${t1},\\ a_2 = ${t2},\\ a_3 = ${t3} \\quad \\text{find } d`;
@@ -802,14 +874,29 @@
           } else if (variant === 12) {
             expr = `\\text{Fibonacci-like: } a_1 = ${a}, a_2 = ${b}, a_n = a_{n-1} + a_{n-2} \\quad (a_6)`;
             let fib = [a, b];
-            for (let k = 2; k < 5; k++) fib[k] = fib[k-1] + fib[k-2];
+            for (let k = 2; k <= 5; k++) fib[k] = fib[k-1] + fib[k-2];
             ans = `= ${fib[5]}`;
           } else if (variant === 13) {
             expr = `\\text{Convergent? } a_n = \\left(1 + \\frac{1}{n}\\right)^n`;
             ans = `\\to e`;
-          } else {
+          } else if (variant === 14) {
             expr = `a_n = n! \\quad (a_5)`;
             ans = `= 120`;
+          } else if (variant === 15) {
+            expr = `a_n = (-1)^n \\frac{n}{n+1} \\quad (a_3)`;
+            ans = `= -\\frac{3}{4}`;
+          } else if (variant === 16) {
+            expr = `a_1 = ${c},\\ a_n = (a_{n-1})^2 \\quad (a_3)`;
+            ans = `= ${c*c*c*c}`;
+          } else if (variant === 17) {
+            expr = `\\lim_{n \\to \\infty} \\frac{${Math.abs(a)}n + ${b}}{${c}n + ${d}}`;
+            ans = `= \\frac{${Math.abs(a)}}{${c}}`;
+          } else if (variant === 18) {
+            expr = `a_n = \\ln(n) \\quad \\text{find } a_{e^{${c}}}`;
+            ans = `= ${c}`;
+          } else {
+            expr = `\\lim_{n \\to \\infty} \\frac{${c}^n}{n!}`;
+            ans = `= 0`;
           }
         }
       }
@@ -829,7 +916,7 @@
           expr = `S_{${n}} = ${first} \\frac{r^{${n}} - 1}{r - 1} \\quad (r=${r})`;
           ans = `= ${Math.round(sum)}`;
         } else {
-          // === ADVANCED HARD SERIES (15 forms) ===
+          // === 20 ADVANCED HARD SERIES ===
           if (variant === 0) {
             let first = a;
             let d = b;
@@ -883,9 +970,24 @@
           } else if (variant === 13) {
             expr = `\\sum_{k=1}^{\\infty} \\frac{1}{k^2}`;
             ans = `= \\frac{\\pi^2}{6}`;
-          } else {
+          } else if (variant === 14) {
             expr = `\\text{Telescoping: } \\sum_{k=1}^{n} \\left( \\frac{1}{k} - \\frac{1}{k+1} \\right)`;
             ans = `= 1 - \\frac{1}{n+1}`;
+          } else if (variant === 15) {
+            expr = `\\sum_{k=1}^{\\infty} \\frac{1}{k(k+2)}`;
+            ans = `= \\frac{3}{4}`;
+          } else if (variant === 16) {
+            expr = `\\lim_{n \\to \\infty} \\left| \\frac{a_{n+1}}{a_n} \\right| < 1 \\text{ implies?}`;
+            ans = `\\text{Absolute convergence}`;
+          } else if (variant === 17) {
+            expr = `\\text{Maclaurin series for } e^x \\text{ at } x=\\ln(${c})`;
+            ans = `= ${c}`;
+          } else if (variant === 18) {
+            expr = `\\sum_{n=1}^{\\infty} \\frac{(-1)^{n-1}}{n}`;
+            ans = `= \\ln(2)`;
+          } else {
+            expr = `\\text{Radius of conv.: } \\sum_{n=1}^{\\infty} \\frac{x^n}{n \\cdot ${c}^n}`;
+            ans = `R = ${c}`;
           }
         }
       }
@@ -902,7 +1004,11 @@
     }
 
     const showAns = document.getElementById('answers').checked;
-    let html = '<table><tr>';
+    const grid = document.getElementById('worksheet-grid');
+    
+    grid.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
+    
+    let html = '';
 
     config.data.forEach((item, index) => {
       let renderedExpr = katex.renderToString(item.expr, { displayMode: true, throwOnError: false });
@@ -911,34 +1017,20 @@
         : '';
 
       html += `
-        <td style="width: ${100 / config.cols}%">
-          <div class="math-problem">
-            <div class="prob-header">${index + 1}.</div>
-            <div class="expression">${renderedExpr}</div>
-            <div class="answer">${renderedAns}</div>
-          </div>
-        </td>`;
-      
-      if ((index + 1) % config.cols === 0 && (index + 1) < config.data.length) {
-        html += '</tr><tr>';
-      }
+        <div class="math-problem">
+          <div class="prob-header">${index + 1}.</div>
+          <div class="expression">${renderedExpr}</div>
+          <div class="answer">${renderedAns}</div>
+        </div>`;
     });
 
-    const remainder = config.data.length % config.cols;
-    if (remainder !== 0) {
-      for(let i = 0; i < (config.cols - remainder); i++) {
-        html += `<td></td>`;
-      }
-    }
-
-    html += '</tr></table>';
-    document.getElementById('TBL').innerHTML = html;
+    grid.innerHTML = html;
   }
 
   function fullRefresh() {
     triggerHaptic();
     generateNewData();
-    document.getElementById('TBL').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('worksheet-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   window.onload = () => {
