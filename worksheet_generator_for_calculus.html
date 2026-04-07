@@ -255,6 +255,9 @@
       <div class="row">
         <label>Subject</label>
         <select id="MathAction" onchange="updateState()">
+          <option value="arithmetic">Arithmetic</option>
+          <option value="algebra">Algebra</option>
+          <option value="trig">Trigonometry</option>
           <option value="limit">Limits</option>
           <option value="deriv">Derivatives</option>
           <option value="integral">Integrals</option>
@@ -348,18 +351,80 @@
 
   function generateNewData() {
     config.data = [];
-    const ops = ['limit', 'deriv', 'integral'];
+    const ops = ['arithmetic', 'algebra', 'trig', 'limit', 'deriv', 'integral'];
 
     for (let i = 0; i < config.numProb; i++) {
-      let activeOp = config.action === 'mixed' ? ops[Math.floor(Math.random() * 3)] : config.action;
+      let activeOp = config.action === 'mixed' ? ops[Math.floor(Math.random() * ops.length)] : config.action;
       let expr = '';
       let ans = '';
       
-      let a = getRnd(2, 6) * (Math.random() > 0.5 ? 1 : -1);
-      let b = getRnd(2, 6);
+      let a = getRnd(2, 8) * (Math.random() > 0.5 ? 1 : -1);
+      let b = getRnd(2, 8);
       let c = getRnd(1, 5);
+      let d = getRnd(1, 5);
 
-      if (activeOp === 'limit') {
+      if (activeOp === 'arithmetic') {
+        if (config.difficulty === 'easy') {
+          // Basic Addition/Subtraction
+          expr = `${a} ${b > 0 ? '+' : '-'} ${Math.abs(b)}`;
+          ans = `= ${a + b}`;
+        } else if (config.difficulty === 'med') {
+          // Multiplication
+          expr = `${a} \\times ${b}`;
+          ans = `= ${a * b}`;
+        } else {
+          // Fraction Addition
+          expr = `\\frac{${Math.abs(a)}}{${b}} + \\frac{${c}}{${d}}`;
+          let num = Math.abs(a) * d + c * b;
+          let den = b * d;
+          ans = `= \\frac{${num}}{${den}}`;
+        }
+      }
+      else if (activeOp === 'algebra') {
+        if (config.difficulty === 'easy') {
+          // Linear Equation: ax + b = c (solved backwards so x is clean)
+          let targetX = c; 
+          let rhs = a * targetX + b;
+          expr = `${a}x ${b > 0 ? '+' : '-'} ${Math.abs(b)} = ${rhs}`;
+          ans = `x = ${targetX}`;
+        } else if (config.difficulty === 'med') {
+          // Expanding Quadratics: (x + a)(x + b)
+          expr = `(x ${a > 0 ? '+' : '-'} ${Math.abs(a)})(x ${b > 0 ? '+' : '-'} ${Math.abs(b)})`;
+          let mid = a + b;
+          let midStr = mid === 0 ? "" : (mid > 0 ? `+ ${mid}x` : `- ${Math.abs(mid)}x`);
+          let last = a * b;
+          let lastStr = last > 0 ? `+ ${last}` : `- ${Math.abs(last)}`;
+          ans = `= x^2 ${midStr} ${lastStr}`;
+        } else {
+          // Solving Quadratics by Factoring
+          let r1 = c, r2 = d; 
+          let B = -(r1 + r2);
+          let C = r1 * r2;
+          let bStr = B === 0 ? "" : (B > 0 ? `+ ${B}x` : `- ${Math.abs(B)}x`);
+          let cStr = C === 0 ? "" : (C > 0 ? `+ ${C}` : `- ${Math.abs(C)}`);
+          expr = `\\text{Solve: } x^2 ${bStr} ${cStr} = 0`;
+          ans = `x = ${r1}, ${r2}`;
+        }
+      }
+      else if (activeOp === 'trig') {
+        if (config.difficulty === 'easy') {
+          // Common Angles
+          let angles = ['0', '\\frac{\\pi}{2}', '\\pi', '\\frac{3\\pi}{2}', '2\\pi'];
+          let sines = ['0', '1', '0', '-1', '0'];
+          let r = getRnd(0, 4);
+          expr = `\\sin\\left(${angles[r]}\\right)`;
+          ans = `= ${sines[r]}`;
+        } else if (config.difficulty === 'med') {
+          // Pythagorean Identity
+          expr = `\\sin^2(${Math.abs(a)}x) + \\cos^2(${Math.abs(a)}x)`;
+          ans = `= 1`;
+        } else {
+          // Simplification
+          expr = `\\frac{\\sin(x)}{\\cos(x)}`;
+          ans = `= \\tan(x)`;
+        }
+      }
+      else if (activeOp === 'limit') {
         if (config.difficulty === 'easy') {
           expr = `\\lim_{x \\to ${c}} (${a}x ${b > 0 ? '+' : '-'} ${Math.abs(b)})`;
           ans = `= ${a * c + b}`;
@@ -401,6 +466,7 @@
           ans = `= ${a} e^{${b}x} + C`;
         }
       }
+      
       config.data.push({ expr, ans });
     }
     renderWorksheet();
