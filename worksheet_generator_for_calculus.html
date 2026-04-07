@@ -1,0 +1,468 @@
+<style>
+  :root {
+    --bg-color: #f2f2f7; 
+    --card-bg: #ffffff;
+    --text-main: #000000;
+    --text-muted: #8e8e93;
+    --primary-blue: #007aff;
+    --border-color: #d1d1d6;
+    --ios-green: #34c759;
+    --segment-bg: #eeeeef;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-color: #000000;
+      --card-bg: #1c1c1e;
+      --text-main: #ffffff;
+      --text-muted: #8e8e93;
+      --border-color: #38383a;
+      --segment-bg: #2c2c2e;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0;
+    padding-bottom: 50px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header */
+  .sticky-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: var(--card-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+
+  .btn-settings {
+    background: none;
+    border: none;
+    color: var(--primary-blue);
+    font-size: 17px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .btn-settings:active { opacity: 0.7; }
+
+  .action-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+    min-width: 140px;
+  }
+
+  .btn-generate {
+    background-color: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-scramble {
+    background-color: var(--segment-bg);
+    color: var(--primary-blue);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-generate:active, .btn-scramble:active { opacity: 0.7; }
+
+  .app-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 20px 0 8px 16px;
+  }
+
+  .card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 0.5px solid var(--border-color);
+  }
+
+  .row:last-child { border-bottom: none; }
+
+  /* Difficulty Segmented Control */
+  .segmented-control {
+    display: flex;
+    background: var(--segment-bg);
+    padding: 2px;
+    border-radius: 10px;
+    margin: 12px;
+    height: 32px;
+    align-items: stretch;
+  }
+
+  .segment {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.2s, box-shadow 0.2s;
+    color: var(--text-main);
+  }
+
+  .segment.active {
+    background: var(--card-bg);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+  }
+
+  /* Inputs & Select */
+  input[type="text"], select {
+    font-size: 17px;
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-color);
+    color: var(--text-main);
+    font-family: inherit;
+    outline: none;
+  }
+
+  input[type="text"] { width: 70px; text-align: center; }
+  select { min-width: 155px; text-align: right; direction: rtl; }
+
+  /* Toggle Switch */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 51px;
+    height: 31px;
+  }
+
+  .switch input { opacity: 0; width: 0; height: 0; }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #e9e9eb;
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 31px;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 27px;
+    width: 27px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  }
+
+  input:checked + .slider { background-color: var(--ios-green); }
+  input:checked + .slider:before { transform: translateX(20px); }
+
+  /* Worksheet View - Refactored for Calculus */
+  #TBL {
+    scroll-margin-top: 120px;
+    margin-top: 10px;
+    background-color: var(--card-bg);
+    padding: 30px 20px;
+    border-radius: 12px;
+    color: var(--text-main);
+    min-height: 200px;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 25px 10px; vertical-align: top; }
+
+  .math-problem {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    font-family: "Georgia", serif;
+    font-size: 20px;
+    line-height: 1.5;
+  }
+
+  .expression { padding-bottom: 8px; }
+  .answer { color: var(--ios-green); font-weight: 700; height: 24px; }
+  
+  /* Utilities for Limits/Integrals */
+  sup { font-size: 0.7em; }
+  sub { font-size: 0.7em; }
+  .integral { font-size: 1.5em; vertical-align: middle; margin-right: 4px; }
+
+  @media print {
+    .sticky-bar, .app-container > :not(#TBL) { display: none !important; }
+    body { background: white; }
+    #TBL { padding: 0; margin: 0; }
+  }
+</style>
+
+<div class="sticky-bar">
+  <button class="btn-settings" onclick="toggleSettings()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    Settings
+  </button>
+  <div class="action-stack">
+    <button class="btn-generate" onclick="fullRefresh()">Generate</button>
+    <button class="btn-scramble" onclick="scrambleCurrent()">Scramble Order</button>
+  </div>
+</div>
+
+<div class="app-container">
+  <div id="settings-panel" style="display: none;">
+    <h2 class="section-title">Difficulty Level</h2>
+    <div class="card">
+      <div class="segmented-control">
+        <div id="seg-easy" class="segment active" onclick="setDifficulty('easy')">Easy</div>
+        <div id="seg-med" class="segment" onclick="setDifficulty('med')">Medium</div>
+        <div id="seg-hard" class="segment" onclick="setDifficulty('hard')">Hard</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Settings</h2>
+    <div class="card">
+      <div class="row">
+        <label>Subject</label>
+        <select id="MathAction" onchange="updateState()">
+          <option value="limit">Limits</option>
+          <option value="deriv">Derivatives</option>
+          <option value="integral">Integrals</option>
+          <option value="mixed">Mixed Practice</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Problems</label>
+        <input type="text" id="NumProb" inputmode="numeric" onchange="updateState()">
+      </div>
+      <div class="row">
+        <label>Columns</label>
+        <input type="text" id="ColPage" inputmode="numeric" onchange="updateState()">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <label>Show Answers</label>
+        <label class="switch">
+          <input type="checkbox" id="answers" onchange="renderWorksheet(); triggerHaptic();">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Worksheet Preview</h2>
+  <div id="TBL"></div>
+</div>
+
+<script>
+  let config = {
+    numProb: 12,
+    cols: 2, // Changed default to 2 as calculus problems are wider
+    difficulty: 'easy',
+    action: 'limit',
+    data: [] 
+  };
+
+  function toggleSettings() {
+    const panel = document.getElementById('settings-panel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    triggerHaptic();
+  }
+
+  function save() {
+    const toSave = {...config};
+    delete toSave.data; 
+    localStorage.setItem('calcAppConfig', JSON.stringify(toSave));
+  }
+
+  function load() {
+    const saved = localStorage.getItem('calcAppConfig');
+    if (saved) {
+      Object.assign(config, JSON.parse(saved));
+      document.getElementById("NumProb").value = config.numProb;
+      document.getElementById("ColPage").value = config.cols;
+      document.getElementById("MathAction").value = config.action;
+    } else {
+      document.getElementById("NumProb").value = config.numProb;
+      document.getElementById("ColPage").value = config.cols;
+    }
+    updateDifficultyUI();
+  }
+
+  function triggerHaptic() {
+    if (navigator.vibrate) navigator.vibrate(15);
+  }
+
+  function updateDifficultyUI() {
+    document.querySelectorAll('.segment').forEach(s => s.classList.remove('active'));
+    document.getElementById('seg-' + config.difficulty).classList.add('active');
+  }
+
+  function updateState() {
+    config.numProb = parseInt(document.getElementById("NumProb").value) || 12;
+    config.cols = parseInt(document.getElementById("ColPage").value) || 2;
+    config.action = document.getElementById("MathAction").value;
+    save();
+    generateNewData();
+  }
+
+  function setDifficulty(level) {
+    config.difficulty = level;
+    updateDifficultyUI();
+    updateState();
+  }
+
+  // Random Helper
+  function getRnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+  function generateNewData() {
+    config.data = [];
+    const ops = ['limit', 'deriv', 'integral'];
+
+    for (let i = 0; i < config.numProb; i++) {
+      let activeOp = config.action === 'mixed' ? ops[Math.floor(Math.random() * 3)] : config.action;
+      let expr = '';
+      let ans = '';
+      
+      let a = getRnd(2, 6) * (Math.random() > 0.5 ? 1 : -1);
+      let b = getRnd(2, 6);
+      let c = getRnd(1, 5);
+
+      if (activeOp === 'limit') {
+        if (config.difficulty === 'easy') {
+          expr = `lim<sub>x→${c}</sub> (${a}x + ${b})`;
+          ans = `= ${a * c + b}`;
+        } else if (config.difficulty === 'med') {
+          // Difference of squares pattern (x^2 - c^2) / (x - c)
+          let cSq = c * c;
+          expr = `lim<sub>x→${c}</sub> [ (x<sup>2</sup> - ${cSq}) / (x - ${c}) ]`;
+          ans = `= ${2 * c}`;
+        } else {
+          // L'Hopital / Trig limit: sin(ax)/bx
+          expr = `lim<sub>x→0</sub> [ sin(${a}x) / ${b}x ]`;
+          ans = `= ${a}/${b}`;
+        }
+      } 
+      
+      else if (activeOp === 'deriv') {
+        if (config.difficulty === 'easy') {
+          expr = `d/dx [ ${a}x<sup>${b}</sup> + ${c}x ]`;
+          ans = `= ${a * b}x<sup>${b - 1}</sup> + ${c}`;
+        } else if (config.difficulty === 'med') {
+          let funcs = [`sin(${b}x)`, `cos(${b}x)`, `e<sup>${b}x</sup>`];
+          let ansFuncs = [`${b}cos(${b}x)`, `-${b}sin(${b}x)`, `${b}e<sup>${b}x</sup>`];
+          let r = Math.floor(Math.random() * 3);
+          let sign = (a < 0 && r === 1) ? "" : (a > 0 && r === 1) ? "-" : "";
+          expr = `d/dx [ ${a}${funcs[r]} ]`;
+          ans = `= ${sign}${Math.abs(a * b)}${ansFuncs[r].replace(/-?${b}/, '')}`;
+        } else {
+          // Product rule: a x^2 sin(x)
+          expr = `d/dx [ ${a}x<sup>2</sup> sin(x) ]`;
+          ans = `= ${a}x<sup>2</sup> cos(x) + ${2*a}x sin(x)`;
+        }
+      } 
+      
+      else if (activeOp === 'integral') {
+        if (config.difficulty === 'easy') {
+          // Pre-multiply 'a' by (b+1) so division is clean
+          let coef = a * (b + 1);
+          expr = `<span class="integral">∫</span> (${coef}x<sup>${b}</sup> - ${c}) dx`;
+          ans = `= ${a}x<sup>${b + 1}</sup> - ${c}x + C`;
+        } else if (config.difficulty === 'med') {
+          expr = `<span class="integral">∫</span> ${a * b} cos(${b}x) dx`;
+          ans = `= ${a} sin(${b}x) + C`;
+        } else {
+          expr = `<span class="integral">∫</span> ${a * b} e<sup>${b}x</sup> dx`;
+          ans = `= ${a} e<sup>${b}x</sup> + C`;
+        }
+      }
+
+      config.data.push({ expr, ans });
+    }
+    renderWorksheet();
+  }
+
+  function renderWorksheet() {
+    const showAns = document.getElementById('answers').checked;
+    let html = '<table><tr>';
+
+    config.data.forEach((item, index) => {
+      html += `
+        <td>
+          <div class="math-problem">
+            <div class="expression">${index + 1}) ${item.expr}</div>
+            <div class="answer">${showAns ? item.ans : '&nbsp;'}</div>
+          </div>
+        </td>`;
+      if ((index + 1) % config.cols === 0 && (index + 1) < config.data.length) {
+        html += '</tr><tr>';
+      }
+    });
+
+    html += '</tr></table>';
+    document.getElementById('TBL').innerHTML = html;
+  }
+
+  function fullRefresh() {
+    triggerHaptic();
+    generateNewData();
+    document.getElementById('TBL').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function scrambleCurrent() {
+    triggerHaptic();
+    config.data.sort(() => Math.random() - 0.5);
+    renderWorksheet();
+    document.getElementById('TBL').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  window.onload = () => {
+    load();
+    generateNewData();
+  };
+</script>
