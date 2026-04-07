@@ -360,12 +360,12 @@
       let expr = '';
       let ans = '';
       
-      let a = getRnd(2, 8) * (Math.random() > 0.5 ? 1 : -1);
-      let b = getRnd(2, 8);
-      let c = getRnd(1, 5);
-      let d = getRnd(1, 5);
+      let a = getRnd(2, 9) * (Math.random() > 0.5 ? 1 : -1);
+      let b = getRnd(2, 9);
+      let c = getRnd(1, 6);
+      let d = getRnd(1, 6);
       
-      let variant = Math.floor(Math.random() * 8); // increased variety for hard problems
+      let variant = Math.floor(Math.random() * 15); // 15 advanced variants per hard section
 
       if (activeOp === 'arithmetic') {
         if (config.difficulty === 'easy') {
@@ -375,7 +375,7 @@
           expr = `${a} \\times ${b}`;
           ans = `= ${a * b}`;
         } else {
-          // Expanded Hard Arithmetic (8 new varied forms)
+          // === ADVANCED HARD ARITHMETIC (15 forms) ===
           if (variant === 0) {
             expr = `\\frac{${Math.abs(a)}}{${b}} + \\frac{${c}}{${d}}`;
             let num = Math.abs(a) * d + c * b;
@@ -399,9 +399,30 @@
           } else if (variant === 6) {
             expr = `\\left| ${a} - ${b} \\right| \\times ${c}`;
             ans = `= ${Math.abs(a - b) * c}`;
-          } else {
+          } else if (variant === 7) {
             expr = `\\frac{${a}}{${b}} \\div \\frac{${c}}{${d}}`;
             ans = `= \\frac{${a * d}}{${b * c}}`;
+          } else if (variant === 8) {
+            expr = `(${a} \\times ${b}) + (${c} \\div ${d})`;
+            ans = `= ${a*b + Math.floor(c/d)}`;
+          } else if (variant === 9) {
+            expr = `\\sqrt[${d}]{${b}^{${c}}} \\times ${a}`;
+            ans = `= ${a * Math.pow(b, c/d)}`;
+          } else if (variant === 10) {
+            expr = `\\frac{${a} + ${b} + ${c}}{${d}}`;
+            ans = `= \\frac{${a+b+c}}{${d}}`;
+          } else if (variant === 11) {
+            expr = `0.\\overline{${a}} \\times ${b}`;
+            ans = `= ${Math.round((a/9)*b)}`;
+          } else if (variant === 12) {
+            expr = `\\frac{1}{${a}} + \\frac{1}{${b}} + \\frac{1}{${c}}`;
+            ans = `= \\frac{${b*c + a*c + a*b}}{${a*b*c}}`;
+          } else if (variant === 13) {
+            expr = `(${a}^{${b}})^{${c}} \\div ${d}`;
+            ans = `= ${Math.pow(a, b*c) / d}`;
+          } else {
+            expr = `\\log_{10}(${b}) \\times ${a}`;
+            ans = `\\approx ${Math.round(a * Math.log10(b))}`;
           }
         }
       }
@@ -419,7 +440,7 @@
           let lastStr = last > 0 ? `+ ${last}` : `- ${Math.abs(last)}`;
           ans = `= x^2 ${midStr} ${lastStr}`;
         } else {
-          // Expanded Hard Algebra (8 forms)
+          // === ADVANCED HARD ALGEBRA (15 forms) ===
           if (variant === 0) {
             let base = getRnd(2, 4);
             let val = getRnd(1, 3);
@@ -453,9 +474,30 @@
           } else if (variant === 6) {
             expr = `\\frac{x}{${a}} - ${b} = ${c}`;
             ans = `x = ${a * (b + c)}`;
-          } else {
+          } else if (variant === 7) {
             expr = `x^3 - ${c}x^2 + ${d}x - 6 = 0 \\quad (x=2)`;
             ans = `\\text{Confirm root or factor}`;
+          } else if (variant === 8) {
+            expr = `\\text{Solve: } |2x - ${a}| = ${b}`;
+            ans = `x = \\frac{${a+b}}{2}, \\frac{${a-b}}{2}`;
+          } else if (variant === 9) {
+            expr = `\\frac{x+${c}}{x-${d}} = ${a}`;
+            ans = `x = \\frac{${a*d + c}}{a-1}`;
+          } else if (variant === 10) {
+            expr = `x^2 + ${b}x + ${c} = 0`;
+            ans = `x = \\frac{-${b} \\pm \\sqrt{${b*b - 4*c}}}{2}`;
+          } else if (variant === 11) {
+            expr = `\\text{Solve system: } x + y = ${a},\\ 2x - y = ${b}`;
+            ans = `x = \\frac{${a+b}}{3},\\ y = \\frac{${2*a - b}}{3}`;
+          } else if (variant === 12) {
+            expr = `\\text{Inequality: } x^2 - ${c}x + ${d} > 0`;
+            ans = `x < ${Math.min(c,d)} \\text{ or } x > ${Math.max(c,d)}`;
+          } else if (variant === 13) {
+            expr = `\\frac{x^2 - 9}{x-3} = x + k \\quad \\text{find } k`;
+            ans = `k = 3`;
+          } else {
+            expr = `\\text{Complete square: } x^2 + ${b}x = ${c}`;
+            ans = `\\left(x + \\frac{${b}}{2}\\right)^2 = ${c + (b*b)/4}`;
           }
         }
       }
@@ -470,7 +512,7 @@
           expr = `\\sin^2(${Math.abs(a)}x) + \\cos^2(${Math.abs(a)}x)`;
           ans = `= 1`;
         } else {
-          // Expanded Hard Trig (8 forms)
+          // === ADVANCED HARD TRIG (15 forms) ===
           if (variant === 0) {
             expr = `\\cos^2(${b}x) - \\sin^2(${b}x)`;
             ans = `= \\cos(${2 * b}x)`;
@@ -492,9 +534,30 @@
           } else if (variant === 6) {
             expr = `\\frac{1 + \\cos(2x)}{2}`;
             ans = `= \\cos^2(x)`;
-          } else {
+          } else if (variant === 7) {
             expr = `\\csc(x) \\cdot \\sin(x)`;
             ans = `= 1`;
+          } else if (variant === 8) {
+            expr = `\\frac{\\sin(3x)}{\\sin(x)}`;
+            ans = `= 3 - 4\\sin^2(x)`;
+          } else if (variant === 9) {
+            expr = `\\cos^2(x) - \\sin^2(x)`;
+            ans = `= \\cos(2x)`;
+          } else if (variant === 10) {
+            expr = `\\tan(x) \\cdot \\cot(x)`;
+            ans = `= 1`;
+          } else if (variant === 11) {
+            expr = `\\arcsin(${c/5})`;
+            ans = `= \\theta \\text{ where } \\sin\\theta = ${c/5}`;
+          } else if (variant === 12) {
+            expr = `\\cos^{-1}\\left(\\frac{1}{2}\\right)`;
+            ans = `= \\frac{\\pi}{3}`;
+          } else if (variant === 13) {
+            expr = `\\sin(2x) = 2\\sin(x)\\cos(x) \\quad \\text{prove identity}`;
+            ans = `\\text{Identity holds}`;
+          } else {
+            expr = `\\frac{1 - \\cos(2x)}{\\sin(2x)}`;
+            ans = `= \\tan(x)`;
           }
         }
       }
@@ -507,7 +570,7 @@
           expr = `\\lim_{x \\to ${c}} \\frac{x^2 - ${cSq}}{x - ${c}}`;
           ans = `= ${2 * c}`;
         } else {
-          // Expanded Hard Limits (8 classic forms: 0/0, ∞/∞, 1^∞, ∞-∞, etc.)
+          // === ADVANCED HARD LIMITS (15 forms) ===
           if (variant === 0) {
             expr = `\\lim_{x \\to \\infty} \\frac{${b}x^2 + ${c}x}{${d}x^2 - 1}`;
             ans = `= \\frac{${b}}{${d}}`;
@@ -530,9 +593,30 @@
           } else if (variant === 6) {
             expr = `\\lim_{x \\to \\infty} \\frac{${a}x^3 + ${b}x^2}{x^3 + ${c}}`;
             ans = `= ${a}`;
-          } else {
+          } else if (variant === 7) {
             expr = `\\lim_{x \\to 0} \\frac{\\sin(x) - x}{x^3}`;
             ans = `= -\\frac{1}{6}`;
+          } else if (variant === 8) {
+            expr = `\\lim_{x \\to \\infty} (\\sqrt{x^2 + ${b}x} - x)`;
+            ans = `= \\frac{${b}}{2}`;
+          } else if (variant === 9) {
+            expr = `\\lim_{x \\to 0^+} x^x`;
+            ans = `= 1`;
+          } else if (variant === 10) {
+            expr = `\\lim_{x \\to \\infty} \\frac{e^x}{x^3}`;
+            ans = `= \\infty`;
+          } else if (variant === 11) {
+            expr = `\\lim_{x \\to 0} \\frac{\\ln(1 + ${b}x)}{x}`;
+            ans = `= ${b}`;
+          } else if (variant === 12) {
+            expr = `\\lim_{x \\to \\infty} \\frac{x^2}{e^{${b}x}}`;
+            ans = `= 0`;
+          } else if (variant === 13) {
+            expr = `\\lim_{x \\to 0} \\frac{\\sin(3x) - 3x}{x^3}`;
+            ans = `= -\\frac{9}{2}`;
+          } else {
+            expr = `\\lim_{x \\to \\infty} \\left(1 + \\frac{${b}}{x}\\right)^{x}`;
+            ans = `= e^{${b}}`;
           }
         }
       } 
@@ -548,7 +632,7 @@
           expr = `\\frac{d}{dx} \\left[ ${a}${funcs[r]} \\right]`;
           ans = `= ${sign}${Math.abs(a * b)}${ansFuncs[r].replace(/-?${b}/, '')}`;
         } else {
-          // Expanded Hard Derivatives – Chain Rule heavy + more (8 forms)
+          // === ADVANCED HARD DERIVATIVES (15 forms) ===
           if (variant === 0) {
             expr = `\\frac{d}{dx} \\left[ \\ln(${b}x^2 + ${c}) \\right]`;
             ans = `= \\frac{${2 * b}x}{${b}x^2 + ${c}}`;
@@ -571,9 +655,30 @@
           } else if (variant === 6) {
             expr = `\\frac{d}{dx} \\left[ \\cos(3x^2 + ${a}) \\right]`;
             ans = `= -6x \\sin(3x^2 + ${a})`;
-          } else {
+          } else if (variant === 7) {
             expr = `\\frac{d}{dx} \\left[ e^{x} \\sin(x) \\right]`;
             ans = `= e^{x} (\\sin(x) + \\cos(x))`;
+          } else if (variant === 8) {
+            expr = `\\frac{d}{dx} \\left[ \\frac{${a}x + ${b}}{x^2 + ${c}} \\right]`;
+            ans = `= \\frac{${a}(x^2 + ${c}) - (2x)(a x + b)}{(x^2 + ${c})^2}`;
+          } else if (variant === 9) {
+            expr = `\\frac{d}{dx} \\left[ \\ln(\\sin(${b}x)) \\right]`;
+            ans = `= ${b} \\cot(${b}x)`;
+          } else if (variant === 10) {
+            expr = `\\frac{d}{dx} \\left[ (x^2 + ${c}) e^{${b}x} \\right]`;
+            ans = `= 2x e^{${b}x} + ${b}(x^2 + ${c}) e^{${b}x}`;
+          } else if (variant === 11) {
+            expr = `\\frac{d}{dx} \\left[ x^{x} \\right]`;
+            ans = `= x^{x} (\\ln x + 1)`;
+          } else if (variant === 12) {
+            expr = `\\frac{d^{2}}{dx^{2}} \\left[ x^{${b}} \\right]`;
+            ans = `= ${b}(b-1)x^{${b-2}}`;
+          } else if (variant === 13) {
+            expr = `\\frac{d}{dx} \\left[ \\arctan(${b}x) \\right]`;
+            ans = `= \\frac{${b}}{1 + (${b}x)^2}`;
+          } else {
+            expr = `\\frac{d}{dx} \\left[ \\ln(x^2 + \\sqrt{x^4 + 1}) \\right]`;
+            ans = `= \\frac{2x}{\\sqrt{x^4 + 1}}`;
           }
         }
       } 
@@ -586,7 +691,7 @@
           expr = `\\int ${a * b} \\cos(${b}x) \\, dx`;
           ans = `= ${a} \\sin(${b}x) + C`;
         } else {
-          // Expanded Hard Integrals (8 forms)
+          // === ADVANCED HARD INTEGRALS (15 forms) ===
           if (variant === 0) {
             expr = `\\int x e^{${b}x} \\, dx`;
             ans = `= \\frac{1}{${b}} x e^{${b}x} - \\frac{1}{${b * b}} e^{${b}x} + C`;
@@ -610,29 +715,48 @@
           } else if (variant === 6) {
             expr = `\\int x^2 \\, dx`;
             ans = `= \\frac{x^3}{3} + C`;
-          } else {
+          } else if (variant === 7) {
             expr = `\\int \\sec^2(${b}x) \\, dx`;
             ans = `= \\frac{1}{${b}} \\tan(${b}x) + C`;
+          } else if (variant === 8) {
+            expr = `\\int \\frac{1}{x} \\, dx`;
+            ans = `= \\ln|x| + C`;
+          } else if (variant === 9) {
+            expr = `\\int \\cos^2(x) \\, dx`;
+            ans = `= \\frac{x}{2} + \\frac{\\sin(2x)}{4} + C`;
+          } else if (variant === 10) {
+            expr = `\\int_{0}^{\\pi} \\sin(x) \\, dx`;
+            ans = `= 2`;
+          } else if (variant === 11) {
+            expr = `\\int x \\ln(x) \\, dx`;
+            ans = `= \\frac{1}{2}x^2 \\ln(x) - \\frac{1}{4}x^2 + C`;
+          } else if (variant === 12) {
+            expr = `\\int \\frac{1}{\\sqrt{x^2 + ${b}^2}} \\, dx`;
+            ans = `= \\ln|x + \\sqrt{x^2 + ${b}^2}| + C`;
+          } else if (variant === 13) {
+            expr = `\\int e^{-${b}x} \\sin(${a}x) \\, dx`;
+            ans = `= \\frac{e^{-${b}x}}{${b^2 + a^2}} (-${b}\\sin(${a}x) - ${a}\\cos(${a}x)) + C`;
+          } else {
+            expr = `\\int \\frac{x}{\\sqrt{x^2 + ${c}}} \\, dx`;
+            ans = `= \\sqrt{x^2 + ${c}} + C`;
           }
         }
       }
       else if (activeOp === 'sequences') {
         if (config.difficulty === 'easy') {
-          // Arithmetic sequence
           let first = a;
           let diff = b;
           let n = c + 3;
           expr = `a_n = ${first} + (n-1)\\cdot ${diff} \\quad (n = ${n})`;
           ans = `= ${first + (n-1) * diff}`;
         } else if (config.difficulty === 'med') {
-          // Geometric sequence
           let first = Math.abs(a);
           let ratio = b > 0 ? b : 2;
           let n = c + 2;
           expr = `a_n = ${first} \\cdot ${ratio}^{n-1} \\quad (n = ${n})`;
           ans = `= ${first * Math.pow(ratio, n-1)}`;
         } else {
-          // Expanded Hard Sequences (8 forms)
+          // === ADVANCED HARD SEQUENCES (15 forms) ===
           if (variant === 0) {
             let t1 = getRnd(3,12), t2 = t1 + getRnd(2,6), t3 = t2 + getRnd(2,6);
             expr = `a_1 = ${t1},\\ a_2 = ${t2},\\ a_3 = ${t3} \\quad \\text{find } d`;
@@ -652,24 +776,45 @@
             expr = `\\text{Find } a_1 \\text{ if } a_5 = ${b},\\ d = ${c}`;
             ans = `a_1 = ${b - 4 * c}`;
           } else if (variant === 5) {
-            let r = 0.5 + Math.random();
-            r = r.toFixed(1);
+            let r = (0.5 + Math.random()).toFixed(1);
             expr = `a_1 = ${a},\\ r = ${r} \\quad (a_4)`;
             ans = `= ${Math.round(a * Math.pow(r, 3))}`;
           } else if (variant === 6) {
             expr = `a_n = 3n + ${b} \\quad (a_{${d+2}})`;
             ans = `= ${3 * (d+2) + b}`;
-          } else {
+          } else if (variant === 7) {
             expr = `a_1 = ${a},\\ a_{n} = 2a_{n-1} - ${c} \\quad (a_3)`;
             let a2 = 2*a - c;
             let a3 = 2*a2 - c;
             ans = `= ${a3}`;
+          } else if (variant === 8) {
+            expr = `a_n = n^2 + ${b} \\quad (a_5)`;
+            ans = `= 25 + ${b}`;
+          } else if (variant === 9) {
+            expr = `\\text{Find common difference: } 7, 11, 15, \\dots`;
+            ans = `d = 4`;
+          } else if (variant === 10) {
+            expr = `a_1 = ${a},\\ r = -${c} \\quad (a_4)`;
+            ans = `= ${a * Math.pow(-c, 3)}`;
+          } else if (variant === 11) {
+            expr = `a_n = \\frac{1}{n} \\quad (a_{10})`;
+            ans = `= 0.1`;
+          } else if (variant === 12) {
+            expr = `\\text{Fibonacci-like: } a_1 = ${a}, a_2 = ${b}, a_n = a_{n-1} + a_{n-2} \\quad (a_6)`;
+            let fib = [a, b];
+            for (let k = 2; k < 5; k++) fib[k] = fib[k-1] + fib[k-2];
+            ans = `= ${fib[5]}`;
+          } else if (variant === 13) {
+            expr = `\\text{Convergent? } a_n = \\left(1 + \\frac{1}{n}\\right)^n`;
+            ans = `\\to e`;
+          } else {
+            expr = `a_n = n! \\quad (a_5)`;
+            ans = `= 120`;
           }
         }
       }
       else if (activeOp === 'series') {
         if (config.difficulty === 'easy') {
-          // Arithmetic series sum
           let first = a;
           let d = b;
           let n = c + 5;
@@ -677,7 +822,6 @@
           expr = `S_{${n}} = \\frac{${n}}{2} [2\\cdot${first} + (${n}-1)\\cdot${d}]`;
           ans = `= ${sum}`;
         } else if (config.difficulty === 'med') {
-          // Finite geometric series
           let first = Math.abs(a);
           let r = b > 0 ? b : 2;
           let n = c + 3;
@@ -685,7 +829,7 @@
           expr = `S_{${n}} = ${first} \\frac{r^{${n}} - 1}{r - 1} \\quad (r=${r})`;
           ans = `= ${Math.round(sum)}`;
         } else {
-          // Expanded Hard Series (8 forms)
+          // === ADVANCED HARD SERIES (15 forms) ===
           if (variant === 0) {
             let first = a;
             let d = b;
@@ -718,9 +862,30 @@
           } else if (variant === 6) {
             expr = `\\sum_{k=1}^{6} 2^k`;
             ans = `= 126`;
-          } else {
+          } else if (variant === 7) {
             expr = `\\sum_{k=1}^{\\infty} \\frac{1}{2^k}`;
             ans = `= 1`;
+          } else if (variant === 8) {
+            expr = `\\sum_{k=1}^{n} k^2`;
+            ans = `= \\frac{n(n+1)(2n+1)}{6}`;
+          } else if (variant === 9) {
+            expr = `\\sum_{k=1}^{8} (2k - 1)`;
+            ans = `= 64`;
+          } else if (variant === 10) {
+            expr = `\\sum_{k=0}^{\\infty} \\left(\\frac{1}{3}\\right)^k`;
+            ans = `= \\frac{3}{2}`;
+          } else if (variant === 11) {
+            expr = `\\sum_{k=1}^{n} (k + ${b})`;
+            ans = `= \\frac{n(n+1)}{2} + ${b}n`;
+          } else if (variant === 12) {
+            expr = `\\sum_{k=1}^{10} \\frac{1}{k(k+1)}`;
+            ans = `= \\frac{10}{11}`;
+          } else if (variant === 13) {
+            expr = `\\sum_{k=1}^{\\infty} \\frac{1}{k^2}`;
+            ans = `= \\frac{\\pi^2}{6}`;
+          } else {
+            expr = `\\text{Telescoping: } \\sum_{k=1}^{n} \\left( \\frac{1}{k} - \\frac{1}{k+1} \\right)`;
+            ans = `= 1 - \\frac{1}{n+1}`;
           }
         }
       }
