@@ -1,3 +1,4 @@
+
 <style>
   :root {
     --bg-color: #f2f2f7; 
@@ -70,32 +71,31 @@
     min-width: 140px;
   }
 
+  .btn-generate, .btn-scramble {
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
   .btn-generate {
     background-color: var(--primary-blue);
     color: white;
-    border: none;
-    border-radius: 8px;
     padding: 8px 14px;
     font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
   }
 
   .btn-scramble {
     background-color: var(--segment-bg);
     color: var(--primary-blue);
-    border: none;
-    border-radius: 8px;
     padding: 6px 14px;
     font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
   }
 
   .btn-generate:active, .btn-scramble:active { opacity: 0.7; }
 
   .app-container {
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
     padding: 16px;
   }
@@ -153,7 +153,6 @@
     box-shadow: 0 3px 8px rgba(0,0,0,0.12);
   }
 
-  /* Inputs & Select */
   input[type="text"], select {
     font-size: 17px;
     padding: 6px 12px;
@@ -169,41 +168,14 @@
   select { min-width: 155px; text-align: right; direction: rtl; }
 
   /* Toggle Switch */
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 51px;
-    height: 31px;
-  }
-
+  .switch { position: relative; display: inline-block; width: 51px; height: 31px; }
   .switch input { opacity: 0; width: 0; height: 0; }
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #e9e9eb;
-    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 31px;
-  }
-
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 27px;
-    width: 27px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 50%;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  }
-
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e9e9eb; transition: .3s; border-radius: 31px; }
+  .slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
   input:checked + .slider { background-color: var(--ios-green); }
   input:checked + .slider:before { transform: translateX(20px); }
 
-  /* Worksheet View - Refactored for Calculus */
+  /* Worksheet View */
   #TBL {
     scroll-margin-top: 120px;
     margin-top: 10px;
@@ -215,29 +187,44 @@
   }
 
   table { width: 100%; border-collapse: collapse; }
-  td { padding: 25px 10px; vertical-align: top; }
+  td { padding: 30px 15px; vertical-align: top; border-bottom: 1px dashed var(--border-color); }
+  tr:last-child td { border-bottom: none; }
 
   .math-problem {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    font-family: "Georgia", serif;
-    font-size: 20px;
-    line-height: 1.5;
+    width: 100%;
   }
 
-  .expression { padding-bottom: 8px; }
-  .answer { color: var(--ios-green); font-weight: 700; height: 24px; }
-  
-  /* Utilities for Limits/Integrals */
-  sup { font-size: 0.7em; }
-  sub { font-size: 0.7em; }
-  .integral { font-size: 1.5em; vertical-align: middle; margin-right: 4px; }
+  .prob-header {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: bold;
+    margin-bottom: -10px;
+    z-index: 10;
+  }
 
+  .expression {
+    width: 100%;
+    text-align: left;
+    margin-bottom: 15px;
+  }
+
+  .answer {
+    color: var(--ios-green);
+    min-height: 40px;
+    width: 100%;
+    text-align: left;
+  }
+
+  /* Override KaTeX default centering for displayMode */
+  .katex-display { margin: 0.5em 0 !important; }
+  
   @media print {
     .sticky-bar, .app-container > :not(#TBL) { display: none !important; }
     body { background: white; }
-    #TBL { padding: 0; margin: 0; }
+    #TBL { padding: 0; margin: 0; box-shadow: none; }
   }
 </style>
 
@@ -301,8 +288,8 @@
 
 <script>
   let config = {
-    numProb: 12,
-    cols: 2, // Changed default to 2 as calculus problems are wider
+    numProb: 10,
+    cols: 2, 
     difficulty: 'easy',
     action: 'limit',
     data: [] 
@@ -317,11 +304,11 @@
   function save() {
     const toSave = {...config};
     delete toSave.data; 
-    localStorage.setItem('calcAppConfig', JSON.stringify(toSave));
+    localStorage.setItem('calcAppKaTeX', JSON.stringify(toSave));
   }
 
   function load() {
-    const saved = localStorage.getItem('calcAppConfig');
+    const saved = localStorage.getItem('calcAppKaTeX');
     if (saved) {
       Object.assign(config, JSON.parse(saved));
       document.getElementById("NumProb").value = config.numProb;
@@ -344,7 +331,7 @@
   }
 
   function updateState() {
-    config.numProb = parseInt(document.getElementById("NumProb").value) || 12;
+    config.numProb = parseInt(document.getElementById("NumProb").value) || 10;
     config.cols = parseInt(document.getElementById("ColPage").value) || 2;
     config.action = document.getElementById("MathAction").value;
     save();
@@ -357,7 +344,6 @@
     updateState();
   }
 
-  // Random Helper
   function getRnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
   function generateNewData() {
@@ -375,74 +361,89 @@
 
       if (activeOp === 'limit') {
         if (config.difficulty === 'easy') {
-          expr = `lim<sub>x→${c}</sub> (${a}x + ${b})`;
+          expr = `\\lim_{x \\to ${c}} (${a}x ${b > 0 ? '+' : '-'} ${Math.abs(b)})`;
           ans = `= ${a * c + b}`;
         } else if (config.difficulty === 'med') {
-          // Difference of squares pattern (x^2 - c^2) / (x - c)
           let cSq = c * c;
-          expr = `lim<sub>x→${c}</sub> [ (x<sup>2</sup> - ${cSq}) / (x - ${c}) ]`;
+          expr = `\\lim_{x \\to ${c}} \\frac{x^2 - ${cSq}}{x - ${c}}`;
           ans = `= ${2 * c}`;
         } else {
-          // L'Hopital / Trig limit: sin(ax)/bx
-          expr = `lim<sub>x→0</sub> [ sin(${a}x) / ${b}x ]`;
-          ans = `= ${a}/${b}`;
+          expr = `\\lim_{x \\to 0} \\frac{\\sin(${a}x)}{${b}x}`;
+          ans = `= \\frac{${a}}{${b}}`;
         }
       } 
-      
       else if (activeOp === 'deriv') {
         if (config.difficulty === 'easy') {
-          expr = `d/dx [ ${a}x<sup>${b}</sup> + ${c}x ]`;
-          ans = `= ${a * b}x<sup>${b - 1}</sup> + ${c}`;
+          expr = `\\frac{d}{dx} \\left[ ${a}x^{${b}} ${c > 0 ? '+' : '-'} ${Math.abs(c)}x \\right]`;
+          ans = `= ${a * b}x^{${b - 1}} ${c > 0 ? '+' : '-'} ${Math.abs(c)}`;
         } else if (config.difficulty === 'med') {
-          let funcs = [`sin(${b}x)`, `cos(${b}x)`, `e<sup>${b}x</sup>`];
-          let ansFuncs = [`${b}cos(${b}x)`, `-${b}sin(${b}x)`, `${b}e<sup>${b}x</sup>`];
+          let funcs = [`\\sin(${b}x)`, `\\cos(${b}x)`, `e^{${b}x}`];
+          let ansFuncs = [`${b}\\cos(${b}x)`, `-${b}\\sin(${b}x)`, `${b}e^{${b}x}`];
           let r = Math.floor(Math.random() * 3);
           let sign = (a < 0 && r === 1) ? "" : (a > 0 && r === 1) ? "-" : "";
-          expr = `d/dx [ ${a}${funcs[r]} ]`;
+          expr = `\\frac{d}{dx} \\left[ ${a}${funcs[r]} \\right]`;
           ans = `= ${sign}${Math.abs(a * b)}${ansFuncs[r].replace(/-?${b}/, '')}`;
         } else {
-          // Product rule: a x^2 sin(x)
-          expr = `d/dx [ ${a}x<sup>2</sup> sin(x) ]`;
-          ans = `= ${a}x<sup>2</sup> cos(x) + ${2*a}x sin(x)`;
+          expr = `\\frac{d}{dx} \\left[ ${a}x^2 \\sin(x) \\right]`;
+          ans = `= ${a}x^2 \\cos(x) + ${2*a}x \\sin(x)`;
         }
       } 
-      
       else if (activeOp === 'integral') {
         if (config.difficulty === 'easy') {
-          // Pre-multiply 'a' by (b+1) so division is clean
           let coef = a * (b + 1);
-          expr = `<span class="integral">∫</span> (${coef}x<sup>${b}</sup> - ${c}) dx`;
-          ans = `= ${a}x<sup>${b + 1}</sup> - ${c}x + C`;
+          expr = `\\int \\left( ${coef}x^{${b}} - ${c} \\right) \\, dx`;
+          ans = `= ${a}x^{${b + 1}} - ${c}x + C`;
         } else if (config.difficulty === 'med') {
-          expr = `<span class="integral">∫</span> ${a * b} cos(${b}x) dx`;
-          ans = `= ${a} sin(${b}x) + C`;
+          expr = `\\int ${a * b} \\cos(${b}x) \\, dx`;
+          ans = `= ${a} \\sin(${b}x) + C`;
         } else {
-          expr = `<span class="integral">∫</span> ${a * b} e<sup>${b}x</sup> dx`;
-          ans = `= ${a} e<sup>${b}x</sup> + C`;
+          expr = `\\int ${a * b} e^{${b}x} \\, dx`;
+          ans = `= ${a} e^{${b}x} + C`;
         }
       }
-
       config.data.push({ expr, ans });
     }
     renderWorksheet();
   }
 
   function renderWorksheet() {
+    // If KaTeX hasn't loaded yet (CDN latency), wait and retry
+    if (typeof katex === 'undefined') {
+      setTimeout(renderWorksheet, 100);
+      return;
+    }
+
     const showAns = document.getElementById('answers').checked;
     let html = '<table><tr>';
 
     config.data.forEach((item, index) => {
+      // Use KaTeX to convert strings to HTML visually
+      let renderedExpr = katex.renderToString(item.expr, { displayMode: true, throwOnError: false });
+      let renderedAns = showAns 
+        ? katex.renderToString(item.ans, { displayMode: true, throwOnError: false }) 
+        : '';
+
       html += `
-        <td>
+        <td style="width: ${100 / config.cols}%">
           <div class="math-problem">
-            <div class="expression">${index + 1}) ${item.expr}</div>
-            <div class="answer">${showAns ? item.ans : '&nbsp;'}</div>
+            <div class="prob-header">${index + 1}.</div>
+            <div class="expression">${renderedExpr}</div>
+            <div class="answer">${renderedAns}</div>
           </div>
         </td>`;
+      
       if ((index + 1) % config.cols === 0 && (index + 1) < config.data.length) {
         html += '</tr><tr>';
       }
     });
+
+    // Fill empty cells if the row isn't complete
+    const remainder = config.data.length % config.cols;
+    if (remainder !== 0) {
+      for(let i = 0; i < (config.cols - remainder); i++) {
+        html += `<td></td>`;
+      }
+    }
 
     html += '</tr></table>';
     document.getElementById('TBL').innerHTML = html;
