@@ -846,7 +846,46 @@
                         ans: `= ${sign}${b}`,
                         sol: `\\text{Let } u = x - \\pi. \\text{ Identity: } \\sin(${b}(u+\\pi)) = ${sign}\\sin(${b}u).`
                     };
-                }
+                },
+
+              // The "x * sin(ax) / sin^2(bx)" family (Your specific request)
+                (a, b) => {
+                    const coeffA = a;
+                    const coeffB = b;
+                    return {
+                        expr: `\\lim_{x \\to 0} \\frac{x \\sin(${coeffA}x)}{\\sin^2(${coeffB}x)}`,
+                        ans: `= \\frac{${coeffA}}{${coeffB * coeffB}}`,
+                        sol: `\\begin{aligned} &\\text{As } x \\to 0, \\sin(kx) \\approx kx. \\\\ &\\text{Numerator: } x(${coeffA}x) = ${coeffA}x^2 \\\\ &\\text{Denominator: } (${coeffB}x)^2 = ${coeffB * coeffB}x^2 \\\\ &\\text{Limit: } \\frac{${coeffA}x^2}{${coeffB * coeffB}x^2} = \\frac{${coeffA}}{${coeffB * coeffB}} \\end{aligned}`
+                    };
+                },
+                
+                // The Tangent and Sine mix: tan(ax) / sin(bx)
+                (a, b) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{\\tan(${a}x)}{\\sin(${b}x)}`,
+                    ans: `= \\frac{${a}}{${b}}`,
+                    sol: `\\begin{aligned} &\\text{Divide num. and den. by } x: \\\\ &\\frac{\\frac{\\tan(${a}x)}{x}}{\\frac{\\sin(${b}x)}{x}} = \\frac{${a}}{${b}} \\end{aligned}`
+                }),
+                
+                // The Squared Sine family: sin^2(ax) / (x * tan(bx))
+                (a, b) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{\\sin^2(${a}x)}{x \\tan(${b}x)}`,
+                    ans: `= \\frac{${a * a}}{${b}}`,
+                    sol: `\\begin{aligned} &\\text{Approximation: } \\frac{(${a}x)^2}{x(${b}x)} \\\\ &= \\frac{${a * a}x^2}{${b}x^2} = \\frac{${a * a}}{${b}} \\end{aligned}`
+                }),
+                
+                // Higher Order Powers: x^2 * sin(ax) / sin^3(bx)
+                (a, b) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{x^2 \\sin(${a}x)}{\\sin^3(${b}x)}`,
+                    ans: `= \\frac{${a}}{${b ** 3}}`,
+                    sol: `\\text{Numerator behaves like } ${a}x^3. \\text{ Denominator behaves like } (${b}x)^3 = ${b ** 3}x^3.`
+                }),
+                
+                // Product form: (sin ax * sin bx) / (x * tan cx)
+                (a, b, c) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{\\sin(${a}x) \\sin(${b}x)}{x \\tan(${c}x)}`,
+                    ans: `= \\frac{${a * b}}{${c}}`,
+                    sol: `\\text{Using limits: } \\frac{(${a}x)(${b}x)}{x(${c}x)} = \\frac{${a * b}x^2}{${c}x^2} = \\frac{${a * b}}{${c}}`
+                })  
             ]
         },
         derivative: {
