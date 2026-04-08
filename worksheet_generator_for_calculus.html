@@ -1574,19 +1574,3 @@
 
     window.onload = generateNewData;
 </script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const contentDiv = document.getElementById('content');
-      if (!contentDiv) return;
-
-      // Find every <style> tag inside the content div
-      const styleTags = contentDiv.querySelectorAll('style');
-
-      // Move each one to <head>
-      styleTags.forEach(style => {
-        document.head.appendChild(style);
-      });
-
-      console.log(`${styleTags.length} style tag(s) moved to <head>`);
-    });
-  </script>
