@@ -731,6 +731,54 @@
                     expr: `\\lim_{x \\to 0} \\frac{\\sin(${Math.abs(a)}x)}{${b}x}`,
                     ans: `= \\frac{${Math.abs(a)}}{${b}}`,
                     sol: `\\text{Standard limit } \\lim_{u\\to 0} \\frac{\\sin(Au)}{Bu} = \\frac{A}{B} = \\frac{${Math.abs(a)}}{${b}}`
+                }),
+                // Form: (ax^2 + bx) / cx -> b/c
+                (a, b, c) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{${a}x^2 + ${b}x}{${c}x}`,
+                    ans: `= \\frac{${b}}{${c}}`,
+                    sol: `\\begin{aligned} &= \\lim_{x \\to 0} \\frac{x(${a}x + ${b})}{${c}x} \\\\ &= \\lim_{x \\to 0} \\frac{${a}x + ${b}}{${c}} = \\frac{${b}}{${c}} \\end{aligned}`
+                }),
+                
+                // Form: (ax^2 + bx) / (cx^2 + dx) -> b/d
+                (a, b, c, d) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{${a}x^2 + ${b}x}{${c}x^2 + ${d}x}`,
+                    ans: `= \\frac{${b}}{${d}}`,
+                    sol: `\\begin{aligned} &= \\lim_{x \\to 0} \\frac{x(${a}x + ${b})}{x(${c}x + ${d})} \\\\ &= \\frac{0 + ${b}}{0 + ${d}} = \\frac{${b}}{${d}} \\end{aligned}`
+                }),
+                // Form: (sqrt(x + a^2) - a) / x -> 1/(2a)
+                (a) => {
+                    const aSquared = a * a;
+                    return {
+                        expr: `\\lim_{x \\to 0} \\frac{\\sqrt{x + ${aSquared}} - ${a}}{x}`,
+                        ans: `= \\frac{1}{${2 * a}}`,
+                        sol: `\\begin{aligned} &= \\lim_{x \\to 0} \\frac{(\\sqrt{x + ${aSquared}} - ${a})(\\sqrt{x + ${aSquared}} + ${a})}{x(\\sqrt{x + ${aSquared}} + ${a})} \\\\ &= \\lim_{x \\to 0} \\frac{x}{x(\\sqrt{x + ${aSquared}} + ${a})} = \\frac{1}{${a} + ${a}} = \\frac{1}{${2 * a}} \\end{aligned}`
+                    };
+                },
+                // Form: (1 - cos(ax)) / x^2 -> a^2 / 2
+                (a) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{1 - \\cos(${a}x)}{x^2}`,
+                    ans: `= \\frac{${a * a}}{2}`,
+                    sol: `\\begin{aligned} &= \\lim_{x \\to 0} \\frac{2\\sin^2(\\frac{${a}x}{2})}{x^2} \\\\ &= 2 \\left( \\frac{${a}}{2} \\right)^2 = 2 \\cdot \\frac{${a * a}}{4} = \\frac{${a * a}}{2} \\end{aligned}`
+                }),
+                
+                // Form: sin(ax) / tan(bx) -> a/b
+                (a, b) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{\\sin(${a}x)}{\\tan(${b}x)}`,
+                    ans: `= \\frac{${a}}{${b}}`,
+                    sol: `\\begin{aligned} &= \\lim_{x \\to 0} \\frac{\\sin(${a}x)}{x} \\cdot \\frac{x}{\\tan(${b}x)} \\\\ &= ${a} \\cdot \\frac{1}{${b}} = \\frac{${a}}{${b}} \\end{aligned}`
+                }),
+                // Form: (e^{ax} - 1) / bx -> a/b
+                (a, b) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{e^{${a}x} - 1}{${b}x}`,
+                    ans: `= \\frac{${a}}{${b}}`,
+                    sol: `\\text{Using the standard limit } \\lim_{u \\to 0} \\frac{e^u - 1}{u} = 1, \\text{ we get } \\frac{${a}}{${b}}.`
+                }),
+                
+                // Form: ln(1 + ax) / bx -> a/b
+                (a, b) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{\\ln(1 + ${a}x)}{${b}x}`,
+                    ans: `= \\frac{${a}}{${b}}`,
+                    sol: `\\text{Using the standard limit } \\lim_{u \\to 0} \\frac{\\ln(1 + u)}{u} = 1, \\text{ we get } \\frac{${a}}{${b}}.`
                 })
             ],
             hard: [
