@@ -934,7 +934,46 @@
                     expr: `\\lim_{x \\to 0} \\frac{\\sin(${a}x) \\sin(${b}x)}{x \\tan(${c}x)}`,
                     ans: `= \\frac{${a * b}}{${c}}`,
                     sol: `\\text{Using limits: } \\frac{(${a}x)(${b}x)}{x(${c}x)} = \\frac{${a * b}x^2}{${c}x^2} = \\frac{${a * b}}{${c}}`
-                })  
+                }),
+                // The requested sin(2x)-sin(3x) / (cos x - 1)
+                (a, b) => {
+                    const n1 = 2; // From your example
+                    const n2 = 3;
+                    return {
+                        expr: `\\lim_{x \\to 0} \\frac{\\sin ${n1}x - \\sin ${n2}x}{\\cos x - 1}`,
+                        ans: `\\infty \\text{ (DNE)}`,
+                        sol: `\\begin{aligned} 
+                        &\\text{Numerator: } 2\\cos\\left(\\tfrac{${n1}+${n2}}{2}x\\right)\\sin\\left(\\tfrac{${n1}-${n2}}{2}x\\right) = 2\\cos(2.5x)\\sin(-0.5x) \\\\
+                        &\\text{Denominator: } -2\\sin^2(x/2) \\\\
+                        &\\lim_{x \\to 0} \\frac{2(1)(-0.5x)}{-2(0.5x)^2} = \\lim_{x \\to 0} \\frac{-x}{-0.5x^2} = \\lim_{x \\to 0} \\frac{2}{x} = \\infty
+                        \\end{aligned}`
+                    };
+                },
+                // Form: (cos ax - cos bx) / x^2 -> (b^2 - a^2) / 2
+                (a, b) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{\\cos ${a}x - \\cos ${b}x}{x^2}`,
+                    ans: `= \\frac{${b * b - a * a}}{2}`,
+                    sol: `\\begin{aligned} 
+                    &\\text{Use: } \\cos A - \\cos B = -2\\sin\\tfrac{A+B}{2}\\sin\\tfrac{A-B}{2} \\\\
+                    &\\lim_{x \\to 0} \\frac{-2\\sin(\\frac{${a+b}}{2}x)\\sin(\\frac{${a-b}}{2}x)}{x^2} \\\\
+                    &= -2\\left(\\frac{${a+b}}{2}\\right)\\left(\\frac{${a-b}}{2}\\right) = \\frac{${b*b} - ${a*a}}{2}
+                    \\end{aligned}`
+                }),
+                // Form: (sin ax - sin bx) / sin cx -> (a - b) / c
+                (a, b, c) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{\\sin ${a}x - \\sin ${b}x}{\\sin ${c}x}`,
+                    ans: `= \\frac{${a - b}}{${c}}`,
+                    sol: `\\begin{aligned} 
+                    &\\text{Numerator: } 2\\cos\\left(\\tfrac{${a+b}}{2}x\\right)\\sin\\left(\\tfrac{${a-b}}{2}x\\right) \\\\
+                    &\\text{Limit: } \\frac{2(1)(\\frac{${a-b}}{2}x)}{${c}x} = \\frac{${a-b}}{${c}}
+                    \\end{aligned}`
+                }),
+                // Form: (sin ax - sin bx) / (tan cx - tan dx)
+                (a, b, c, d) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{\\sin ${a}x - \\sin ${b}x}{\\tan ${c}x - \\tan ${d}x}`,
+                    ans: `= \\frac{${a - b}}{${c - d}}`,
+                    sol: `\\text{Using } \\lim_{x \\to 0} \\frac{\\sin kx}{x} = k \\text{ and } \\frac{\\tan kx}{x} = k, \\text{ we get } \\frac{${a}-${b}}{${c}-${d}}.`
+                })
             ]
         },
         derivative: {
