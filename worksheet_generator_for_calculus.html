@@ -726,6 +726,11 @@
                     expr: `\\lim_{x \\to ${c}} \\frac{x^2 - ${c*c}}{x - ${c}}`,
                     ans: `= ${2 * c}`,
                     sol: `\\begin{aligned} &= \\lim_{x\\to ${c}} \\frac{(x-${c})(x+${c})}{x-${c}} = ${2 * c} \\end{aligned}`
+                }),
+                (a, b) => ({
+                    expr: `\\lim_{x \\to 0} \\frac{\\sin(${Math.abs(a)}x)}{${b}x}`,
+                    ans: `= \\frac{${Math.abs(a)}}{${b}}`,
+                    sol: `\\text{Standard limit } \\lim_{u\\to 0} \\frac{\\sin(Au)}{Bu} = \\frac{A}{B} = \\frac{${Math.abs(a)}}{${b}}`
                 })
             ],
             hard: [
@@ -738,11 +743,6 @@
                     expr: `\\lim_{x \\to 0} \\frac{1 - \\cos(${b}x)}{x^2}`,
                     ans: `= \\frac{${b * b}}{2}`,
                     sol: `\\text{Use L'Hopital or Maclaurin } \\approx \\frac{1-(1-(${b}x)^2/2)}{x^2} = \\frac{${b*b}}{2}`
-                }),
-                (a, b) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{\\sin(${Math.abs(a)}x)}{${b}x}`,
-                    ans: `= \\frac{${Math.abs(a)}}{${b}}`,
-                    sol: `\\text{Standard limit } \\lim_{u\\to 0} \\frac{\\sin(Au)}{Bu} = \\frac{A}{B} = \\frac{${Math.abs(a)}}{${b}}`
                 }),
                 (a, b) => ({
                     expr: `\\lim_{x \\to 0} \\frac{e^{${b}x} - 1}{x}`,
