@@ -332,12 +332,12 @@
             showSolutions: document.getElementById('show-solutions').checked
         };
         
-        localStorage.setItem('worksheetPrefs', JSON.stringify(settings));
+        localStorage.setItem('worksheetSettings', JSON.stringify(settings));
     }
 
       
     function loadSettings() {
-        const saved = localStorage.getItem('worksheetPrefs');
+        const saved = localStorage.getItem('worksheetSettings');
         
         if (saved) {
             const settings = JSON.parse(saved);
@@ -1615,7 +1615,7 @@
     }
 
     window.onload = () => {
-       applyNativeSettings = loadSettings();    // 1. Load saved preferences first
+       loadSettings();    // 1. Load saved preferences first
        generateNewData(); // 2. Then generate the worksheet using those preferences
     };
 </script>
