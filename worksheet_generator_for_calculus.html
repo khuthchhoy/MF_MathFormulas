@@ -317,55 +317,54 @@
     <div id="worksheet-grid"></div>
 </div>
 
-    <script>
-    const config = { data: [] };
+<script>
+  const config = { data: [] };
       
-    // --- LOCAL STORAGE LOGIC ---
-function saveSettingsForCalculus() {
-    const settings = {
-        subject: document.getElementById('subject').value,
-        difficulty: document.querySelector('.segment.active').dataset.diff,
-        numProblems: document.getElementById('num-problems').value,
-        columns: document.getElementById('num-columns').value,
-        showAnswers: document.getElementById('show-answers').checked,
-        showSolutions: document.getElementById('show-solutions').checked
-    };
-    
-    localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
+  // --- LOCAL STORAGE LOGIC ---
+  function saveSettingsForCalculus() {
+      const settings = {
+          subject: document.getElementById('subject').value,
+          difficulty: document.querySelector('.segment.active').dataset.diff,
+          numProblems: document.getElementById('num-problems').value,
+          columns: document.getElementById('num-columns').value,
+          showAnswers: document.getElementById('show-answers').checked,
+          showSolutions: document.getElementById('show-solutions').checked
+      };
+      
+      localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
+  
+      if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
+          window.webkit.messageHandlers.saveSettingsForCalculus.postMessage(JSON.stringify(settings));
+      }
+  }
 
-    if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
-        window.webkit.messageHandlers.saveSettingsForCalculus.postMessage(JSON.stringify(settings));
-    }
-}
-
-// --- Updated Load Logic ---
-// IMPORTANT: Added 'jsonString' parameter to match your working example
-function loadSettings(jsonString) {
-    // If Swift sends data, use it. Otherwise, fallback to localStorage.
-    const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
-    
-    if (saved) {
-        const settings = JSON.parse(saved);
-        
-        if (settings.subject) document.getElementById('subject').value = settings.subject;
-        if (settings.numProblems) document.getElementById('num-problems').value = settings.numProblems;
-        if (settings.columns) {
-            document.getElementById('num-columns').value = settings.columns;
-            document.documentElement.style.setProperty('--grid-cols', settings.columns);
-        }
-        document.getElementById('show-answers').checked = settings.showAnswers || false;
-        document.getElementById('show-solutions').checked = settings.showSolutions || false;
-        
-        if (settings.difficulty) {
-            document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.querySelector(`.segment[data-diff="${settings.difficulty}"]`);
-            if (activeBtn) activeBtn.classList.add('active');
-        }
-    }
-    
-    // Refresh the math problems with the loaded settings
-    generateNewData();
-}
+  // --- Updated Load Logic ---
+  function loadSettings(jsonString) {
+      // If Swift sends data, use it. Otherwise, fallback to localStorage.
+      const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
+      
+      if (saved) {
+          const settings = JSON.parse(saved);
+          
+          if (settings.subject) document.getElementById('subject').value = settings.subject;
+          if (settings.numProblems) document.getElementById('num-problems').value = settings.numProblems;
+          if (settings.columns) {
+              document.getElementById('num-columns').value = settings.columns;
+              document.documentElement.style.setProperty('--grid-cols', settings.columns);
+          }
+          document.getElementById('show-answers').checked = settings.showAnswers || false;
+          document.getElementById('show-solutions').checked = settings.showSolutions || false;
+          
+          if (settings.difficulty) {
+              document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
+              const activeBtn = document.querySelector(`.segment[data-diff="${settings.difficulty}"]`);
+              if (activeBtn) activeBtn.classList.add('active');
+          }
+      }
+      
+      // Refresh the math problems with the loaded settings
+      generateNewData();
+  }
 
     // --- UI Logic ---
     function toggleSettings() {
@@ -1624,9 +1623,5 @@ function loadSettings(jsonString) {
         grid.innerHTML = html;
         saveSettingsForCalculus();
     }
-
-    // window.onload = () => {
-    //     loadSettings();   
-    //    generateNewData();
-    // };
+  
 </script>
