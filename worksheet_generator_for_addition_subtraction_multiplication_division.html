@@ -336,10 +336,6 @@
     updateDifficultyUI();
   }
 
-  function triggerHaptic() {
-    if (navigator.vibrate) navigator.vibrate(15);
-  }
-
   function updateDifficultyUI() {
     document.querySelectorAll('.segment').forEach(s => s.classList.remove('active'));
     if (config.min == 0 && config.max == 10) document.getElementById('seg-easy').classList.add('active');
