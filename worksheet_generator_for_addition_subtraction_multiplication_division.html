@@ -352,8 +352,8 @@
     config.cols = parseInt(document.getElementById("ColPage").value) || 3;
     config.min = parseInt(document.getElementById("MinVal").value) || 0;
     config.max = parseInt(document.getElementById("MaxVal").value) || 10;
-    config.topBigger = document.getElementById("ReMax").checked;
-    config.answers = document.getElementById("answers").checked;
+    config.topBigger = document.getElementById("ReMax").checked || false;
+    config.answers = document.getElementById("answers").checked || false;
     config.action = document.getElementById("MathAction").value;
     updateDifficultyUI();
     save();
