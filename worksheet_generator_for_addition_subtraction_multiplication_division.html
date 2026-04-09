@@ -307,6 +307,7 @@
     min: 10,
     max: 99,
     topBigger: true,
+    answers: true,
     action: 'add',
     data: [] 
   };
@@ -333,6 +334,7 @@
       document.getElementById("MinVal").value = config.min;
       document.getElementById("MaxVal").value = config.max;
       document.getElementById("ReMax").checked = config.topBigger;
+      document.getElementById("answers").checked = config.answers;
       document.getElementById("MathAction").value = config.action;
     }
     updateDifficultyUI();
