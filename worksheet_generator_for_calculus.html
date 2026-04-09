@@ -322,26 +322,8 @@
 
     // --- LOCAL STORAGE LOGIC ---
 
-    // function saveSettings() {
-    //     // Gather all current settings
-    //     const settings = {
-    //         subject: document.getElementById('subject').value,
-    //         difficulty: document.querySelector('.segment.active').dataset.diff,
-    //         numProblems: document.getElementById('num-problems').value,
-    //         columns: document.getElementById('num-columns').value,
-    //         showAnswers: document.getElementById('show-answers').checked,
-    //         showSolutions: document.getElementById('show-solutions').checked
-    //     };
-        
-    //     // Convert the object to a string and save it
-    //     localStorage.setItem('worksheetPrefs', JSON.stringify(settings));
-    // }
-
-
-    // --- NATIVE BRIDGE LOGIC ---
-
-    // 1. This function is called by the HTML whenever a setting changes
     function saveSettings() {
+        // Gather all current settings
         const settings = {
             subject: document.getElementById('subject').value,
             difficulty: document.querySelector('.segment.active').dataset.diff,
@@ -351,44 +333,10 @@
             showSolutions: document.getElementById('show-solutions').checked
         };
         
-        const jsonString = JSON.stringify(settings);
-    
-        // Check if we are inside the iOS App
-        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.saveSettingsBridge) {
-            window.webkit.messageHandlers.saveSettingsBridge.postMessage(jsonString);
-        } else {
-            // Fallback for standard browsers
-            localStorage.setItem('worksheetPrefs', jsonString);
-        }
+        // Convert the object to a string and save it
+        localStorage.setItem('worksheetPrefs', JSON.stringify(settings));
     }
-    
-    // 2. This function is called BY SWIFT when the app opens
-    function applyNativeSettings(jsonString) {
-        try {
-            const settings = JSON.parse(jsonString);
-            
-            // Apply values to the DOM
-            if (settings.subject) document.getElementById('subject').value = settings.subject;
-            if (settings.numProblems) document.getElementById('num-problems').value = settings.numProblems;
-            if (settings.columns) {
-                document.getElementById('num-columns').value = settings.columns;
-                document.documentElement.style.setProperty('--grid-cols', settings.columns);
-            }
-            document.getElementById('show-answers').checked = settings.showAnswers || false;
-            document.getElementById('show-solutions').checked = settings.showSolutions || false;
-            
-            if (settings.difficulty) {
-                document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
-                const activeBtn = document.querySelector(`.segment[data-diff="${settings.difficulty}"]`);
-                if (activeBtn) activeBtn.classList.add('active');
-            }
-    
-            // Refresh the worksheet with the loaded settings
-            generateNewData();
-        } catch (e) {
-            console.error("Failed to parse native settings", e);
-        }
-    }
+
       
     function loadSettings() {
         // Retrieve the saved string
@@ -1679,13 +1627,6 @@
         
         grid.innerHTML = html;
     }
-
-      // Make sure this is in the root of your <script>
-      window.applyNativeSettings = function(jsonString) {
-          const settings = JSON.parse(jsonString);
-          // ... apply to your UI elements ...
-          generateNewData(); // Refresh the math
-      };
 
     window.onload = () => {
         loadSettings();    // 1. Load saved preferences first
