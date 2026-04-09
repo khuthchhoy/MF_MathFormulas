@@ -321,34 +321,37 @@
     const config = { data: [] };
       
     // --- LOCAL STORAGE LOGIC ---
-    function saveSettingsForCalculus() {
-        const settings = {
-            subject: document.getElementById('subject').value,
-            difficulty: document.querySelector('.segment.active').dataset.diff,
-            numProblems: document.getElementById('num-problems').value,
-            columns: document.getElementById('num-columns').value,
-            showAnswers: document.getElementById('show-answers').checked,
-            showSolutions: document.getElementById('show-solutions').checked
-        };
-        
-        localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
-        if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
-            window.webkit.messageHandlers.saveSettingsForCalculus.postMessage(JSON.stringify(settings));
-        }
-    }
+    // --- Updated Save Logic ---
+function saveSettingsForCalculus() {
+    const settings = {
+        subject: document.getElementById('subject').value,
+        difficulty: document.querySelector('.segment.active').dataset.diff,
+        numProblems: document.getElementById('num-problems').value,
+        columns: document.getElementById('num-columns').value,
+        showAnswers: document.getElementById('show-answers').checked,
+        showSolutions: document.getElementById('show-solutions').checked
+    };
     
-    function loadSettings(jsonString) {
+    localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
+
+    if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
+        window.webkit.messageHandlers.saveSettingsForCalculus.postMessage(JSON.stringify(settings));
+    }
+}
+
+// --- Updated Load Logic ---
+// IMPORTANT: Added 'jsonString' parameter to match your working example
+function loadSettings(jsonString) {
+    // If Swift sends data, use it. Otherwise, fallback to localStorage.
     const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
     
     if (saved) {
         const settings = JSON.parse(saved);
         
-        // Update inputs...
         if (settings.subject) document.getElementById('subject').value = settings.subject;
         if (settings.numProblems) document.getElementById('num-problems').value = settings.numProblems;
         if (settings.columns) {
             document.getElementById('num-columns').value = settings.columns;
-            // IMPORTANT: Update the CSS variable for the grid
             document.documentElement.style.setProperty('--grid-cols', settings.columns);
         }
         document.getElementById('show-answers').checked = settings.showAnswers || false;
@@ -361,10 +364,10 @@
         }
     }
     
-    // Final step: Force the math to regenerate with these loaded settings
-    generateNewData(); 
+    // Refresh the math problems with the loaded settings
+    generateNewData();
 }
-      
+
     // --- UI Logic ---
     function toggleSettings() {
       const panel = document.getElementById('settings-panel');
