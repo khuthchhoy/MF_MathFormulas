@@ -353,7 +353,7 @@
     config.min = parseInt(document.getElementById("MinVal").value) || 0;
     config.max = parseInt(document.getElementById("MaxVal").value) || 10;
     config.topBigger = document.getElementById("ReMax").checked;
-    document.getElementById("answers").checked = config.answers;
+    config.answers = document.getElementById("answers").checked;
     config.action = document.getElementById("MathAction").value;
     updateDifficultyUI();
     save();
