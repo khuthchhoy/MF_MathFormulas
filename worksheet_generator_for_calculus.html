@@ -338,28 +338,32 @@
     }
     
     function loadSettings(jsonString) {
-        const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
+    const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
+    
+    if (saved) {
+        const settings = JSON.parse(saved);
         
-        if (saved) {
-            const settings = JSON.parse(saved);
-            
-            if (settings.subject) document.getElementById('subject').value = settings.subject;
-            if (settings.numProblems) document.getElementById('num-problems').value = settings.numProblems;
-            if (settings.columns) {
-                document.getElementById('num-columns').value = settings.columns;
-                document.documentElement.style.setProperty('--grid-cols', settings.columns);
-            }
-            document.getElementById('show-answers').checked = settings.showAnswers || false;
-            document.getElementById('show-solutions').checked = settings.showSolutions || false;
-            
-            if (settings.difficulty) {
-                document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
-                const activeBtn = document.querySelector(`.segment[data-diff="${settings.difficulty}"]`);
-                if (activeBtn) activeBtn.classList.add('active');
-            }
+        // Update inputs...
+        if (settings.subject) document.getElementById('subject').value = settings.subject;
+        if (settings.numProblems) document.getElementById('num-problems').value = settings.numProblems;
+        if (settings.columns) {
+            document.getElementById('num-columns').value = settings.columns;
+            // IMPORTANT: Update the CSS variable for the grid
+            document.documentElement.style.setProperty('--grid-cols', settings.columns);
         }
-        generateNewData(); 
+        document.getElementById('show-answers').checked = settings.showAnswers || false;
+        document.getElementById('show-solutions').checked = settings.showSolutions || false;
+        
+        if (settings.difficulty) {
+            document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.querySelector(`.segment[data-diff="${settings.difficulty}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
     }
+    
+    // Final step: Force the math to regenerate with these loaded settings
+    generateNewData(); 
+}
       
     // --- UI Logic ---
     function toggleSettings() {
