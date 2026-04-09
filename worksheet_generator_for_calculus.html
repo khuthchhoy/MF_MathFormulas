@@ -877,16 +877,16 @@
                         ans: `= \\frac{2\\sqrt{2}}{${k}}`,
                         sol: `\\begin{aligned} 
                                 L &= \\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\frac{\\sin x - \\cos x}{\\cos x}}{k \\left( \\sin x - \\frac{1}{\\sqrt{2}} \\right)} \\\\ 
-                                &= \\frac{1}{k} \\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\sin x - \\cos x}{\\cos x (\\sin x - \\sin \\frac{\\pi}{4})} \\\\ 
+                                &= \\frac{1}{${k}} \\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\sin x - \\cos x}{\\cos x (\\sin x - \\sin \\frac{\\pi}{4})} \\\\ 
                                 \\\\
                                 &\\text{Using } \\sin x - \\cos x = \\sqrt{2}\\sin(x - \\frac{\\pi}{4}) \\\\
                                 &\\text{ and the sum-to-product identity:} \\\\ 
-                                L &= \\frac{1}{k} \\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\sqrt{2}\\sin(x - \\frac{\\pi}{4})}{\\cos x \\left[ 2\\sin\\left(\\frac{x - \\pi/4}{2}\\right)\\cos\\left(\\frac{x + \\pi/4}{2}\\right) \\right]} \\\\ 
+                                L &= \\frac{1}{${k}} \\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\sqrt{2}\\sin(x - \\frac{\\pi}{4})}{\\cos x \\left[ 2\\sin\\left(\\frac{x - \\pi/4}{2}\\right)\\cos\\left(\\frac{x + \\pi/4}{2}\\right) \\right]} \\\\ 
                                 &\\text{Apply double angle } \\sin(2\\theta) = 2\\sin\\theta\\cos\\theta \\text{ to the numerator:} \\\\ 
-                                L &= \\frac{\\sqrt{2}}{k} \\lim_{x \\to \\frac{\\pi}{4}} \\frac{2\\sin(\\frac{x - \\pi/4}{2})\\cos(\\frac{x - \\pi/4}{2})}{\\cos x \\cdot 2\\sin(\\frac{x - \\pi/4}{2})\\cos(\\frac{x + \\pi/4}{2})} \\\\ 
-                                &= \\frac{\\sqrt{2}}{k} \\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\cos(\\frac{x - \\pi/4}{2})}{\\cos x \\cdot \\cos(\\frac{x + \\pi/4}{2})} \\\\ 
-                                &= \\frac{\\sqrt{2}}{k} \\cdot \\frac{\\cos(0)}{\\cos(\\frac{\\pi}{4}) \\cdot \\cos(\\frac{\\pi}{4})} = \\frac{\\sqrt{2}}{k} \\cdot \\frac{1}{\\frac{1}{\\sqrt{2}} \\cdot \\frac{1}{\\sqrt{2}}} \\\\ 
-                                &= \\frac{\\sqrt{2}}{k} \\cdot 2 = \\frac{2\\sqrt{2}}{${k}}
+                                L &= \\frac{\\sqrt{2}}{${k}} \\lim_{x \\to \\frac{\\pi}{4}} \\frac{2\\sin(\\frac{x - \\pi/4}{2})\\cos(\\frac{x - \\pi/4}{2})}{\\cos x \\cdot 2\\sin(\\frac{x - \\pi/4}{2})\\cos(\\frac{x + \\pi/4}{2})} \\\\ 
+                                &= \\frac{\\sqrt{2}}{${k}} \\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\cos(\\frac{x - \\pi/4}{2})}{\\cos x \\cdot \\cos(\\frac{x + \\pi/4}{2})} \\\\ 
+                                &= \\frac{\\sqrt{2}}{${k}} \\cdot \\frac{\\cos(0)}{\\cos(\\frac{\\pi}{4}) \\cdot \\cos(\\frac{\\pi}{4})} = \\frac{\\sqrt{2}}{k} \\cdot \\frac{1}{\\frac{1}{\\sqrt{2}} \\cdot \\frac{1}{\\sqrt{2}}} \\\\ 
+                                &= \\frac{\\sqrt{2}}{${k}} \\cdot 2 = \\frac{2\\sqrt{2}}{${k}}
                               \\end{aligned}`
                     };
                 },
