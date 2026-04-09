@@ -319,14 +319,7 @@
 
     <script>
     const config = { data: [] };
-
-    // --- LOCAL STORAGE LOGIC ---
       
-    const config = { data: [] };
-
-    // FIX 1: You completely missed the triggerHaptic function! 
-    // This tells Swift to trigger the iPhone vibration.
-
     // --- LOCAL STORAGE LOGIC ---
     function saveSettingsForCalculus() {
         const settings = {
@@ -339,9 +332,6 @@
         };
         
         localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
-    
-        // FIX 2: Your typo was here. You checked for 'saveSettingsForCalculus' 
-        // but tried to post to 'saveSettings'. They must match exactly!
         if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
             window.webkit.messageHandlers.saveSettingsForCalculus.postMessage(JSON.stringify(settings));
         }
@@ -368,8 +358,6 @@
                 if (activeBtn) activeBtn.classList.add('active');
             }
         }
-        
-        // FIX 3: After loading settings, you MUST generate the data so the UI updates!
         generateNewData(); 
     }
       
@@ -406,7 +394,7 @@
     }
 
     // --- PROBLEM REGISTRY ---
-    // (Your ProblemRegistry remains exactly the same as previously configured)
+    
     const ProblemRegistry = {
         arithmetic: {
             easy: [
