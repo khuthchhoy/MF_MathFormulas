@@ -352,28 +352,6 @@
       generateNewData();
   }
   
-/*
-  function save() {
-    const toSave = {...config};
-    delete toSave.data; 
-    localStorage.setItem('mathAppConfig', JSON.stringify(toSave));
-  }
-
-  function load() {
-    const saved = localStorage.getItem('mathAppConfig');
-    if (saved) {
-      Object.assign(config, JSON.parse(saved));
-      document.getElementById("NumProb").value = config.numProb;
-      document.getElementById("ColPage").value = config.cols;
-      document.getElementById("MinVal").value = config.min;
-      document.getElementById("MaxVal").value = config.max;
-      document.getElementById("ReMax").checked = config.topBigger;
-      document.getElementById("answers").checked = config.answers;
-      document.getElementById("MathAction").value = config.action;
-    }
-    updateDifficultyUI();
-  }
-*/
   function updateDifficultyUI() {
     document.querySelectorAll('.segment').forEach(s => s.classList.remove('active'));
     if (config.min == 0 && config.max == 10) document.getElementById('seg-easy').classList.add('active');
