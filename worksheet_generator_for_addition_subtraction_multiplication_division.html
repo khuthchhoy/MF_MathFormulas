@@ -289,7 +289,7 @@
       <div class="row">
         <label>Show Answers</label>
         <label class="switch">
-          <input type="checkbox" id="answers" onchange="renderWorksheet(); triggerHaptic();">
+          <input type="checkbox" id="answers" onchange="updateState();">
           <span class="slider"></span>
         </label>
       </div>
@@ -307,7 +307,7 @@
     min: 10,
     max: 99,
     topBigger: true,
-    answers: true,
+    answers: false,
     action: 'add',
     data: [] 
   };
