@@ -321,7 +321,6 @@
     const config = { data: [] };
       
     // --- LOCAL STORAGE LOGIC ---
-    // --- Updated Save Logic ---
 function saveSettingsForCalculus() {
     const settings = {
         subject: document.getElementById('subject').value,
@@ -380,11 +379,13 @@ function loadSettings(jsonString) {
         document.getElementById('seg-' + level).classList.add('active');
         generateNewData();
         triggerHaptic();
+        saveSettingsForCalculus();
     }
 
     function updateColumns() {
         const cols = document.getElementById('num-columns').value || 1;
         document.documentElement.style.setProperty('--grid-cols', cols);
+        saveSettingsForCalculus();
     }
 
     // --- Helpers ---
@@ -1621,6 +1622,7 @@ function loadSettings(jsonString) {
         });
         
         grid.innerHTML = html;
+        saveSettingsForCalculus();
     }
 
     window.onload = () => {
