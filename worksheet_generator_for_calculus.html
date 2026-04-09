@@ -321,58 +321,56 @@
     const config = { data: [] };
 
     // --- LOCAL STORAGE LOGIC ---
+    // SWIFT CALLS THIS: This must be global.
+    window.applyNativeSettings = function(jsonString) {
+        try {
+            const settings = JSON.parse(jsonString);
+            
+            // 1. Update the UI elements with saved values
+            if (settings.subject) document.getElementById('subject').value = settings.subject;
+            if (settings.numProblems) document.getElementById('num-problems').value = settings.numProblems;
+            if (settings.columns) {
+                document.getElementById('num-columns').value = settings.columns;
+                document.documentElement.style.setProperty('--grid-cols', settings.columns);
+            }
+            document.getElementById('show-answers').checked = settings.showAnswers;
+            document.getElementById('show-solutions').checked = settings.showSolutions;
+            
+            // 2. Update the active difficulty button
+            if (settings.difficulty) {
+                document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
+                const activeBtn = document.querySelector(`.segment[data-diff="${settings.difficulty}"]`);
+                if (activeBtn) activeBtn.classList.add('active');
+            }
 
-    // --- NATIVE BRIDGE LOGIC ---
-
-// 1. This function is called by the HTML whenever a setting changes
-function saveSettings() {
-    const settings = {
-        subject: document.getElementById('subject').value,
-        difficulty: document.querySelector('.segment.active').dataset.diff,
-        numProblems: document.getElementById('num-problems').value,
-        columns: document.getElementById('num-columns').value,
-        showAnswers: document.getElementById('show-answers').checked,
-        showSolutions: document.getElementById('show-solutions').checked
+            // 3. IMPORTANT: Re-run the generator so the math matches the settings
+            generateNewData(); 
+            
+        } catch (e) {
+            console.error("Error parsing native settings:", e);
+        }
     };
-    
-    const jsonString = JSON.stringify(settings);
 
-    // Check if we are inside the iOS App
-    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.saveSettingsBridge) {
-        window.webkit.messageHandlers.saveSettingsBridge.postMessage(jsonString);
-    } else {
-        // Fallback for standard browsers
-        localStorage.setItem('worksheetPrefs', jsonString);
-    }
-}
-
-// 2. This function is called BY SWIFT when the app opens
-function applyNativeSettings(jsonString) {
-    try {
-        const settings = JSON.parse(jsonString);
+    // JS CALLS THIS: Sends data TO Swift
+    function saveSettings() {
+        const settings = {
+            subject: document.getElementById('subject').value,
+            difficulty: document.querySelector('.segment.active').dataset.diff,
+            numProblems: document.getElementById('num-problems').value,
+            columns: document.getElementById('num-columns').value,
+            showAnswers: document.getElementById('show-answers').checked,
+            showSolutions: document.getElementById('show-solutions').checked
+        };
         
-        // Apply values to the DOM
-        if (settings.subject) document.getElementById('subject').value = settings.subject;
-        if (settings.numProblems) document.getElementById('num-problems').value = settings.numProblems;
-        if (settings.columns) {
-            document.getElementById('num-columns').value = settings.columns;
-            document.documentElement.style.setProperty('--grid-cols', settings.columns);
-        }
-        document.getElementById('show-answers').checked = settings.showAnswers || false;
-        document.getElementById('show-solutions').checked = settings.showSolutions || false;
-        
-        if (settings.difficulty) {
-            document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.querySelector(`.segment[data-diff="${settings.difficulty}"]`);
-            if (activeBtn) activeBtn.classList.add('active');
-        }
+        const jsonString = JSON.stringify(settings);
 
-        // Refresh the worksheet with the loaded settings
-        generateNewData();
-    } catch (e) {
-        console.error("Failed to parse native settings", e);
+        // Send to Swift bridge
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.saveSettingsBridge) {
+            window.webkit.messageHandlers.saveSettingsBridge.postMessage(jsonString);
+        }
     }
-}
+
+
 /*
     function saveSettings() {
         // Gather all current settings
