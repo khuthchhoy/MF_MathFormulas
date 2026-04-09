@@ -320,37 +320,37 @@
     }
 
   // 1. Tell Swift to save the data
-function save() {
-    const toSave = {...config};
-    delete toSave.data; 
-    
-    // Save to local storage (for testing in browser)
-    localStorage.setItem('mathAppConfig', JSON.stringify(toSave));
-    
-    // Send to Swift (for the actual app)
-    if (window.webkit && window.webkit.messageHandlers.saveSettings) {
-        window.webkit.messageHandlers.saveSettings.postMessage(JSON.stringify(toSave));
-    }
-}
-
-// 2. This function will be called BY SWIFT when the app opens
-function injectSettings(jsonString) {
-    if (!jsonString) return;
-    const saved = JSON.parse(jsonString);
-    Object.assign(config, saved);
-    
-    // Update the UI inputs
-    document.getElementById("NumProb").value = config.numProb;
-    document.getElementById("ColPage").value = config.cols;
-    document.getElementById("MinVal").value = config.min;
-    document.getElementById("MaxVal").value = config.max;
-    document.getElementById("ReMax").checked = config.topBigger;
-    document.getElementById("answers").checked = config.answers;
-    document.getElementById("MathAction").value = config.action;
-    
-    updateDifficultyUI();
-    generateNewData();
-}
+  function save() {
+      const toSave = {...config};
+      delete toSave.data; 
+      
+      // Save to local storage (for testing in browser)
+      localStorage.setItem('mathAppConfig', JSON.stringify(toSave));
+      
+      // Send to Swift (for the actual app)
+      if (window.webkit && window.webkit.messageHandlers.saveSettings) {
+          window.webkit.messageHandlers.saveSettings.postMessage(JSON.stringify(toSave));
+      }
+  }
+  
+  // 2. This function will be called BY SWIFT when the app opens
+  function injectSettings(jsonString) {
+      if (!jsonString) return;
+      const saved = JSON.parse(jsonString);
+      Object.assign(config, saved);
+      
+      // Update the UI inputs
+      document.getElementById("NumProb").value = config.numProb;
+      document.getElementById("ColPage").value = config.cols;
+      document.getElementById("MinVal").value = config.min;
+      document.getElementById("MaxVal").value = config.max;
+      document.getElementById("ReMax").checked = config.topBigger;
+      document.getElementById("answers").checked = config.answers;
+      document.getElementById("MathAction").value = config.action;
+      
+      updateDifficultyUI();
+      generateNewData();
+  }
   
 /*
   function save() {
@@ -390,7 +390,7 @@ function injectSettings(jsonString) {
     config.answers = document.getElementById("answers").checked || false;
     config.action = document.getElementById("MathAction").value;
     updateDifficultyUI();
-    save();
+   // save();
     generateNewData();
     triggerHaptic();
   }
@@ -468,7 +468,6 @@ function injectSettings(jsonString) {
   }
 
   window.onload = () => {
-    load();
     generateNewData();
   };
 </script>
