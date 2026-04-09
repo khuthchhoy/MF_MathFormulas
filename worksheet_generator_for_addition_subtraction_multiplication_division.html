@@ -334,7 +334,7 @@
       document.getElementById("MinVal").value = config.min;
       document.getElementById("MaxVal").value = config.max;
       document.getElementById("ReMax").checked = config.topBigger;
-      document.getElementById("answers").checked = config.answers || false;
+      document.getElementById("answers").checked = config.answers;
       document.getElementById("MathAction").value = config.action;
     }
     updateDifficultyUI();
@@ -353,6 +353,7 @@
     config.min = parseInt(document.getElementById("MinVal").value) || 0;
     config.max = parseInt(document.getElementById("MaxVal").value) || 10;
     config.topBigger = document.getElementById("ReMax").checked;
+    document.getElementById("answers").checked = config.answers;
     config.action = document.getElementById("MathAction").value;
     updateDifficultyUI();
     save();
