@@ -161,52 +161,27 @@
   }
 
   /* Inputs & Select */
-  input[type="text"], select {
-    font-size: 17px;
-    padding: 6px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--bg-color);
-    color: var(--text-main);
-    font-family: inherit;
-    outline: none;
+  input[type="number"], select {
+      font-size: 16px;
+      padding: 6px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--bg-color);
+      color: var(--text-main);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
   }
 
-  input[type="text"] { width: 70px; text-align: right; }
-  select { min-width: 155px; text-align: right; direction: rtl; }
+  input[type="number"]:focus, select:focus { border-color: var(--primary-blue); }
+  input[type="number"] { width: 60px; text-align: center; }
+  select { min-width: 160px; cursor: pointer; }
 
-  /* Toggle Switch */
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 51px;
-    height: 31px;
-  }
-
+  /* iOS Toggle Switch */
+  .switch { position: relative; display: inline-block; width: 51px; height: 31px; }
   .switch input { opacity: 0; width: 0; height: 0; }
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #e9e9eb;
-    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 31px;
-  }
-
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 27px;
-    width: 27px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 50%;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  }
-
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e9e9eb; transition: .3s; border-radius: 31px; }
+  .slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
   input:checked + .slider { background-color: var(--ios-green); }
   input:checked + .slider:before { transform: translateX(20px); }
 
@@ -221,20 +196,19 @@
       min-height: 200px;
   }
   
+  
   table { width: 100%; border-collapse: collapse; }
   td { padding: 25px 10px; }
 
-  .math-problem {
+  .math-problem-table {
     display: inline-block;
     text-align: right;
     font-family: "Courier New", Courier, monospace;
     font-size: 26px;
     line-height: 1.2;
   }
-
   .bottom-line { border-bottom: 2px solid var(--text-main); margin-bottom: 4px; padding-bottom: 2px; }
-  .answer { color: var(--ios-green); font-weight: 700; height: 30px; }
-
+  .answer-table { color: var(--ios-green); font-weight: 700; height: 30px; }
   @media print {
     .sticky-bar, .app-container > :not(#worksheet-grid) { display: none !important; }
     body { background: white; }
@@ -278,19 +252,19 @@
       </div>
       <div class="row">
         <label>Problems</label>
-        <input type="text" id="NumProb" inputmode="numeric" onchange="updateState()">
+        <input type="number" id="NumProb" onchange="updateState()">
       </div>
       <div class="row">
         <label>Columns</label>
-        <input type="text" id="ColPage" inputmode="numeric" onchange="updateState()">
+        <input type="number" id="ColPage" onchange="updateState()">
       </div>
       <div class="row">
         <label>Min Value</label>
-        <input type="text" id="MinVal" inputmode="numeric" onchange="updateState()">
+        <input type="number" id="MinVal" onchange="updateState()">
       </div>
       <div class="row">
         <label>Max Value</label>
-        <input type="text" id="MaxVal" inputmode="numeric" onchange="updateState()">
+        <input type="number" id="MaxVal" onchange="updateState()">
       </div>
       <div class="row">
         <label>Top > Bottom</label>
@@ -305,7 +279,7 @@
       <div class="row">
         <label>Show Answers</label>
         <label class="switch">
-          <input type="checkbox" id="answers" onchange="renderWorksheet(); triggerHaptic();">
+          <input type="checkbox" id="answers-table" onchange="renderWorksheet(); triggerHaptic();">
           <span class="slider"></span>
         </label>
       </div>
@@ -420,10 +394,10 @@
     config.data.forEach((item, index) => {
       html += `
         <td align="center">
-          <div class="math-problem">
+          <div class="math-problem-table">
             <div>${item.x}</div>
             <div class="bottom-line">${symbols[item.op]} ${item.y}</div>
-            <div class="answer">${showAns ? item.ans : '&nbsp;'}</div>
+            <div class="answer-table">${showAns ? item.ans : '&nbsp;'}</div>
           </div>
         </td>`;
       if ((index + 1) % config.cols === 0 && (index + 1) < config.data.length) {
