@@ -254,7 +254,7 @@
     </button>
     <div class="action-stack">
         <!-- <button class="btn-print" onclick="window.print()">Print</button> -->
-        <button class="btn-generate" onclick="generateNewData()">Generate</button>
+        <button class="btn-generate" onclick="generateNewData();triggerHaptic();">Generate</button>
     </div>
 </div>
 
@@ -299,14 +299,14 @@
             <div class="row">
                 <label>Show Answers</label>
                 <label class="switch">
-                    <input type="checkbox" id="show-answers" onchange="renderWorksheet()">
+                    <input type="checkbox" id="show-answers" onchange="renderWorksheet();triggerHaptic();">
                     <span class="slider"></span>
                 </label>
             </div>
             <div class="row">
                 <label>Show Detail Solutions</label>
                 <label class="switch">
-                    <input type="checkbox" id="show-solutions" onchange="renderWorksheet()">
+                    <input type="checkbox" id="show-solutions" onchange="renderWorksheet();triggerHaptic();">
                     <span class="slider"></span>
                 </label>
             </div>
