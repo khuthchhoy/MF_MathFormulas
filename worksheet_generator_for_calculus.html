@@ -322,8 +322,13 @@
 
     // --- LOCAL STORAGE LOGIC ---
       
+    const config = { data: [] };
+
+    // FIX 1: You completely missed the triggerHaptic function! 
+    // This tells Swift to trigger the iPhone vibration.
+
+    // --- LOCAL STORAGE LOGIC ---
     function saveSettingsForCalculus() {
-        // 1. Gather all current settings
         const settings = {
             subject: document.getElementById('subject').value,
             difficulty: document.querySelector('.segment.active').dataset.diff,
@@ -333,18 +338,16 @@
             showSolutions: document.getElementById('show-solutions').checked
         };
         
-        // 2. Save to local storage (standard backup)
         localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
     
-        // 3. PUSH TO SWIFT: This sends the data to UserDefaults
+        // FIX 2: Your typo was here. You checked for 'saveSettingsForCalculus' 
+        // but tried to post to 'saveSettings'. They must match exactly!
         if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
-            window.webkit.messageHandlers.saveSettings.postMessage(JSON.stringify(settings));
+            window.webkit.messageHandlers.saveSettingsForCalculus.postMessage(JSON.stringify(settings));
         }
     }
     
-    // Updated to accept 'jsonString' from Swift
     function loadSettings(jsonString) {
-        // If jsonString is provided by Swift, use it. Otherwise, try localStorage.
         const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
         
         if (saved) {
@@ -359,13 +362,15 @@
             document.getElementById('show-answers').checked = settings.showAnswers || false;
             document.getElementById('show-solutions').checked = settings.showSolutions || false;
             
-            // Handle the difficulty buttons
             if (settings.difficulty) {
                 document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
                 const activeBtn = document.querySelector(`.segment[data-diff="${settings.difficulty}"]`);
                 if (activeBtn) activeBtn.classList.add('active');
             }
         }
+        
+        // FIX 3: After loading settings, you MUST generate the data so the UI updates!
+        generateNewData(); 
     }
       
     // --- UI Logic ---
