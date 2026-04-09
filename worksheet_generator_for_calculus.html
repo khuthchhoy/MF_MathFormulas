@@ -371,16 +371,6 @@
       panel.classList.toggle('hidden');
     }
 
-    function triggerHaptic() {
-        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.hapticBridge) {
-            // Call the Swift bridge we just created
-            window.webkit.messageHandlers.hapticBridge.postMessage("");
-        } else if (navigator.vibrate) {
-            // Fallback for Android/Standard Web
-            navigator.vibrate(10);
-        }
-    }
-
     function setDifficulty(level) {
         document.querySelectorAll('.segment').forEach(seg => seg.classList.remove('active'));
         document.getElementById('seg-' + level).classList.add('active');
