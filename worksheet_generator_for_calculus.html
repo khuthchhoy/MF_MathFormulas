@@ -321,6 +321,53 @@
     const config = { data: [] };
 
     // --- LOCAL STORAGE LOGIC ---
+      
+    function saveSettings() {
+        // 1. Gather all current settings
+        const settings = {
+            subject: document.getElementById('subject').value,
+            difficulty: document.querySelector('.segment.active').dataset.diff,
+            numProblems: document.getElementById('num-problems').value,
+            columns: document.getElementById('num-columns').value,
+            showAnswers: document.getElementById('show-answers').checked,
+            showSolutions: document.getElementById('show-solutions').checked
+        };
+        
+        // 2. Save to local storage (standard backup)
+        localStorage.setItem('worksheetSettings', JSON.stringify(settings));
+    
+        // 3. PUSH TO SWIFT: This sends the data to UserDefaults
+        if (window.webkit && window.webkit.messageHandlers.saveSettings) {
+            window.webkit.messageHandlers.saveSettings.postMessage(JSON.stringify(settings));
+        }
+    }
+    
+    // Updated to accept 'jsonString' from Swift
+    function loadSettings(jsonString) {
+        // If jsonString is provided by Swift, use it. Otherwise, try localStorage.
+        const saved = jsonString || localStorage.getItem('worksheetSettings');
+        
+        if (saved) {
+            const settings = JSON.parse(saved);
+            
+            if (settings.subject) document.getElementById('subject').value = settings.subject;
+            if (settings.numProblems) document.getElementById('num-problems').value = settings.numProblems;
+            if (settings.columns) {
+                document.getElementById('num-columns').value = settings.columns;
+                document.documentElement.style.setProperty('--grid-cols', settings.columns);
+            }
+            document.getElementById('show-answers').checked = settings.showAnswers || false;
+            document.getElementById('show-solutions').checked = settings.showSolutions || false;
+            
+            // Handle the difficulty buttons
+            if (settings.difficulty) {
+                document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
+                const activeBtn = document.querySelector(`.segment[data-diff="${settings.difficulty}"]`);
+                if (activeBtn) activeBtn.classList.add('active');
+            }
+        }
+    }
+    /*
     function saveSettings() {
         // Gather all current settings
         const settings = {
@@ -359,6 +406,7 @@
             }
         }
     }
+    */
     // --- UI Logic ---
     function toggleSettings() {
       const panel = document.getElementById('settings-panel');
@@ -1615,7 +1663,7 @@
     }
 
     window.onload = () => {
-       loadSettings();    // 1. Load saved preferences first
-       generateNewData(); // 2. Then generate the worksheet using those preferences
+      // loadSettings();    
+       generateNewData();
     };
 </script>
