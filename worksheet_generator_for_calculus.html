@@ -321,29 +321,35 @@
     const config = { data: [] };
 
     // --- LOCAL STORAGE LOGIC ---
-    // SWIFT CALLS THIS: This must be global.
+  
+    // --- NATIVE BRIDGE FUNCTIONS ---
+
     window.applyNativeSettings = function(jsonString) {
         try {
             const settings = JSON.parse(jsonString);
             
-            // 1. Update the UI elements with saved values
-            if (settings.subject) document.getElementById('subject').value = settings.subject;
-            if (settings.numProblems) document.getElementById('num-problems').value = settings.numProblems;
-            if (settings.columns) {
-                document.getElementById('num-columns').value = settings.columns;
+            // Helper function to safely set values
+            const setVal = (id, val) => { if (document.getElementById(id) && val !== null) document.getElementById(id).value = val; };
+            const setCheck = (id, isChecked) => { if (document.getElementById(id) && isChecked !== null) document.getElementById(id).checked = isChecked; };
+
+            // 1. Safely update UI
+            setVal('num-problems', settings.numProblems);
+            setVal('num-columns', settings.columns);
+            setCheck('show-answers', settings.showAnswers);
+            setCheck('show-solutions', settings.showSolutions);
+
+            if (settings.columns && document.documentElement) {
                 document.documentElement.style.setProperty('--grid-cols', settings.columns);
             }
-            document.getElementById('show-answers').checked = settings.showAnswers;
-            document.getElementById('show-solutions').checked = settings.showSolutions;
             
-            // 2. Update the active difficulty button
+            // 2. Update active difficulty safely
             if (settings.difficulty) {
                 document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
                 const activeBtn = document.querySelector(`.segment[data-diff="${settings.difficulty}"]`);
                 if (activeBtn) activeBtn.classList.add('active');
             }
 
-            // 3. IMPORTANT: Re-run the generator so the math matches the settings
+            // 3. Refresh the math
             generateNewData(); 
             
         } catch (e) {
@@ -351,24 +357,35 @@
         }
     };
 
-    // JS CALLS THIS: Sends data TO Swift
     function saveSettings() {
-        const settings = {
-            subject: document.getElementById('subject').value,
-            difficulty: document.querySelector('.segment.active').dataset.diff,
-            numProblems: document.getElementById('num-problems').value,
-            columns: document.getElementById('num-columns').value,
-            showAnswers: document.getElementById('show-answers').checked,
-            showSolutions: document.getElementById('show-solutions').checked
-        };
-        
-        const jsonString = JSON.stringify(settings);
+        try {
+            // Helper functions to safely get values (returns null if element doesn't exist)
+            const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : null;
+            const getCheck = (id) => document.getElementById(id) ? document.getElementById(id).checked : null;
+            const getActiveDiff = () => {
+                const btn = document.querySelector('.segment.active');
+                return btn ? btn.dataset.diff : null;
+            };
 
-        // Send to Swift bridge
-        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.saveSettingsBridge) {
-            window.webkit.messageHandlers.saveSettingsBridge.postMessage(jsonString);
+            const settings = {
+                difficulty: getActiveDiff(),
+                numProblems: getVal('num-problems'),
+                columns: getVal('num-columns'),
+                showAnswers: getCheck('show-answers'),
+                showSolutions: getCheck('show-solutions')
+            };
+            
+            const jsonString = JSON.stringify(settings);
+
+            // Send to Swift bridge
+            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.saveSettingsBridge) {
+                window.webkit.messageHandlers.saveSettingsBridge.postMessage(jsonString);
+            }
+        } catch (e) {
+            console.error("Save settings crashed:", e);
         }
     }
+
 
 
 /*
