@@ -322,7 +322,7 @@
 
     // --- LOCAL STORAGE LOGIC ---
       
-    function saveSettings() {
+    function saveSettingsForCalculus() {
         // 1. Gather all current settings
         const settings = {
             subject: document.getElementById('subject').value,
@@ -334,10 +334,10 @@
         };
         
         // 2. Save to local storage (standard backup)
-        localStorage.setItem('worksheetSettings', JSON.stringify(settings));
+        localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
     
         // 3. PUSH TO SWIFT: This sends the data to UserDefaults
-        if (window.webkit && window.webkit.messageHandlers.saveSettings) {
+        if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
             window.webkit.messageHandlers.saveSettings.postMessage(JSON.stringify(settings));
         }
     }
@@ -345,7 +345,7 @@
     // Updated to accept 'jsonString' from Swift
     function loadSettings(jsonString) {
         // If jsonString is provided by Swift, use it. Otherwise, try localStorage.
-        const saved = jsonString || localStorage.getItem('worksheetSettings');
+        const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
         
         if (saved) {
             const settings = JSON.parse(saved);
@@ -1565,7 +1565,7 @@
 
     // --- SMART GENERATOR ENGINE ---
     function generateNewData() {
-        saveSettings();
+        saveSettingsForCalculus();
         config.data = [];
         const numInput = document.getElementById('num-problems');
         const num = parseInt(numInput.value) || 10;
