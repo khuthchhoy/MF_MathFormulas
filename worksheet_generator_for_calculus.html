@@ -1680,6 +1680,13 @@
         grid.innerHTML = html;
     }
 
+      // Make sure this is in the root of your <script>
+      window.applyNativeSettings = function(jsonString) {
+          const settings = JSON.parse(jsonString);
+          // ... apply to your UI elements ...
+          generateNewData(); // Refresh the math
+      };
+
     window.onload = () => {
         loadSettings();    // 1. Load saved preferences first
         generateNewData(); // 2. Then generate the worksheet using those preferences
