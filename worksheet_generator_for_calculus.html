@@ -322,7 +322,7 @@
             select.appendChild(mixedOpt);
         },
 
-        saveSettings: () => {
+        saveSettingsForCalculus: () => {
             const settings = {
                 subject: document.getElementById('subject').value,
                 difficulty: document.querySelector('.segment.active').dataset.diff,
@@ -418,11 +418,11 @@
             
             grid.innerHTML = html;
             triggerHaptic();
-            App.saveSettings();
+            App.saveSettingsForCalculus();
         }
     };
 
     // Initialize application on load
-   // window.addEventListener('DOMContentLoaded', App.init);
+   window.addEventListener('DOMContentLoaded', App.init);
 
 </script>
