@@ -568,7 +568,7 @@
             
                 // Family: (ax^2+bx+c)/(px^2+qx+r)
                 
-                ((a, k1, k2, m, n, p, q) => {
+                (a, k1, k2, m, n, p, q) => {
                     const num_A = k1 * m;
                     const num_B = k1 * (p - m * a);
                     const num_C = -k1 * a * p;
@@ -577,30 +577,31 @@
                     const den_B = k2 * (q - n * a);
                     const den_C = -k2 * a * q;
                 
-                    // Calculate final numerator and denominator values
-                    const final_num_val = num_A * a + (num_C / -a);
-                    const final_den_val = den_A * a + (den_C / -a);
+                    // 1. Calculate evaluation values (The numbers before GCD)
+                    const val_num = num_A * a + (k1 * p);
+                    const val_den = den_A * a + (k2 * q);
                 
-                    // Helper: Simplify the fraction
+                    // 2. GCD Logic to simplify the fraction
                     const getGCD = (x, y) => (y === 0 ? x : getGCD(y, x % y));
-                    const common = Math.abs(getGCD(final_num_val, final_den_val));
+                    const common = Math.abs(getGCD(val_num, val_den));
                     
-                    const reducedNum = final_num_val / common;
-                    const reducedDen = final_den_val / common;
+                    const redNum = val_num / common;
+                    const redDen = val_den / common;
                 
-                    const finalAns = reducedDen === 1 ? `${reducedNum}` : `\\frac{${reducedNum}}{${reducedDen}}`;
+                    // 3. Formatting Helpers
                     const sign = (val) => (val >= 0 ? `+ ${val}` : `- ${Math.abs(val)}`);
+                    const finalAns = redDen === 1 ? `${redNum}` : `\\frac{${redNum}}{${redDen}}`;
                 
                     return {
                         expr: `\\lim_{x \\to ${a}} \\frac{${num_A}x^2 ${sign(num_B)}x ${sign(num_C)}}{${den_A}x^2 ${sign(den_B)}x ${sign(den_C)}}`,
                         ans: `= ${finalAns}`,
                         sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(${num_A}x ${sign(num_C / -a)})}{(x - ${a})(${den_A}x ${sign(den_C / -a)})} \\\\ 
-                                &= \\lim_{x \\to ${a}} \\frac{${num_A}x ${sign(num_C / -a)}}{${den_A}x ${sign(den_C / -a)}} \\\\ 
-                                &= \\frac{${num_A}(${a}) ${sign(num_C / -a)}}{${den_A}(${a}) ${sign(den_C / -a)}} = \\frac{${final_num_val}}{${final_den_val}} = ${finalAns}
+                                L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(${num_A}x ${sign(k1 * p)})}{(x - ${a})(${den_A}x ${sign(k2 * q)})} \\\\ 
+                                &= \\lim_{x \\to ${a}} \\frac{${num_A}x ${sign(k1 * p)}}{${den_A}x ${sign(k2 * q)}} \\\\ 
+                                &= \\frac{${num_A}(${a}) ${sign(k1 * p)}}{${den_A}(${a}) ${sign(k2 * q)}} = \\frac{${val_num}}{${val_den}} = ${finalAns}
                               \\end{aligned}`
                     };
-                }),
+                },
             
                 // Family: Quadratic-Linear Rational Cancellation
                 (a, m, k) => {
