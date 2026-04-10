@@ -567,8 +567,8 @@
                 },
             
                 // Family: (ax^2+bx+c)/(px^2+qx+r)
-                (a, k1, k2, m, n, p, q) => {
-                    // 1. Calculate the raw Numerator and Denominator
+                
+                (a = 1, k1 = 1, k2 = 1, m = 1, n = 2, p = 3, q = 4) => {
                     const num_A = k1 * m;
                     const num_B = k1 * (p - m * a);
                     const num_C = -k1 * a * p;
@@ -577,44 +577,16 @@
                     const den_B = k2 * (q - n * a);
                     const den_C = -k2 * a * q;
                 
-                    // 2. Calculate the final values after cancellation
-                    const final_num = k1 * (m * a + p);
-                    const final_den = k2 * (n * a + q);
-                
-                    // 3. Helper: Simplify the fraction (GCD)
-                    const getGCD = (x, y) => (y === 0 ? x : getGCD(y, x % y));
-                    const common = getGCD(Math.abs(final_num), Math.abs(final_den));
-                    
-                    let reducedNum = final_num / common;
-                    let reducedDen = final_den / common;
-                
-                    // Fix negative denominators (e.g., 1/-2 becomes -1/2)
-                    if (reducedDen < 0) {
-                        reducedNum *= -1;
-                        reducedDen *= -1;
-                    }
-                
-                    // 4. Formatting helpers
                     const sign = (val) => (val >= 0 ? `+ ${val}` : `- ${Math.abs(val)}`);
-                    
-                    // 5. Final Answer String Logic
-                    let finalAns;
-                    if (reducedDen === 1) {
-                        finalAns = `${reducedNum}`;
-                    } else if (reducedNum < 0) {
-                        finalAns = `-\\frac{${Math.abs(reducedNum)}}{${reducedDen}}`;
-                    } else {
-                        finalAns = `\\frac{${reducedNum}}{${reducedDen}}`;
-                    }
-                
-                    // 6. Values for the cancelled factors
-                    const numFactor = k1 * p;
-                    const denFactor = k2 * q;
                 
                     return {
                         expr: `\\lim_{x \\to ${a}} \\frac{${num_A}x^2 ${sign(num_B)}x ${sign(num_C)}}{${den_A}x^2 ${sign(den_B)}x ${sign(den_C)}}`,
-                        ans: `= ${finalAns}`,
-                        sol: `\\begin{aligned} \n    L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(${num_A}x ${sign(numFactor)})}{(x - ${a})(${den_A}x ${sign(denFactor)})} \\\\ \n    &= \\frac{${num_A}(${a}) ${sign(numFactor)}}{${den_A}(${a}) ${sign(denFactor)}} \\\\ \n    &= \\frac{${final_num}}{${final_den}} = ${finalAns}\n\\end{aligned}`
+                        ans: `= \\frac{${k1}(${m * a + p})}{${k2}(${n * a + q})}`,
+                        sol: `\\begin{aligned} 
+                                L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(${num_A}x + ${num_C / -a})}{(x - ${a})(${den_A}x + ${den_C / -a})} \\\\ 
+                                &= \\lim_{x \\to ${a}} \\frac{${num_A}x + ${num_C / -a}}{${den_A}x + ${den_C / -a}} \\\\ 
+                                &= \\frac{${num_A}(${a}) + ${num_C / -a}}{${den_A}(${a}) + ${den_C / -a}}
+                              \\end{aligned}`
                     };
                 },
             
