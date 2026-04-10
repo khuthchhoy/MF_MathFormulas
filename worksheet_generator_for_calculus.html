@@ -569,37 +569,42 @@
                 // Family: (ax^2+bx+c)/(px^2+qx+r)
                 
                 (a, k1, k2, m, n, p, q) => {
+                    // Build numerator: k1(mx + p)(x - a)
                     const num_A = k1 * m;
                     const num_B = k1 * (p - m * a);
                     const num_C = -k1 * a * p;
                 
+                    // Build denominator: k2(nx + q)(x - a)
                     const den_A = k2 * n;
                     const den_B = k2 * (q - n * a);
                     const den_C = -k2 * a * q;
                 
-                    // 1. Calculate evaluation values (The numbers before GCD)
-                    const val_num = num_A * a + (k1 * p);
-                    const val_den = den_A * a + (k2 * q);
+                    // ✅ Correct limit values
+                    const val_num = k1 * (m * a + p);
+                    const val_den = k2 * (n * a + q);
                 
-                    // 2. GCD Logic to simplify the fraction
+                    // GCD
                     const getGCD = (x, y) => (y === 0 ? x : getGCD(y, x % y));
                     const common = Math.abs(getGCD(val_num, val_den));
-                    
+                
                     const redNum = val_num / common;
                     const redDen = val_den / common;
                 
-                    // 3. Formatting Helpers
                     const sign = (val) => (val >= 0 ? `+ ${val}` : `- ${Math.abs(val)}`);
                     const finalAns = redDen === 1 ? `${redNum}` : `\\frac{${redNum}}{${redDen}}`;
                 
                     return {
                         expr: `\\lim_{x \\to ${a}} \\frac{${num_A}x^2 ${sign(num_B)}x ${sign(num_C)}}{${den_A}x^2 ${sign(den_B)}x ${sign(den_C)}}`,
+                
                         ans: `= ${finalAns}`,
-                        sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(${num_A}x ${sign(k1 * p)})}{(x - ${a})(${den_A}x ${sign(k2 * q)})} \\\\ 
-                                &= \\lim_{x \\to ${a}} \\frac{${num_A}x ${sign(k1 * p)}}{${den_A}x ${sign(k2 * q)}} \\\\ 
-                                &= \\frac{${num_A}(${a}) ${sign(k1 * p)}}{${den_A}(${a}) ${sign(k2 * q)}} = \\frac{${val_num}}{${val_den}} = ${finalAns}
-                              \\end{aligned}`
+                
+                        sol: `\\begin{aligned}
+                                L &= \\lim_{x \\to ${a}} 
+                                \\frac{k_1(${m}x ${sign(p)})(x - ${a})}{k_2(${n}x ${sign(q)})(x - ${a})} \\\\
+                                &= \\lim_{x \\to ${a}} \\frac{k_1(${m}x ${sign(p)})}{k_2(${n}x ${sign(q)})} \\\\
+                                &= \\frac{${k1}(${m}(${a}) ${sign(p)})}{${k2}(${n}(${a}) ${sign(q)})} \\\\
+                                &= \\frac{${val_num}}{${val_den}} = ${finalAns}
+                                \\end{aligned}`
                     };
                 },
             
