@@ -99,12 +99,6 @@
             if (!solStr || solStr.includes('\\begin{aligned}')) return solStr;
             if (solStr.includes('=')) return `\\begin{aligned} ${solStr} \\end{aligned}`;
             return solStr;
-        },
-        triggerHaptic: () => {
-            // Placeholder for native haptics if connected to Swift/Android
-            if (window.webkit && window.webkit.messageHandlers.triggerHaptic) {
-                window.webkit.messageHandlers.triggerHaptic.postMessage("");
-            }
         }
     };
 
@@ -369,13 +363,13 @@
 
         toggleSettings: () => {
             document.getElementById('settings-panel').classList.toggle('hidden');
-            Utils.triggerHaptic();
+            triggerHaptic();
         },
 
         setDifficulty: (level) => {
             document.querySelectorAll('.segment').forEach(seg => seg.classList.remove('active'));
             document.getElementById('seg-' + level).classList.add('active');
-            Utils.triggerHaptic();
+            triggerHaptic();
             App.generateNewData();
         },
 
@@ -423,12 +417,12 @@
             });
             
             grid.innerHTML = html;
-            Utils.triggerHaptic();
+            triggerHaptic();
             App.saveSettings();
         }
     };
 
     // Initialize application on load
-    window.addEventListener('DOMContentLoaded', App.init);
+   // window.addEventListener('DOMContentLoaded', App.init);
 
 </script>
