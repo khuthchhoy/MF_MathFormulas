@@ -582,7 +582,6 @@
                     const final_den = k2 * (n * a + q);
                 
                     // 3. Helper: Simplify the fraction (GCD)
-                    // Pass absolute values to prevent issues with negative modulo behavior
                     const getGCD = (x, y) => (y === 0 ? x : getGCD(y, x % y));
                     const common = getGCD(Math.abs(final_num), Math.abs(final_den));
                     
@@ -603,24 +602,19 @@
                     if (reducedDen === 1) {
                         finalAns = `${reducedNum}`;
                     } else if (reducedNum < 0) {
-                        // Pull the minus sign to the front of the fraction
                         finalAns = `-\\frac{${Math.abs(reducedNum)}}{${reducedDen}}`;
                     } else {
                         finalAns = `\\frac{${reducedNum}}{${reducedDen}}`;
                     }
                 
-                    // 6. Values for the cancelled factors (replacing the divide-by -a logic)
+                    // 6. Values for the cancelled factors
                     const numFactor = k1 * p;
                     const denFactor = k2 * q;
                 
                     return {
                         expr: `\\lim_{x \\to ${a}} \\frac{${num_A}x^2 ${sign(num_B)}x ${sign(num_C)}}{${den_A}x^2 ${sign(den_B)}x ${sign(den_C)}}`,
                         ans: `= ${finalAns}`,
-                        sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(${num_A}x ${sign(numFactor)})}{(x - ${a})(${den_A}x ${sign(denFactor)})} \\\\ 
-                                &= \\frac{${num_A}(${a}) ${sign(numFactor)}}{${den_A}(${a}) ${sign(denFactor)}} \\\\ 
-                                &= \\frac{${final_num}}{${final_den}} = ${finalAns}
-                              \\end{aligned}`
+                        sol: `\\begin{aligned} \n    L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(${num_A}x ${sign(numFactor)})}{(x - ${a})(${den_A}x ${sign(denFactor)})} \\\\ \n    &= \\frac{${num_A}(${a}) ${sign(numFactor)}}{${den_A}(${a}) ${sign(denFactor)}} \\\\ \n    &= \\frac{${final_num}}{${final_den}} = ${finalAns}\n\\end{aligned}`
                     };
                 },
             
