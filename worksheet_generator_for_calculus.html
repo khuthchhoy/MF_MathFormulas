@@ -569,6 +569,21 @@
                 // Family: (ax^2+bx+c)/(px^2+qx+r)
                 
                 (a, k1, k2, m, n, p, q) => {
+                    // 🛡️ Ensure all params exist (VERY IMPORTANT)
+                    if ([a,k1,k2,m,n,p,q].some(v => v === undefined)) {
+                        return {
+                            expr: `\\text{Invalid parameters}`,
+                            ans: ``,
+                            sol: ``
+                        };
+                    }
+                
+                    const sign = (val) => {
+                        if (val > 0) return `+ ${val}`;
+                        if (val < 0) return `- ${Math.abs(val)}`;
+                        return ``;
+                    };
+                
                     // Build numerator: k1(mx + p)(x - a)
                     const num_A = k1 * m;
                     const num_B = k1 * (p - m * a);
@@ -579,19 +594,35 @@
                     const den_B = k2 * (q - n * a);
                     const den_C = -k2 * a * q;
                 
-                    // ✅ Correct limit values
+                    // 🎯 Limit after cancellation
                     const val_num = k1 * (m * a + p);
                     const val_den = k2 * (n * a + q);
                 
-                    // GCD
-                    const getGCD = (x, y) => (y === 0 ? x : getGCD(y, x % y));
-                    const common = Math.abs(getGCD(val_num, val_den));
+                    // 🛑 Prevent undefined / division by zero
+                    if (val_den === 0) {
+                        return {
+                            expr: `\\lim_{x \\to ${a}} \\frac{${num_A}x^2 ${sign(num_B)}x ${sign(num_C)}}{${den_A}x^2 ${sign(den_B)}x ${sign(den_C)}}`,
+                            ans: `\\text{undefined}`,
+                            sol: `\\text{Denominator becomes 0 at } x=${a}`
+                        };
+                    }
+                
+                    // 🧮 Safe GCD
+                    const getGCD = (x, y) => {
+                        x = Math.abs(x);
+                        y = Math.abs(y);
+                        return y === 0 ? x : getGCD(y, x % y);
+                    };
+                
+                    let common = getGCD(val_num, val_den);
+                    if (common === 0) common = 1;
                 
                     const redNum = val_num / common;
                     const redDen = val_den / common;
                 
-                    const sign = (val) => (val >= 0 ? `+ ${val}` : `- ${Math.abs(val)}`);
-                    const finalAns = redDen === 1 ? `${redNum}` : `\\frac{${redNum}}{${redDen}}`;
+                    const finalAns = redDen === 1
+                        ? `${redNum}`
+                        : `\\frac{${redNum}}{${redDen}}`;
                 
                     return {
                         expr: `\\lim_{x \\to ${a}} \\frac{${num_A}x^2 ${sign(num_B)}x ${sign(num_C)}}{${den_A}x^2 ${sign(den_B)}x ${sign(den_C)}}`,
@@ -600,9 +631,8 @@
                 
                         sol: `\\begin{aligned}
                                 L &= \\lim_{x \\to ${a}} 
-                                \\frac{k_1(${m}x ${sign(p)})(x - ${a})}{k_2(${n}x ${sign(q)})(x - ${a})} \\\\
-                                &= \\lim_{x \\to ${a}} \\frac{k_1(${m}x ${sign(p)})}{k_2(${n}x ${sign(q)})} \\\\
-                                &= \\frac{${k1}(${m}(${a}) ${sign(p)})}{${k2}(${n}(${a}) ${sign(q)})} \\\\
+                                \\frac{${k1}(${m}x ${sign(p)})(x - ${a})}{${k2}(${n}x ${sign(q)})(x - ${a})} \\\\
+                                &= \\lim_{x \\to ${a}} \\frac{${k1}(${m}x ${sign(p)})}{${k2}(${n}x ${sign(q)})} \\\\
                                 &= \\frac{${val_num}}{${val_den}} = ${finalAns}
                                 \\end{aligned}`
                     };
