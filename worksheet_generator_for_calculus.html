@@ -544,17 +544,19 @@
                             &= 3 \\cdot 2 = 6
                           \\end{aligned}`
                 }),
+            
                 // Family: Quadratic Rational Cancellation
                 (a, m, n) => {
-                    // p(x) = (x - a)(x + m) = x^2 + (m - a)x - am
-                    // q(x) = (x - a)(x + n) = x^2 + (n - a)x - an
                     const b1 = m - a;
                     const c1 = -a * m;
                     const b2 = n - a;
                     const c2 = -a * n;
-                
+            
+                    // Helper to format polynomial signs correctly
+                    const sign = (val) => (val >= 0 ? `+ ${val}` : `- ${Math.abs(val)}`);
+            
                     return {
-                        expr: `\\lim_{x \\to ${a}} \\frac{x^2 ${b1 >= 0 ? '+' : ''} ${b1}x ${c1 >= 0 ? '+' : ''} ${c1}}{x^2 ${b2 >= 0 ? '+' : ''} ${b2}x ${c2 >= 0 ? '+' : ''} ${c2}}`,
+                        expr: `\\lim_{x \\to ${a}} \\frac{x^2 ${sign(b1)}x ${sign(c1)}}{x^2 ${sign(b2)}x ${sign(c2)}}`,
                         ans: `= \\frac{${a + m}}{${a + n}}`,
                         sol: `\\begin{aligned} 
                                 L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(x + ${m})}{(x - ${a})(x + ${n})} \\\\ 
@@ -563,120 +565,75 @@
                               \\end{aligned}`
                     };
                 },
-                // Family: Quadratic Rational Cancellation (ax^2 + bx + c)
-                (a, k1, k2, m, n) => {
-                    // Numerator: (k1*x - k1*a)(m*x + p) -> simplified to k1(x - a)(m*x + p)
-                    // Denominator: (k2*x - k2*a)(n*x + q) -> simplified to k2(x - a)(n*x + q)
-                    // We let the shared factor be (x - a)
-                    
+            
+                // FIXED: Added 'p' and 'q' to arguments
+                (a, k1, k2, m, n, p, q) => {
                     const num_A = k1 * m;
                     const num_B = k1 * (p - m * a);
                     const num_C = -k1 * a * p;
-                    
+            
                     const den_A = k2 * n;
                     const den_B = k2 * (q - n * a);
                     const den_C = -k2 * a * q;
-                
+            
+                    const sign = (val) => (val >= 0 ? `+ ${val}` : `- ${Math.abs(val)}`);
+            
                     return {
-                        expr: `\\lim_{x \\to ${a}} \\frac{${num_A}x^2 ${num_B >= 0 ? '+' : ''} ${num_B}x ${num_C >= 0 ? '+' : ''} ${num_C}}{${den_A}x^2 ${den_B >= 0 ? '+' : ''} ${den_B}x ${den_C >= 0 ? '+' : ''} ${den_C}}`,
-                        ans: `= \\frac{${k1}(${m}(${a}) + ${p})}{${k2}(${n}(${a}) + ${q})}`,
+                        expr: `\\lim_{x \\to ${a}} \\frac{${num_A}x^2 ${sign(num_B)}x ${sign(num_C)}}{${den_A}x^2 ${sign(den_B)}x ${sign(den_C)}}`,
+                        ans: `= \\frac{${k1}(${m * a + p})}{${k2}(${n * a + q})}`,
                         sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(${num_A}x - \\frac{${num_C}}{-${a}})}{(x - ${a})(${den_A}x - \\frac{${den_C}}{-${a}})} \\\\ 
+                                L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(${num_A}x + ${num_C / -a})}{(x - ${a})(${den_A}x + ${den_C / -a})} \\\\ 
                                 &= \\lim_{x \\to ${a}} \\frac{${num_A}x + ${num_C / -a}}{${den_A}x + ${den_C / -a}} \\\\ 
                                 &= \\frac{${num_A}(${a}) + ${num_C / -a}}{${den_A}(${a}) + ${den_C / -a}}
                               \\end{aligned}`
                     };
                 },
+            
                 // Family: Quadratic-Linear Rational Cancellation
                 (a, m, k) => {
-                    // Numerator: m(x - a)(x + k) = mx^2 + (mk - ma)x - mak
-                    // Denominator: q(x - a) = qx - qa
-                    // Let's simplify and assume q = 1 for the worksheet focus
-                    
                     const n = m * (k - a);
                     const p = -m * a * k;
                     const r = -a;
-                
+                    const sign = (val) => (val >= 0 ? `+ ${val}` : `- ${Math.abs(val)}`);
+            
                     return {
-                        expr: `\\lim_{x \\to ${a}} \\frac{${m}x^2 ${n >= 0 ? '+' : ''} ${n}x ${p >= 0 ? '+' : ''} ${p}}{x ${r >= 0 ? '+' : ''} ${r}}`,
+                        expr: `\\lim_{x \\to ${a}} \\frac{${m}x^2 ${sign(n)}x ${sign(p)}}{x ${sign(r)}}`,
                         ans: `= ${m * (a + k)}`,
                         sol: `\\begin{aligned} 
                                 &\\text{Direct substitution } x = ${a} \\text{ yields } \\frac{0}{0}. \\\\ 
-                                &\\text{Since the denominator is } (x - ${a}), \\\\
-                                &\\text{ the numerator must contain } (x - ${a}). \\\\ 
-                                L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(${m}x - \\frac{${p}}{-${a}})}{x - ${a}} \\\\ 
-                                &= \\lim_{x \\to ${a}} (${m}x + ${p / -a}) \\\\ 
-                                &= ${m}(${a}) + ${p / -a} = ${m * a + (p / -a)}
+                                &L = \\lim_{x \\to ${a}} \\frac{(x - ${a})(${m}x + ${p / -a})}{x - ${a}} \\\\ 
+                                &= \\lim_{x \\to ${a}} (${m}x + ${p / -a}) = ${m * a + (p / -a)}
                               \\end{aligned}`
                     };
                 },
-                (a, b, c) => ({
-                    expr: `\\lim_{x \\to ${c}} \\frac{x^2 - ${c*c}}{x - ${c}}`,
+            
+                // Simplified x^2 - c^2
+                (c) => ({
+                    expr: `\\lim_{x \\to ${c}} \\frac{x^2 - ${c * c}}{x - ${c}}`,
                     ans: `= ${2 * c}`,
-                    sol: `\\begin{aligned} &= \\lim_{x\\to ${c}} \\frac{(x-${c})(x+${c})}{x-${c}} = ${2 * c} \\end{aligned}`
+                    sol: `\\lim_{x\\to ${c}} \\frac{(x-${c})(x+${c})}{x-${c}} = ${c} + ${c} = ${2 * c}`
                 }),
+            
+                // Standard Trig Limit
                 (a, b) => ({
                     expr: `\\lim_{x \\to 0} \\frac{\\sin(${Math.abs(a)}x)}{${b}x}`,
                     ans: `= \\frac{${Math.abs(a)}}{${b}}`,
-                    sol: `\\text{Standard limit } \\lim_{u\\to 0} \\frac{\\sin(Au)}{Bu} = \\frac{A}{B} = \\frac{${Math.abs(a)}}{${b}}`
+                    sol: `\\text{Using } \\lim_{u \\to 0} \\frac{\\sin u}{u} = 1: \\frac{${Math.abs(a)}}{${b}} \\lim_{x \\to 0} \\frac{\\sin(${Math.abs(a)}x)}{${Math.abs(a)}x} = \\frac{${Math.abs(a)}}{${b}}`
                 }),
-                // Form: (ax^2 + bx) / cx -> b/c
+            
+                // (ax^2 + bx) / cx
                 (a, b, c) => ({
                     expr: `\\lim_{x \\to 0} \\frac{${a}x^2 + ${b}x}{${c}x}`,
                     ans: `= \\frac{${b}}{${c}}`,
-                    sol: `\\begin{aligned} &= \\lim_{x \\to 0} \\frac{x(${a}x + ${b})}{${c}x} \\\\ &= \\lim_{x \\to 0} \\frac{${a}x + ${b}}{${c}} = \\frac{${b}}{${c}} \\end{aligned}`
+                    sol: `\\lim_{x \\to 0} \\frac{x(${a}x + ${b})}{${c}x} = \\frac{${a}(0) + ${b}}{${c}} = \\frac{${b}}{${c}}`
                 }),
-                
-                // Form: (ax^2 + bx) / (cx^2 + dx) -> b/d
-                (a, b, c, d) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{${a}x^2 + ${b}x}{${c}x^2 + ${d}x}`,
-                    ans: `= \\frac{${b}}{${d}}`,
-                    sol: `\\begin{aligned} &= \\lim_{x \\to 0} \\frac{x(${a}x + ${b})}{x(${c}x + ${d})} \\\\ &= \\frac{0 + ${b}}{0 + ${d}} = \\frac{${b}}{${d}} \\end{aligned}`
-                }),
-                // Form: (sqrt(x + a^2) - a) / x -> 1/(2a)
-                (a) => {
-                    const aSquared = a * a;
-                    return {
-                        expr: `\\lim_{x \\to 0} \\frac{\\sqrt{x + ${aSquared}} - ${a}}{x}`,
-                        ans: `= \\frac{1}{${2 * a}}`,
-                        sol: `\\begin{aligned} &= \\lim_{x \\to 0} \\frac{(\\sqrt{x + ${aSquared}} - ${a})(\\sqrt{x + ${aSquared}} + ${a})}{x(\\sqrt{x + ${aSquared}} + ${a})} \\\\ &= \\lim_{x \\to 0} \\frac{x}{x(\\sqrt{x + ${aSquared}} + ${a})} = \\frac{1}{${a} + ${a}} = \\frac{1}{${2 * a}} \\end{aligned}`
-                    };
-                },
-                // Form: (1 - cos(ax)) / x^2 -> a^2 / 2
-                (a) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{1 - \\cos(${a}x)}{x^2}`,
-                    ans: `= \\frac{${a * a}}{2}`,
-                    sol: `\\begin{aligned} &= \\lim_{x \\to 0} \\frac{2\\sin^2(\\frac{${a}x}{2})}{x^2} \\\\ &= 2 \\left( \\frac{${a}}{2} \\right)^2 = 2 \\cdot \\frac{${a * a}}{4} = \\frac{${a * a}}{2} \\end{aligned}`
-                }),
-                
-                // Form: sin(ax) / tan(bx) -> a/b
-                (a, b) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{\\sin(${a}x)}{\\tan(${b}x)}`,
-                    ans: `= \\frac{${a}}{${b}}`,
-                    sol: `\\begin{aligned} &= \\lim_{x \\to 0} \\frac{\\sin(${a}x)}{x} \\cdot \\frac{x}{\\tan(${b}x)} \\\\ &= ${a} \\cdot \\frac{1}{${b}} = \\frac{${a}}{${b}} \\end{aligned}`
-                }),
-                // Form: (e^{ax} - 1) / bx -> a/b
-                (a, b) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{e^{${a}x} - 1}{${b}x}`,
-                    ans: `= \\frac{${a}}{${b}}`,
-                    sol: `\\text{Using the standard limit } \\lim_{u \\to 0} \\frac{e^u - 1}{u} = 1, \\text{ we get } \\frac{${a}}{${b}}.`
-                }),
-                
-                // Form: ln(1 + ax) / bx -> a/b
-                (a, b) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{\\ln(1 + ${a}x)}{${b}x}`,
-                    ans: `= \\frac{${a}}{${b}}`,
-                    sol: `\\text{Using the standard limit } \\lim_{u \\to 0} \\frac{\\ln(1 + u)}{u} = 1, \\text{ we get } \\frac{${a}}{${b}}.`
-                }),
-                // Rational Function at Infinity: Leading Coefficient Derivation
+            
+                // Rational Function at Infinity
                 (a, b, c, d) => ({
                     expr: `\\lim_{x \\to \\infty} \\frac{${b}x^2 + ${c}x}{${d}x^2 - 1}`,
                     ans: `= \\frac{${b}}{${d}}`,
                     sol: `\\begin{aligned} 
-                            L &= \\lim_{x \\to \\infty} \\frac{\\frac{${b}x^2}{x^2} + \\frac{${c}x}{x^2}}{\\frac{${d}x^2}{x^2} - \\frac{1}{x^2}} \\quad \\text{(Divide numerator and denominator by } x^2) \\\\ 
-                            &= \\lim_{x \\to \\infty} \\frac{${b} + \\frac{${c}}{x}}{${d} - \\frac{1}{x^2}} \\\\ 
-                            &\\text{Applying the limit property } \\lim_{x \\to \\infty} \\frac{k}{x^n} = 0 \\text{ for } n > 0: \\\\ 
-                            &= \\frac{${b} + 0}{${d} - 0} = \\frac{${b}}{${d}} 
+                            L &= \\lim_{x \\to \\infty} \\frac{b + c/x}{d - 1/x^2} = \\frac{${b} + 0}{${d} - 0} = \\frac{${b}}{${d}}
                           \\end{aligned}`
                 })
             ],
