@@ -176,6 +176,42 @@
     
         return { a, k1, k2, m, n, p, q };
     }
+    // ➖ Format (x - a) nicely
+    function minusA(a) {
+        if (a > 0) return `(x - ${a})`;
+        if (a < 0) return `(x + ${Math.abs(a)})`;
+        return `(x)`;
+    }
+    
+    // ➕ Format signs like "+ 3" or "- 5"
+    function sign(val) {
+        if (val > 0) return `+ ${val}`;
+        if (val < 0) return `- ${Math.abs(val)}`;
+        return ``;
+    }
+    
+    // 📐 Clean linear expression: ax + b
+    function linear(a, b) {
+        let result = '';
+    
+        // ax
+        if (a === 1) result += 'x';
+        else if (a === -1) result += '-x';
+        else result += `${a}x`;
+    
+        // b
+        if (b > 0) result += ` + ${b}`;
+        if (b < 0) result += ` - ${Math.abs(b)}`;
+    
+        return result;
+    }
+    
+    // 🧮 GCD
+    function gcd(x, y) {
+        x = Math.abs(x);
+        y = Math.abs(y);
+        return y === 0 ? x : gcd(y, x % y);
+    }
 
     // --- PROBLEM REGISTRY ---
     
@@ -595,15 +631,10 @@
                 // Family: (ax^2+bx+c)/(px^2+qx+r)
                 
                 () => {
-                    const sign = (val) => {
-                        if (val > 0) return `+ ${val}`;
-                        if (val < 0) return `- ${Math.abs(val)}`;
-                        return ``;
-                    };
-                
+
                     const { a, k1, k2, m, n, p, q } = generateNiceParams();
                 
-                    // Build from (x-a)(mx+p)
+                    // Build quadratic from factors
                     const num_A = k1 * m;
                     const num_B = k1 * (p - m * a);
                     const num_C = -k1 * a * p;
@@ -612,16 +643,11 @@
                     const den_B = k2 * (q - n * a);
                     const den_C = -k2 * a * q;
                 
+                    // Evaluate limit after cancellation
                     const val_num = k1 * (m * a + p);
                     const val_den = k2 * (n * a + q);
                 
                     // Simplify
-                    const gcd = (x, y) => {
-                        x = Math.abs(x);
-                        y = Math.abs(y);
-                        return y === 0 ? x : gcd(y, x % y);
-                    };
-                
                     const g = gcd(val_num, val_den) || 1;
                 
                     const redNum = val_num / g;
@@ -630,15 +656,18 @@
                     const finalAns = redDen === 1
                         ? `${redNum}`
                         : `\\frac{${redNum}}{${redDen}}`;
+                
                     return {
                         expr: `\\lim_{x \\to ${a}} \\frac{${num_A}x^2 ${sign(num_B)}x ${sign(num_C)}}{${den_A}x^2 ${sign(den_B)}x ${sign(den_C)}}`,
+                
                         ans: `= ${finalAns}`,
+                
                         sol: `\\begin{aligned}
-                                L &= \\lim_{x \\to ${a}} 
-                                \\frac{${k1}(${m}x ${sign(p)})(x - ${a})}{${k2}(${n}x ${sign(q)})(x - ${a})} \\\\
-                                &= \\lim_{x \\to ${a}} \\frac{${k1}(${m}x ${sign(p)})}{${k2}(${n}x ${sign(q)})} \\\\
-                                &= \\frac{${val_num}}{${val_den}} = ${finalAns}
-                                \\end{aligned}`
+                        L &= \\lim_{x \\to ${a}} 
+                        \\frac{${k1}(${linear(m, p)})${minusA(a)}}{${k2}(${linear(n, q)})${minusA(a)}} \\\\
+                        &= \\lim_{x \\to ${a}} \\frac{${k1}(${linear(m, p)})}{${k2}(${linear(n, q)})} \\\\
+                        &= \\frac{${val_num}}{${val_den}} = ${finalAns}
+                        \\end{aligned}`
                     };
                 },
             
