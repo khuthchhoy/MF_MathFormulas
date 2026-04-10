@@ -376,7 +376,7 @@
         updateColumns: () => {
             const cols = document.getElementById('num-columns').value || 1;
             document.documentElement.style.setProperty('--grid-cols', cols);
-            App.saveSettings();
+            App.saveSettingsForCalculus();
         },
 
         generateNewData: () => {
@@ -388,7 +388,7 @@
             Engine.generateProblems(subject, difficulty, numProblems);
             
             App.renderWorksheet();
-            App.saveSettings();
+            App.saveSettingsForCalculus();
         },
 
         renderWorksheet: () => {
