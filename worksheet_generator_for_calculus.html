@@ -292,37 +292,10 @@
         }
     }
 
-    // ==========================================
-    // 4. UI & STATE CONTROLLER
-    // ==========================================
-    const Engine = new WorksheetEngine(ProblemRegistry);
-
-    const App = {
-        init: () => {
-            App.populateSubjects();
-            App.loadSettings();
-        },
-
-        populateSubjects: () => {
-            const select = document.getElementById('subject');
-            select.innerHTML = ''; 
-
-            // Dynamically build dropdown from Registry keys
-            Object.keys(ProblemRegistry).forEach(key => {
-                const opt = document.createElement('option');
-                opt.value = key;
-                opt.textContent = key.charAt(0).toUpperCase() + key.slice(1);
-                select.appendChild(opt);
-            });
-
-            // Add the 'Mixed' option
-            const mixedOpt = document.createElement('option');
-            mixedOpt.value = 'mixed';
-            mixedOpt.textContent = 'Mixed Calculus';
-            select.appendChild(mixedOpt);
-        },
-
-        saveSettingsForCalculus: () => {
+    // =========================================
+    // 4. Save setting and loadSetting
+    // =========================================
+    function saveSettingsForCalculus() {
             const settings = {
                 subject: document.getElementById('subject').value,
                 difficulty: document.querySelector('.segment.active').dataset.diff,
@@ -335,9 +308,9 @@
             if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
                 window.webkit.messageHandlers.saveSettingsForCalculus.postMessage(JSON.stringify(settings));
             }
-        },
+        }
 
-        loadSettings: (jsonString) => {
+        function loadSettings(jsonString) {
             const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
             if (saved) {
                 const s = JSON.parse(saved);
@@ -359,8 +332,37 @@
                 }
             }
             App.generateNewData();
+        }
+
+    // ==========================================
+    // 4. UI & STATE CONTROLLER
+    // ==========================================
+    const Engine = new WorksheetEngine(ProblemRegistry);
+
+    const App = {
+        init: () => {
+            App.populateSubjects();
+            loadSettings();
         },
 
+        populateSubjects: () => {
+            const select = document.getElementById('subject');
+            select.innerHTML = ''; 
+
+            // Dynamically build dropdown from Registry keys
+            Object.keys(ProblemRegistry).forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+                select.appendChild(opt);
+            });
+
+            // Add the 'Mixed' option
+            const mixedOpt = document.createElement('option');
+            mixedOpt.value = 'mixed';
+            mixedOpt.textContent = 'Mixed Calculus';
+            select.appendChild(mixedOpt);
+        },
         toggleSettings: () => {
             document.getElementById('settings-panel').classList.toggle('hidden');
             triggerHaptic();
@@ -376,7 +378,7 @@
         updateColumns: () => {
             const cols = document.getElementById('num-columns').value || 1;
             document.documentElement.style.setProperty('--grid-cols', cols);
-            App.saveSettingsForCalculus();
+            saveSettingsForCalculus();
         },
 
         generateNewData: () => {
@@ -388,7 +390,7 @@
             Engine.generateProblems(subject, difficulty, numProblems);
             
             App.renderWorksheet();
-            App.saveSettingsForCalculus();
+            saveSettingsForCalculus();
         },
 
         renderWorksheet: () => {
@@ -418,7 +420,7 @@
             
             grid.innerHTML = html;
             triggerHaptic();
-            App.saveSettingsForCalculus();
+            saveSettingsForCalculus();
         }
     };
 
