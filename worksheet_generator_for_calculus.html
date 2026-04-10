@@ -544,7 +544,7 @@
                             &= 3 \\cdot 2 = 6
                           \\end{aligned}`
                 }),
-            
+                    
                 // Family: Quadratic Rational Cancellation
                 (a, m, n) => {
                     const b1 = m - a;
@@ -566,18 +566,18 @@
                     };
                 },
             
-                // FIXED: Added 'p' and 'q' to arguments
-                (a, k1, k2, m, n, p, q) => {
+                // Family: (ax^2+bx+c)/(px^2+qx+r)
+                (a = 1, k1 = 1, k2 = 1, m = 1, n = 2, p = 3, q = 4) => {
                     const num_A = k1 * m;
                     const num_B = k1 * (p - m * a);
                     const num_C = -k1 * a * p;
-            
+                
                     const den_A = k2 * n;
                     const den_B = k2 * (q - n * a);
                     const den_C = -k2 * a * q;
-            
+                
                     const sign = (val) => (val >= 0 ? `+ ${val}` : `- ${Math.abs(val)}`);
-            
+                
                     return {
                         expr: `\\lim_{x \\to ${a}} \\frac{${num_A}x^2 ${sign(num_B)}x ${sign(num_C)}}{${den_A}x^2 ${sign(den_B)}x ${sign(den_C)}}`,
                         ans: `= \\frac{${k1}(${m * a + p})}{${k2}(${n * a + q})}`,
