@@ -582,24 +582,43 @@
                     const final_den = k2 * (n * a + q);
                 
                     // 3. Helper: Simplify the fraction (GCD)
+                    // Pass absolute values to prevent issues with negative modulo behavior
                     const getGCD = (x, y) => (y === 0 ? x : getGCD(y, x % y));
-                    const common = Math.abs(getGCD(final_num, final_den));
+                    const common = getGCD(Math.abs(final_num), Math.abs(final_den));
                     
-                    const reducedNum = final_num / common;
-                    const reducedDen = final_den / common;
+                    let reducedNum = final_num / common;
+                    let reducedDen = final_den / common;
+                
+                    // Fix negative denominators (e.g., 1/-2 becomes -1/2)
+                    if (reducedDen < 0) {
+                        reducedNum *= -1;
+                        reducedDen *= -1;
+                    }
                 
                     // 4. Formatting helpers
                     const sign = (val) => (val >= 0 ? `+ ${val}` : `- ${Math.abs(val)}`);
                     
                     // 5. Final Answer String Logic
-                    const finalAns = reducedDen === 1 ? `${reducedNum}` : `\\frac{${reducedNum}}{${reducedDen}}`;
+                    let finalAns;
+                    if (reducedDen === 1) {
+                        finalAns = `${reducedNum}`;
+                    } else if (reducedNum < 0) {
+                        // Pull the minus sign to the front of the fraction
+                        finalAns = `-\\frac{${Math.abs(reducedNum)}}{${reducedDen}}`;
+                    } else {
+                        finalAns = `\\frac{${reducedNum}}{${reducedDen}}`;
+                    }
+                
+                    // 6. Values for the cancelled factors (replacing the divide-by -a logic)
+                    const numFactor = k1 * p;
+                    const denFactor = k2 * q;
                 
                     return {
                         expr: `\\lim_{x \\to ${a}} \\frac{${num_A}x^2 ${sign(num_B)}x ${sign(num_C)}}{${den_A}x^2 ${sign(den_B)}x ${sign(den_C)}}`,
                         ans: `= ${finalAns}`,
                         sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(${num_A}x + ${num_C / -a})}{(x - ${a})(${den_A}x + ${den_C / -a})} \\\\ 
-                                &= \\frac{${num_A}(${a}) + ${num_C / -a}}{${den_A}(${a}) + ${den_C / -a}} \\\\ 
+                                L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(${num_A}x ${sign(numFactor)})}{(x - ${a})(${den_A}x ${sign(denFactor)})} \\\\ 
+                                &= \\frac{${num_A}(${a}) ${sign(numFactor)}}{${den_A}(${a}) ${sign(denFactor)}} \\\\ 
                                 &= \\frac{${final_num}}{${final_den}} = ${finalAns}
                               \\end{aligned}`
                     };
