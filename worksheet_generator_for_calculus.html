@@ -1,11 +1,10 @@
-
 <div class="sticky-bar">
-    <button class="btn-settings" onclick="toggleSettings()">
+    <button class="btn-settings" onclick="App.toggleSettings()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         Configure
     </button>
     <div class="action-stack">
-        <button class="btn-generate" onclick="generateNewData()">Generate</button>
+        <button class="btn-generate" onclick="App.generateNewData()">Generate</button>
     </div>
 </div>
 
@@ -14,9 +13,9 @@
         <h2 class="section-title">Difficulty Level</h2>
         <div class="card">
             <div class="segmented-control">
-                <div id="seg-easy" class="segment active" data-diff="easy" onclick="setDifficulty('easy')">Easy</div>
-                <div id="seg-med" class="segment" data-diff="med" onclick="setDifficulty('med')">Medium</div>
-                <div id="seg-hard" class="segment" data-diff="hard" onclick="setDifficulty('hard')">Hard</div>
+                <div id="seg-easy" class="segment active" data-diff="easy" onclick="App.setDifficulty('easy')">Easy</div>
+                <div id="seg-med" class="segment" data-diff="med" onclick="App.setDifficulty('med')">Medium</div>
+                <div id="seg-hard" class="segment" data-diff="hard" onclick="App.setDifficulty('hard')">Hard</div>
             </div>
         </div>
 
@@ -24,25 +23,15 @@
         <div class="card">
             <div class="row">
                 <label>Subject</label>
-                <select id="subject" onchange="generateNewData()">
-                    <option value="arithmetic">Arithmetic</option>
-                    <option value="algebra">Algebra</option>
-                    <option value="trigonometry">Trigonometry</option>
-                    <option value="limit" selected>Limits</option>
-                    <option value="derivative">Derivatives</option>
-                    <option value="integral">Integrals</option>
-                    <option value="sequences">Sequences</option>
-                    <option value="series">Series</option>
-                    <option value="mixed">Mixed Calculus</option>
-                </select>
+                <select id="subject" onchange="App.generateNewData()"></select>
             </div>
             <div class="row">
                 <label>Problems</label>
-                <input type="number" id="num-problems" value="10" min="1" max="100" onchange="generateNewData()">
+                <input type="number" id="num-problems" value="10" min="1" max="100" onchange="App.generateNewData()">
             </div>
             <div class="row">
                 <label>Columns</label>
-                <input type="number" id="num-columns" value="1" min="1" max="4" onchange="updateColumns()">
+                <input type="number" id="num-columns" value="1" min="1" max="4" onchange="App.updateColumns()">
             </div>
         </div>
 
@@ -50,14 +39,14 @@
             <div class="row">
                 <label>Show Answers</label>
                 <label class="switch">
-                    <input type="checkbox" id="show-answers" onchange="renderWorksheet()">
+                    <input type="checkbox" id="show-answers" onchange="App.renderWorksheet()">
                     <span class="slider"></span>
                 </label>
             </div>
             <div class="row">
                 <label>Show Detail Solutions</label>
                 <label class="switch">
-                    <input type="checkbox" id="show-solutions" onchange="renderWorksheet()">
+                    <input type="checkbox" id="show-solutions" onchange="App.renderWorksheet()">
                     <span class="slider"></span>
                 </label>
             </div>
@@ -69,282 +58,83 @@
 </div>
 
 <script>
-  const config = { data: [] };
-      
-  // --- LOCAL STORAGE LOGIC ---
-  function saveSettingsForCalculus() {
-      const settings = {
-          subject: document.getElementById('subject').value,
-          difficulty: document.querySelector('.segment.active').dataset.diff,
-          numProblems: document.getElementById('num-problems').value,
-          columns: document.getElementById('num-columns').value,
-          showAnswers: document.getElementById('show-answers').checked,
-          showSolutions: document.getElementById('show-solutions').checked
-      };
-      
-      localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
-  
-      if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
-          window.webkit.messageHandlers.saveSettingsForCalculus.postMessage(JSON.stringify(settings));
-      }
-  }
-
-  // --- Updated Load Logic ---
-  function loadSettings(jsonString) {
-      // If Swift sends data, use it. Otherwise, fallback to localStorage.
-      const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
-      
-      if (saved) {
-          const settings = JSON.parse(saved);
-          
-          if (settings.subject) document.getElementById('subject').value = settings.subject;
-          if (settings.numProblems) document.getElementById('num-problems').value = settings.numProblems;
-          if (settings.columns) {
-              document.getElementById('num-columns').value = settings.columns;
-              document.documentElement.style.setProperty('--grid-cols', settings.columns);
-          }
-          document.getElementById('show-answers').checked = settings.showAnswers || false;
-          document.getElementById('show-solutions').checked = settings.showSolutions || false;
-          
-          if (settings.difficulty) {
-              document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
-              const activeBtn = document.querySelector(`.segment[data-diff="${settings.difficulty}"]`);
-              if (activeBtn) activeBtn.classList.add('active');
-          }
-      }
-      
-      // Refresh the math problems with the loaded settings
-      generateNewData();
-  }
-
-    // --- UI Logic ---
-    function toggleSettings() {
-      const panel = document.getElementById('settings-panel');
-      panel.classList.toggle('hidden');
-      triggerHaptic();
-    }
-
-    function setDifficulty(level) {
-        document.querySelectorAll('.segment').forEach(seg => seg.classList.remove('active'));
-        document.getElementById('seg-' + level).classList.add('active');
-        generateNewData();
+    // ==========================================
+    // 1. UTILITY FUNCTIONS
+    // ==========================================
+    const Utils = {
+        getRnd: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
+        shuffle: (array) => {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        },
+        generateNiceParams: () => {
+            let a, k1, k2, m, n, p, q, val_den;
+            do {
+                a = Utils.getRnd(-5, 5); k1 = Utils.getRnd(1, 3); k2 = Utils.getRnd(1, 3);
+                m = Utils.getRnd(-5, 5); n = Utils.getRnd(-5, 5);
+                p = Utils.getRnd(-5, 5); q = Utils.getRnd(-5, 5);
+                val_den = k2 * (n * a + q);
+            } while (a === 0 || m === 0 || n === 0 || (n * a + q) === 0 || Math.abs(m) === Math.abs(n));
+            return { a, k1, k2, m, n, p, q };
+        },
+        minusA: (a) => a > 0 ? `(x - ${a})` : a < 0 ? `(x + ${Math.abs(a)})` : `(x)`,
+        sign: (val) => val > 0 ? `+ ${val}` : val < 0 ? `- ${Math.abs(val)}` : ``,
+        linear: (a, b) => {
+            let res = '';
+            if (a === 1) res += 'x'; else if (a === -1) res += '-x'; else res += `${a}x`;
+            if (b > 0) res += ` + ${b}`; if (b < 0) res += ` - ${Math.abs(b)}`;
+            return res;
+        },
+        gcd: function(x, y) {
+            x = Math.abs(x); y = Math.abs(y);
+            return y === 0 ? x : this.gcd(y, x % y);
+        },
+        // Auto-formats simple solution strings into proper aligned blocks if needed
+        formatSolution: (solStr) => {
+            if (!solStr || solStr.includes('\\begin{aligned}')) return solStr;
+            if (solStr.includes('=')) return `\\begin{aligned} ${solStr} \\end{aligned}`;
+            return solStr;
+        },
         triggerHaptic();
-        saveSettingsForCalculus();
-    }
+    };
 
-    function updateColumns() {
-        const cols = document.getElementById('num-columns').value || 1;
-        document.documentElement.style.setProperty('--grid-cols', cols);
-        saveSettingsForCalculus();
-    }
-
-    // --- Helpers ---
-    function getRnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-    
-    function shuffle(array) {
-        let currentIndex = array.length, randomIndex;
-        while (currentIndex !== 0) {
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex--;
-            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-        }
-        return array;
-    }
-    // helper for limits: (ax^2+bx+c)/(px^2+qx+r)
-    function generateNiceParams() {
-        let a, k1, k2, m, n, p, q, val_den;
-    
-        do {
-            a  = getRnd(-5, 5);
-            k1 = getRnd(1, 3);
-            k2 = getRnd(1, 3);
-    
-            m = getRnd(-5, 5);
-            n = getRnd(-5, 5);
-    
-            p = getRnd(-5, 5);
-            q = getRnd(-5, 5);
-    
-            val_den = k2 * (n * a + q);
-    
-        } while (
-            a === 0 ||                    // avoid trivial
-            m === 0 || n === 0 ||         // avoid 0x terms
-            (n * a + q) === 0 ||          // avoid division by 0
-            Math.abs(m) === Math.abs(n)   // avoid identical factors
-        );
-    
-        return { a, k1, k2, m, n, p, q };
-    }
-    // ➖ Format (x - a) nicely
-    function minusA(a) {
-        if (a > 0) return `(x - ${a})`;
-        if (a < 0) return `(x + ${Math.abs(a)})`;
-        return `(x)`;
-    }
-    
-    // ➕ Format signs like "+ 3" or "- 5"
-    function sign(val) {
-        if (val > 0) return `+ ${val}`;
-        if (val < 0) return `- ${Math.abs(val)}`;
-        return ``;
-    }
-    
-    // 📐 Clean linear expression: ax + b
-    function linear(a, b) {
-        let result = '';
-    
-        // ax
-        if (a === 1) result += 'x';
-        else if (a === -1) result += '-x';
-        else result += `${a}x`;
-    
-        // b
-        if (b > 0) result += ` + ${b}`;
-        if (b < 0) result += ` - ${Math.abs(b)}`;
-    
-        return result;
-    }
-    
-    // 🧮 GCD
-    function gcd(x, y) {
-        x = Math.abs(x);
-        y = Math.abs(y);
-        return y === 0 ? x : gcd(y, x % y);
-    }
-
-    // --- PROBLEM REGISTRY ---
-    
+    // ==========================================
+    // 2. PROBLEM REGISTRY
+    // ==========================================
+    // To add a new subject, just add a new key here (e.g., 'geometry': { easy: [...], med: [...], hard: [...] })
     const ProblemRegistry = {
         arithmetic: {
             easy: [
                 (a, b) => ({
-                    expr: `${a} ${b > 0 ? '+' : '-'} ${Math.abs(b)}`,
-                    ans: `= ${a + b}`,
+                    expr: `${a} ${b > 0 ? '+' : '-'} ${Math.abs(b)}`, ans: `= ${a + b}`,
                     sol: `\\text{Combine terms: } ${a} ${b > 0 ? '+' : '-'} ${Math.abs(b)} = ${a + b}`
                 })
             ],
             med: [
                 (a, b) => ({
-                    expr: `${a} \\times ${b}`,
-                    ans: `= ${a * b}`,
+                    expr: `${a} \\times ${b}`, ans: `= ${a * b}`,
                     sol: `\\text{Multiply: } ${a} \\times ${b} = ${a * b}`
                 })
             ],
             hard: [
-                (a, b, c, d) => {
-                    let num = Math.abs(a) * d + c * b;
-                    return {
-                        expr: `\\frac{${Math.abs(a)}}{${b}} + \\frac{${c}}{${d}}`,
-                        ans: `= \\frac{${num}}{${b * d}}`,
-                        sol: `\\begin{aligned} &\\text{Common denom: } ${b} \\times ${d} = ${b*d} \\\\ &= \\frac{${Math.abs(a)*d}}{${b*d}} + \\frac{${c*b}}{${b*d}} = \\frac{${num}}{${b*d}} \\end{aligned}`
-                    };
-                },
                 (a, b, c, d) => ({
-                    expr: `${c} \\times (${d} + 1)^2 - ${Math.abs(a)}`,
-                    ans: `= ${c * Math.pow(d + 1, 2) - Math.abs(a)}`,
-                    sol: `\\begin{aligned} &= ${c} \\times (${d+1})^2 - ${Math.abs(a)} = ${c * Math.pow(d + 1, 2) - Math.abs(a)} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\frac{${a * b} + ${c * d}}{${b}}`,
-                    ans: `= \\frac{${(a * b) + (c * d)}}{${b}}`,
-                    sol: `\\begin{aligned} &= \\frac{${a*b} + ${c*d}}{${b}} = \\frac{${a*b + c*d}}{${b}} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `(${a} + ${b}) \\div ${c} \\times ${d}`,
-                    ans: `= ${Math.floor(((a + b) / c) * d)}`,
-                    sol: `\\begin{aligned} &= (${a+b}) \\div ${c} \\times ${d} \\approx ${Math.floor(((a + b) / c) * d)} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\sqrt{${b}^2 + ${c}^2} \\times ${a}`,
-                    ans: `\\approx ${Math.round(a * Math.sqrt(b*b + c*c))}`,
-                    sol: `\\begin{aligned} &= \\sqrt{${b*b} + ${c*c}} \\times ${a} \\approx ${Math.round(a * Math.sqrt(b*b + c*c))} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `${a}\\% \\text{ of } ${b} + ${c}`,
-                    ans: `= ${Math.round((a/100)*b) + c}`,
-                    sol: `\\begin{aligned} &= 0.${Math.abs(a)} \\times ${b} + ${c} = ${Math.round((a/100)*b) + c} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\left| ${a} - ${b} \\right| \\times ${c}`,
-                    ans: `= ${Math.abs(a - b) * c}`,
-                    sol: `\\begin{aligned} &= |${a-b}| \\times ${c} = ${Math.abs(a - b) * c} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\frac{${a}}{${b}} \\div \\frac{${c}}{${d}}`,
-                    ans: `= \\frac{${a * d}}{${b * c}}`,
-                    sol: `\\begin{aligned} &\\text{Multiply by reciprocal: } \\frac{${a}}{${b}} \\times \\frac{${d}}{${c}} = \\frac{${a*d}}{${b*c}} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `(${a} \\times ${b}) + (${c} \\div ${d})`,
-                    ans: `= ${a*b + Math.floor(c/d)}`,
-                    sol: `\\begin{aligned} &= (${a*b}) + (${(c/d).toFixed(2)}) \\approx ${a*b + Math.floor(c/d)} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\sqrt[${d}]{${b}^{${c}}} \\times ${a}`,
-                    ans: `= ${Math.round(a * Math.pow(b, c/d))}`,
-                    sol: `\\begin{aligned} &= ${b}^{${c}/${d}} \\times ${a} \\approx ${Math.round(a * Math.pow(b, c/d))} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\frac{${a} + ${b} + ${c}}{${d}}`,
-                    ans: `= \\frac{${a+b+c}}{${d}}`,
-                    sol: `\\begin{aligned} &= \\frac{${a+b+c}}{${d}} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `0.\\overline{${Math.abs(a)}} \\times ${b}`,
-                    ans: `= ${Math.round((Math.abs(a)/9)*b)}`,
-                    sol: `\\begin{aligned} &= \\frac{${Math.abs(a)}}{9} \\times ${b} \\approx ${Math.round((Math.abs(a)/9)*b)} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\frac{1}{${a}} + \\frac{1}{${b}} + \\frac{1}{${c}}`,
-                    ans: `= \\frac{${b*c + a*c + a*b}}{${a*b*c}}`,
-                    sol: `\\begin{aligned} &\\text{Find LCD } (${a*b*c}) \\implies \\frac{${b*c + a*c + a*b}}{${a*b*c}} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `(${a}^{${b}})^{${c}} \\div ${d}`,
-                    ans: `= ${(Math.pow(a, b*c) / d).toFixed(2)}`,
-                    sol: `\\begin{aligned} &= ${a}^{${b*c}} \\div ${d} \\approx ${(Math.pow(a, b*c) / d).toFixed(2)} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\log_{10}(${b}) \\times ${a}`,
-                    ans: `\\approx ${Math.round(a * Math.log10(b))}`,
-                    sol: `\\begin{aligned} &\\approx ${Math.log10(b).toFixed(2)} \\times ${a} \\approx ${Math.round(a * Math.log10(b))} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\frac{\\frac{${Math.abs(a)}}{${b}}}{\\frac{${c}}{${d}}}`,
-                    ans: `= \\frac{${Math.abs(a)*d}}{${b*c}}`,
-                    sol: `\\begin{aligned} &= \\frac{${Math.abs(a)}}{${b}} \\times \\frac{${d}}{${c}} = \\frac{${Math.abs(a)*d}}{${b*c}} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `(${Math.abs(a)} \\times 10^{${c}}) \\times (${b} \\times 10^{${d}})`,
-                    ans: `= ${Math.abs(a)*b} \\times 10^{${c+d}}`,
-                    sol: `\\begin{aligned} &= (${Math.abs(a)} \\times ${b}) \\times 10^{${c}+${d}} = ${Math.abs(a)*b} \\times 10^{${c+d}} \\end{aligned}`
-                }),
-                (a, b, c, d) => {
-                    let factA = Math.abs(a) + 3;
-                    return {
-                        expr: `\\frac{${factA}!}{(${factA}-2)!}`,
-                        ans: `= ${factA * (factA-1)}`,
-                        sol: `\\begin{aligned} &= \\frac{${factA} \\times ${factA-1} \\times (${factA}-2)!}{(${factA}-2)!} = ${factA * (factA-1)} \\end{aligned}`
-                    };
-                },
-                (a, b, c, d) => ({
-                    expr: `\\log_{${b}}(${b}^{${c}}) + \\ln(e^{${d}})`,
-                    ans: `= ${c + d}`,
-                    sol: `\\begin{aligned} &= ${c}\\log_{${b}}(${b}) + ${d}\\ln(e) = ${c}(1) + ${d}(1) = ${c + d} \\end{aligned}`
+                    expr: `\\frac{${Math.abs(a)}}{${b}} + \\frac{${c}}{${d}}`, 
+                    ans: `= \\frac{${Math.abs(a) * d + c * b}}{${b * d}}`,
+                    sol: `\\begin{aligned} &\\text{Common denom: } ${b} \\times ${d} = ${b*d} \\\\ &= \\frac{${Math.abs(a)*d}}{${b*d}} + \\frac{${c*b}}{${b*d}} = \\frac{${Math.abs(a) * d + c * b}}{${b*d}} \\end{aligned}`
                 })
             ]
         },
         algebra: {
             easy: [
-                (a, b, c) => {
-                    let rhs = a * c + b;
-                    return {
-                        expr: `${a}x ${b > 0 ? '+' : '-'} ${Math.abs(b)} = ${rhs}`,
-                        ans: `x = ${c}`,
-                        sol: `\\begin{aligned} ${a}x &= ${rhs} ${b>0?'-':'+'} ${Math.abs(b)} \\\\ x &= ${c} \\end{aligned}`
-                    };
-                }
+                (a, b, c) => ({
+                    expr: `${a}x ${b > 0 ? '+' : '-'} ${Math.abs(b)} = ${a * c + b}`, ans: `x = ${c}`,
+                    sol: `\\begin{aligned} ${a}x &= ${a * c + b} ${b>0?'-':'+'} ${Math.abs(b)} \\\\ x &= ${c} \\end{aligned}`
+                })
             ],
             med: [
                 (a, b) => {
@@ -352,784 +142,43 @@
                     let ansStr = `= x^2 ${mid===0?"":(mid>0?`+ ${mid}x`:`- ${Math.abs(mid)}x`)} ${last>0?`+ ${last}`:`- ${Math.abs(last)}`}`;
                     return {
                         expr: `(x ${a > 0 ? '+' : '-'} ${Math.abs(a)})(x ${b > 0 ? '+' : '-'} ${Math.abs(b)})`,
-                        ans: ansStr,
-                        sol: `\\begin{aligned} &\\text{FOIL Method: } \\\\ &${ansStr} \\end{aligned}`
+                        ans: ansStr, sol: `\\begin{aligned} &\\text{FOIL Method: } \\\\ &${ansStr} \\end{aligned}`
                     };
                 }
             ],
             hard: [
                 (a, b, c, d) => {
-                    let base = getRnd(2, 4), val = getRnd(1, 3);
+                    let base = Utils.getRnd(2, 4), val = Utils.getRnd(1, 3);
                     return {
-                        expr: `\\log_{${base}}(x - ${c}) = ${val}`,
-                        ans: `x = ${Math.pow(base, val) + c}`,
+                        expr: `\\log_{${base}}(x - ${c}) = ${val}`, ans: `x = ${Math.pow(base, val) + c}`,
                         sol: `\\begin{aligned} x - ${c} &= ${base}^{${val}} \\implies x = ${Math.pow(base, val) + c} \\end{aligned}`
                     };
-                },
-                (a, b, c, d) => {
-                    let base = getRnd(2, 4), val = getRnd(2, 4); 
-                    return {
-                        expr: `${base}^{x + ${c}} = ${Math.pow(base, val)}`,
-                        ans: `x = ${val - c}`,
-                        sol: `\\begin{aligned} ${base}^{x+${c}} &= ${base}^{${val}} \\implies x + ${c} = ${val} \\implies x = ${val-c} \\end{aligned}`
-                    };
-                },
-                (a, b, c, d) => {
-                    let B = -(c + d), C = c * d;
-                    return {
-                        expr: `x^2 ${B>0?`+${B}`:B}x ${C>0?`+${C}`:C} = 0`,
-                        ans: `x = ${c}, ${d}`,
-                        sol: `\\begin{aligned} &(x - ${c})(x - ${d}) = 0 \\implies x = ${c}, \\; x = ${d} \\end{aligned}`
-                    };
-                },
-                () => ({
-                    expr: `2x^2 - 5x + 3 = 0`,
-                    ans: `x = 1, \\frac{3}{2}`,
-                    sol: `\\begin{aligned} &(2x - 3)(x - 1) = 0 \\implies x=\\frac{3}{2}, \\; x=1 \\end{aligned}`
-                }),
-                (a, b, c, d) => {
-                    let base = getRnd(2,3);
-                    return {
-                        expr: `\\log_{${base}}(x) + \\log_{${base}}(${b}) = ${c}`,
-                        ans: `x = ${Math.pow(base, c) / b}`,
-                        sol: `\\begin{aligned} \\log_{${base}}(${b}x) &= ${c} \\implies ${b}x = ${base}^{${c}} \\implies x = ${Math.pow(base, c) / b} \\end{aligned}`
-                    };
-                },
-                (a, b, c, d) => ({
-                    expr: `(x + ${a})^2 = ${Math.abs(b)}`,
-                    ans: `x = -${a} \\pm \\sqrt{${Math.abs(b)}}`,
-                    sol: `\\begin{aligned} x + ${a} &= \\pm \\sqrt{${Math.abs(b)}} \\implies x = -${a} \\pm \\sqrt{${Math.abs(b)}} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\frac{x}{${a}} - ${b} = ${c}`,
-                    ans: `x = ${a * (b + c)}`,
-                    sol: `\\begin{aligned} \\frac{x}{${a}} &= ${c+b} \\implies x = ${a*(b+c)} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `x^3 - ${c}x^2 + ${d}x - 6 = 0 \\; (x=2)`,
-                    ans: `\\text{Evaluate } P(2)`,
-                    sol: `\\begin{aligned} P(2) &= 2^3 - ${c}(2)^2 + ${d}(2) - 6 \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `|2x - ${a}| = ${b}`,
-                    ans: `x = \\frac{${a+b}}{2}, \\frac{${a-b}}{2}`,
-                    sol: `\\begin{aligned} 2x - ${a} &= \\pm ${b} \\implies x = \\frac{${a} \\pm ${b}}{2} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\frac{x+${c}}{x-${d}} = ${a}`,
-                    ans: `x = \\frac{${a*d + c}}{a-1}`,
-                    sol: `\\begin{aligned} x+${c} &= ${a}(x-${d}) \\implies x = \\frac{${a*d+c}}{${a-1}} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `x^2 + ${b}x + ${c} = 0`,
-                    ans: `x = \\frac{-${b} \\pm \\sqrt{${b*b - 4*c}}}{2}`,
-                    sol: `\\begin{aligned} x &= \\frac{-${b} \\pm \\sqrt{${b}^2 - 4(1)(${c})}}{2(1)} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `x + y = ${a}, \\; 2x - y = ${b}`,
-                    ans: `x = \\frac{${a+b}}{3}`,
-                    sol: `\\begin{aligned} &\\text{Add equations: } 3x = ${a+b} \\implies x = \\frac{${a+b}}{3} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `x^2 - ${c+d}x + ${c*d} > 0`,
-                    ans: `x < ${Math.min(c,d)} \\text{ or } x > ${Math.max(c,d)}`,
-                    sol: `\\begin{aligned} &(x - ${c})(x - ${d}) > 0 \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\frac{x^2 - ${c*c}}{x-${c}} = x + k`,
-                    ans: `k = ${c}`,
-                    sol: `\\begin{aligned} &\\frac{(x-${c})(x+${c})}{x-${c}} = x+${c} \\implies k=${c} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `x^2 + ${b*2}x = ${c}`,
-                    ans: `(x + ${b})^2 = ${c + b*b}`,
-                    sol: `\\begin{aligned} &x^2 + ${b*2}x + (${b})^2 = ${c} + (${b})^2 \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\frac{${a}}{x} + \\frac{${b}}{x} = ${c}`,
-                    ans: `x = \\frac{${a+b}}{${c}}`,
-                    sol: `\\begin{aligned} \\frac{${a+b}}{x} &= ${c} \\implies x = \\frac{${a+b}}{${c}} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `2^{x} = 4^{x - ${c}}`,
-                    ans: `x = ${2*c}`,
-                    sol: `\\begin{aligned} 2^x &= 2^{2(x-${c})} \\implies x = 2x - ${2*c} \\implies x = ${2*c} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `f(x) = ${Math.abs(a)}x+${b}, g(x) = x^2, \\; f(g(${c}))`,
-                    ans: `= ${Math.abs(a) * c * c + b}`,
-                    sol: `\\begin{aligned} g(${c}) &= ${c*c} \\implies f(${c*c}) = ${Math.abs(a) * c * c + b} \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `|x - ${c}| < ${d}`,
-                    ans: `${c-d} < x < ${c+d}`,
-                    sol: `\\begin{aligned} -${d} &< x - ${c} < ${d} \\implies ${c-d} < x < ${c+d} \\end{aligned}`
-                })
-            ]
-        },
-        trigonometry: {
-            easy: [
-                () => {
-                    let angles = ['0', '\\frac{\\pi}{2}', '\\pi', '\\frac{3\\pi}{2}', '2\\pi'];
-                    let sines = ['0', '1', '0', '-1', '0'];
-                    let r = getRnd(0, 4);
-                    return {
-                        expr: `\\sin\\left(${angles[r]}\\right)`,
-                        ans: `= ${sines[r]}`,
-                        sol: `\\text{Evaluate standard unit circle angle. } \\sin(${angles[r]}) = ${sines[r]}`
-                    };
                 }
-            ],
-            med: [
-                (a) => ({
-                    expr: `\\sin^2(${Math.abs(a)}x) + \\cos^2(${Math.abs(a)}x)`,
-                    ans: `= 1`,
-                    sol: `\\text{Pythagorean Identity: } \\sin^2(\\theta) + \\cos^2(\\theta) = 1 \\text{ for any } \\theta`
-                })
-            ],
-            hard: [
-                (a, b) => ({
-                    expr: `\\cos^2(${b}x) - \\sin^2(${b}x)`,
-                    ans: `= \\cos(${2 * b}x)`,
-                    sol: `\\text{Double Angle Identity: } \\cos^2(\\theta) - \\sin^2(\\theta) = \\cos(2\\theta)`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\sin(${c}x)\\cos(${d}x) + \\cos(${c}x)\\sin(${d}x)`,
-                    ans: `= \\sin(${c + d}x)`,
-                    sol: `\\text{Sum Formula: } \\sin(A)\\cos(B) + \\cos(A)\\sin(B) = \\sin(A+B)`
-                }),
-                () => ({
-                    expr: `\\frac{\\sin(x)}{\\cos(x)}`,
-                    ans: `= \\tan(x)`,
-                    sol: `\\text{Quotient Identity: } \\frac{\\sin(x)}{\\cos(x)} = \\tan(x)`
-                }),
-                () => ({
-                    expr: `\\tan^2(x) + 1`,
-                    ans: `= \\sec^2(x)`,
-                    sol: `\\text{Pythagorean Identity: } \\tan^2(x) + 1 = \\sec^2(x)`
-                }),
-                () => ({
-                    expr: `\\sin(2x)`,
-                    ans: `= 2\\sin(x)\\cos(x)`,
-                    sol: `\\text{Double Angle Identity for Sine.}`
-                }),
-                () => ({
-                    expr: `\\cos(3x)`,
-                    ans: `= 4\\cos^3(x) - 3\\cos(x)`,
-                    sol: `\\text{Triple Angle Identity for Cosine.}`
-                }),
-                () => ({
-                    expr: `\\frac{1 + \\cos(2x)}{2}`,
-                    ans: `= \\cos^2(x)`,
-                    sol: `\\text{Power-Reducing Identity for Cosine.}`
-                }),
-                () => ({
-                    expr: `\\csc(x) \\cdot \\sin(x)`,
-                    ans: `= 1`,
-                    sol: `\\text{Reciprocal Identity: } \\frac{1}{\\sin(x)} \\cdot \\sin(x) = 1`
-                }),
-                () => ({
-                    expr: `\\frac{\\sin(3x)}{\\sin(x)}`,
-                    ans: `= 3 - 4\\sin^2(x)`,
-                    sol: `\\begin{aligned} &= \\frac{3\\sin(x) - 4\\sin^3(x)}{\\sin(x)} = 3 - 4\\sin^2(x) \\end{aligned}`
-                }),
-                () => ({
-                    expr: `\\cos^2(x) - \\sin^2(x)`,
-                    ans: `= \\cos(2x)`,
-                    sol: `\\text{Double Angle Identity for Cosine.}`
-                }),
-                () => ({
-                    expr: `\\tan(x) \\cdot \\cot(x)`,
-                    ans: `= 1`,
-                    sol: `\\text{Reciprocal Identity: } \\tan(x) \\cdot \\frac{1}{\\tan(x)} = 1`
-                }),
-                (a, b, c) => ({
-                    expr: `\\arcsin(${c/5})`,
-                    ans: `= \\theta \\text{ where } \\sin\\theta = ${c/5}`,
-                    sol: `\\text{By definition of inverse sine.}`
-                }),
-                () => ({
-                    expr: `\\cos^{-1}\\left(\\frac{1}{2}\\right)`,
-                    ans: `= \\frac{\\pi}{3}`,
-                    sol: `\\text{The angle in } [0, \\pi] \\text{ where } \\cos(\\theta) = 1/2 \\text{ is } \\pi/3`
-                }),
-                () => ({
-                    expr: `\\sin(2x) = 2\\sin(x)\\cos(x)`,
-                    ans: `\\text{Identity holds}`,
-                    sol: `\\text{This is the standard double-angle identity for sine.}`
-                }),
-                () => ({
-                    expr: `\\frac{1 - \\cos(2x)}{\\sin(2x)}`,
-                    ans: `= \\tan(x)`,
-                    sol: `\\begin{aligned} &= \\frac{1 - (1 - 2\\sin^2x)}{2\\sin x \\cos x} = \\tan x \\end{aligned}`
-                }),
-                () => ({
-                    expr: `\\sin\\left(\\frac{\\pi}{12}\\right) \\cos\\left(\\frac{\\pi}{12}\\right)`,
-                    ans: `= \\frac{1}{4}`,
-                    sol: `\\begin{aligned} &= \\frac{1}{2} \\left(2\\sin\\frac{\\pi}{12}\\cos\\frac{\\pi}{12}\\right) = \\frac{1}{4} \\end{aligned}`
-                }),
-                () => ({
-                    expr: `\\cos^4(x) - \\sin^4(x)`,
-                    ans: `= \\cos(2x)`,
-                    sol: `\\begin{aligned} &= (\\cos^2x - \\sin^2x)(\\cos^2x + \\sin^2x) = \\cos(2x) \\end{aligned}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `\\tan\\left(\\arccos\\left(\\frac{${c}}{\\sqrt{${c*c + d*d}}}\\right)\\right)`,
-                    ans: `= \\frac{${d}}{${c}}`,
-                    sol: `\\text{Draw triangle: adj}=${c}, \\text{opp}=${d}. \\tan = \\frac{\\text{opp}}{\\text{adj}} = \\frac{${d}}{${c}}`
-                }),
-                () => ({
-                    expr: `\\sin(x) + \\sin(x)\\cot^2(x)`,
-                    ans: `= \\csc(x)`,
-                    sol: `\\begin{aligned} &= \\sin x (1 + \\cot^2 x) = \\sin x (\\csc^2 x) = \\csc x \\end{aligned}`
-                })
             ]
         },
         limit: {
             easy: [
                 (a, b, c) => ({
-                    expr: `\\lim_{x \\to ${c}} (${a}x ${b > 0 ? '+' : '-'} ${Math.abs(b)})`,
-                    ans: `= ${a * c + b}`,
+                    expr: `\\lim_{x \\to ${c}} (${a}x ${b > 0 ? '+' : '-'} ${Math.abs(b)})`, ans: `= ${a * c + b}`,
                     sol: `\\text{Direct Substitution: } ${a}(${c}) ${b > 0 ? '+' : '-'} ${Math.abs(b)} = ${a * c + b}`
                 })
             ],
             med: [
-                // Problem: (x^3 - 1) / (sqrt(x) - 1) at x -> 1
-                () => ({
-                    expr: `\\lim_{x \\to 1} \\frac{x^3 - 1}{\\sqrt{x} - 1}`,
-                    ans: `= 6`,
-                    sol: `\\begin{aligned} 
-                            L &= \\lim_{x \\to 1} \\frac{(x - 1)(x^2 + x + 1)}{\\sqrt{x} - 1} \\cdot \\frac{\\sqrt{x} + 1}{\\sqrt{x} + 1} \\\\ 
-                            &= \\lim_{x \\to 1} \\frac{(x - 1)(x^2 + x + 1)(\\sqrt{x} + 1)}{x - 1} \\\\ 
-                            &= \\lim_{x \\to 1} (x^2 + x + 1)(\\sqrt{x} + 1) \\\\ 
-                            &= (1^2 + 1 + 1)(\\sqrt{1} + 1) \\\\ 
-                            &= 3 \\cdot 2 = 6
-                          \\end{aligned}`
-                }),
-                    
-                // Family: Quadratic Rational Cancellation
                 (a, m, n) => {
-                    const b1 = m - a;
-                    const c1 = -a * m;
-                    const b2 = n - a;
-                    const c2 = -a * n;
-            
-                    // Helper to format polynomial signs correctly
-                    const sign = (val) => (val >= 0 ? `+ ${val}` : `- ${Math.abs(val)}`);
-            
+                    const b1 = m - a, c1 = -a * m, b2 = n - a, c2 = -a * n;
                     return {
-                        expr: `\\lim_{x \\to ${a}} \\frac{x^2 ${sign(b1)}x ${sign(c1)}}{x^2 ${sign(b2)}x ${sign(c2)}}`,
+                        expr: `\\lim_{x \\to ${a}} \\frac{x^2 ${Utils.sign(b1)}x ${Utils.sign(c1)}}{x^2 ${Utils.sign(b2)}x ${Utils.sign(c2)}}`,
                         ans: `= \\frac{${a + m}}{${a + n}}`,
-                        sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(x + ${m})}{(x - ${a})(x + ${n})} \\\\ 
-                                &= \\lim_{x \\to ${a}} \\frac{x + ${m}}{x + ${n}} \\\\ 
-                                &= \\frac{${a} + ${m}}{${a} + ${n}} = \\frac{${a + m}}{${a + n}}
-                              \\end{aligned}`
+                        sol: `\\begin{aligned} L &= \\lim_{x \\to ${a}} \\frac{(x - ${a})(x + ${m})}{(x - ${a})(x + ${n})} \\\\ &= \\frac{${a} + ${m}}{${a} + ${n}} = \\frac{${a + m}}{${a + n}} \\end{aligned}`
                     };
-                },
-            
-                // Family: (ax^2+bx+c)/(px^2+qx+r)
-                
-                () => {
-
-                    const { a, k1, k2, m, n, p, q } = generateNiceParams();
-                
-                    // Build quadratic from factors
-                    const num_A = k1 * m;
-                    const num_B = k1 * (p - m * a);
-                    const num_C = -k1 * a * p;
-                
-                    const den_A = k2 * n;
-                    const den_B = k2 * (q - n * a);
-                    const den_C = -k2 * a * q;
-                
-                    // Evaluate limit after cancellation
-                    const val_num = k1 * (m * a + p);
-                    const val_den = k2 * (n * a + q);
-                
-                    // Simplify
-                    const g = gcd(val_num, val_den) || 1;
-                
-                    const redNum = val_num / g;
-                    const redDen = val_den / g;
-                
-                    const finalAns = redDen === 1
-                        ? `${redNum}`
-                        : `\\frac{${redNum}}{${redDen}}`;
-                
-                    return {
-                        expr: `\\lim_{x \\to ${a}} \\frac{${num_A}x^2 ${sign(num_B)}x ${sign(num_C)}}{${den_A}x^2 ${sign(den_B)}x ${sign(den_C)}}`,
-                
-                        ans: `= ${finalAns}`,
-                
-                        sol: `\\begin{aligned}
-                        L &= \\lim_{x \\to ${a}} 
-                        \\frac{${k1}(${linear(m, p)})${minusA(a)}}{${k2}(${linear(n, q)})${minusA(a)}} \\\\
-                        &= \\lim_{x \\to ${a}} \\frac{${k1}(${linear(m, p)})}{${k2}(${linear(n, q)})} \\\\
-                        &= \\frac{${val_num}}{${val_den}} = ${finalAns}
-                        \\end{aligned}`
-                    };
-                },
-            
-                // Family: Quadratic-Linear Rational Cancellation
-                (a, m, k) => {
-                    const n = m * (k - a);
-                    const p = -m * a * k;
-                    const r = -a;
-                    const sign = (val) => (val >= 0 ? `+ ${val}` : `- ${Math.abs(val)}`);
-            
-                    return {
-                        expr: `\\lim_{x \\to ${a}} \\frac{${m}x^2 ${sign(n)}x ${sign(p)}}{x ${sign(r)}}`,
-                        ans: `= ${m * (a + k)}`,
-                        sol: `\\begin{aligned} 
-                                &\\text{Direct substitution } x = ${a} \\text{ yields } \\frac{0}{0}. \\\\ 
-                                &L = \\lim_{x \\to ${a}} \\frac{(x - ${a})(${m}x + ${p / -a})}{x - ${a}} \\\\ 
-                                &= \\lim_{x \\to ${a}} (${m}x + ${p / -a}) = ${m * a + (p / -a)}
-                              \\end{aligned}`
-                    };
-                },
-            
-                // Simplified x^2 - c^2
-                (c) => ({
-                    expr: `\\lim_{x \\to ${c}} \\frac{x^2 - ${c * c}}{x - ${c}}`,
-                    ans: `= ${2 * c}`,
-                    sol: `\\lim_{x\\to ${c}} \\frac{(x-${c})(x+${c})}{x-${c}} = ${c} + ${c} = ${2 * c}`
-                }),
-            
-                // Standard Trig Limit
-                (a, b) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{\\sin(${Math.abs(a)}x)}{${b}x}`,
-                    ans: `= \\frac{${Math.abs(a)}}{${b}}`,
-                    sol: `\\text{Using } \\lim_{u \\to 0} \\frac{\\sin u}{u} = 1: \\frac{${Math.abs(a)}}{${b}} \\lim_{x \\to 0} \\frac{\\sin(${Math.abs(a)}x)}{${Math.abs(a)}x} = \\frac{${Math.abs(a)}}{${b}}`
-                }),
-            
-                // (ax^2 + bx) / cx
-                (a, b, c) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{${a}x^2 + ${b}x}{${c}x}`,
-                    ans: `= \\frac{${b}}{${c}}`,
-                    sol: `\\lim_{x \\to 0} \\frac{x(${a}x + ${b})}{${c}x} = \\frac{${a}(0) + ${b}}{${c}} = \\frac{${b}}{${c}}`
-                }),
-            
-                // Rational Function at Infinity
-                (a, b, c, d) => ({
-                    expr: `\\lim_{x \\to \\infty} \\frac{${b}x^2 + ${c}x}{${d}x^2 - 1}`,
-                    ans: `= \\frac{${b}}{${d}}`,
-                    sol: `\\begin{aligned} 
-                            L &= \\lim_{x \\to \\infty} \\frac{b + c/x}{d - 1/x^2} = \\frac{${b} + 0}{${d} - 0} = \\frac{${b}}{${d}}
-                          \\end{aligned}`
-                })
+                }
             ],
             hard: [
-                // The Cosine-Squared Identity: (1 - cos bx) / x^2
                 (a, b) => {
                     const b2 = b * b;
                     return {
-                        expr: `\\lim_{x \\to 0} \\frac{1 - \\cos(${b}x)}{x^2}`,
-                        ans: `= \\frac{${b2}}{2}`,
-                        sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to 0} \\frac{1 - \\cos(${b}x)}{x^2} \\cdot \\frac{1 + \\cos(${b}x)}{1 + \\cos(${b}x)} \\\\ 
-                                &= \\lim_{x \\to 0} \\frac{1 - \\cos^2(${b}x)}{x^2(1 + \\cos ${b}x)} \\\\ 
-                                &= \\lim_{x \\to 0} \\frac{\\sin^2(${b}x)}{x^2(1 + \\cos ${b}x)} \\\\ 
-                                &= \\lim_{x \\to 0} \\left[ \\left( \\frac{\\sin(${b}x)}{${b}x} \\right)^2 \\cdot \\frac{${b2}}{1 + \\cos ${b}x} \\right] \\\\ 
-                                &= (1)^2 \\cdot \\frac{${b2}}{1 + \\cos(0)} \\\\ 
-                                &= 1 \\cdot \\frac{${b2}}{2} = \\frac{${b2}}{2} 
-                              \\end{aligned}`
-                    };
-                },
-                // The Exponential Identity: (e^{bx} - 1) / x
-                (a, b) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{e^{${b}x} - 1}{x}`,
-                    ans: `= ${b}`,
-                    sol: `\\begin{aligned} 
-                            &\\text{Let } u = e^{${b}x} - 1. \\text{ As } x \\to 0, u \\to 0. \\\\ 
-                            &\\text{Then } e^{${b}x} = 1 + u \\implies ${b}x = \\ln(1 + u) \\implies x = \\frac{\\ln(1 + u)}{${b}}. \\\\ 
-                            L &= \\lim_{u \\to 0} \\frac{u}{\\frac{\\ln(1 + u)}{${b}}} \\\\ 
-                            &= ${b} \\cdot \\lim_{u \\to 0} \\frac{u}{\\ln(1 + u)} \\\\ 
-                            &\\text{Using the standard limit } \\lim_{u \\to 0} \\frac{\\ln(1 + u)}{u} = 1: \\\\ 
-                            L &= ${b} \\cdot 1 = ${b} 
-                          \\end{aligned}`
-                }),
-                (a, b) => ({
-                    expr: `\\lim_{x \\to 0^+} \\left(1 + ${b}x \\right)^{1/x}`,
-                    ans: `= e^{${b}}`,
-                    sol: `\\text{Definition of } e: \\lim_{u\\to 0} (1+Au)^{1/u} = e^A = e^{${b}}`
-                }),
-                // Logarithmic Growth vs. Linear Growth at Infinity
-                (a, b, c) => ({
-                    expr: `\\lim_{x \\to \\infty} \\frac{\\ln(x + ${c})}{x}`,
-                    ans: `= 0`,
-                    sol: `\\begin{aligned} 
-                            L &= \\lim_{x \\to \\infty} \\ln\\left( (x + ${c})^{\\frac{1}{x}} \\right) \\\\ 
-                            &\\text{For large } x, \\text{ we can factor } x: \\\\ 
-                            L &= \\lim_{x \\to \\infty} \\ln\\left( [x(1 + \\frac{${c}}{x})]^{\\frac{1}{x}} \\right) \\\\ 
-                            &= \\lim_{x \\to \\infty} \\left[ \\ln(x^{\\frac{1}{x}}) + \\ln(1 + \\frac{${c}}{x})^{\\frac{1}{x}} \\right] \\\\ 
-                            &\\text{As } x \\to \\infty: \\\\ 
-                            &1. \\lim_{x \\to \\infty} x^{\\frac{1}{x}} = 1 \\implies \\ln(1) = 0 \\\\ 
-                            &2. \\lim_{x \\to \\infty} (1 + \\frac{${c}}{x})^{\\frac{1}{x}} = (1)^{\\to 0} = 1 \\implies \\ln(1) = 0 \\\\ 
-                            L &= 0 + 0 = 0
-                          \\end{aligned}`
-                }),
-                // Rational Function at Infinity: Leading Coefficient Rule
-                (a, b, c) => {
-                    const absA = Math.abs(a);
-                    return {
-                        expr: `\\lim_{x \\to \\infty} \\frac{${absA}x^3 + ${b}x^2}{x^3 + ${c}}`,
-                        ans: `= ${absA}`,
-                        sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to \\infty} \\frac{\\frac{${absA}x^3}{x^3} + \\frac{${b}x^2}{x^3}}{\\frac{x^3}{x^3} + \\frac{${c}}{x^3}} \\quad \\text{(Divide by } x^3) \\\\ 
-                                &= \\lim_{x \\to \\infty} \\frac{${absA} + \\frac{${b}}{x}}{1 + \\frac{${c}}{x^3}} \\\\ 
-                                &\\text{Using } \\lim_{x \\to \\infty} \\frac{1}{x^n} = 0 \\text{ for } n > 0: \\\\ 
-                                &= \\frac{${absA} + 0}{1 + 0} = ${absA} 
-                              \\end{aligned}`
-                    };
-                },
-                (a, b) => ({
-                    expr: `\\lim_{x \\to \\infty} (\\sqrt{x^2 + ${b*2}x} - x)`,
-                    ans: `= ${b}`,
-                    sol: `\\text{Multiply by conjugate: } \\frac{x^2+${b*2}x - x^2}{\\sqrt{x^2+${b*2}x} + x} = \\frac{${b*2}x}{2x} = ${b}`
-                }),
-                // The $x^x$ Power Limit
-                () => ({
-                    expr: `\\lim_{x \\to 0^+} x^x`,
-                    ans: `= 1`,
-                    sol: `\\begin{aligned} 
-                            L &= \\lim_{x \\to 0^+} e^{\\ln(x^x)} \\\\ 
-                            &= e^{\\lim_{x \\to 0^+} (x \\ln x)} \\\\ 
-                            &\\text{Using the standard limit } \\lim_{x \\to 0^+} x \\ln x = 0: \\\\ 
-                            &= e^0 = 1 
-                          \\end{aligned}`
-                }),
-                () => ({
-                    expr: `\\lim_{x \\to \\infty} \\frac{e^x}{x^3}`,
-                    ans: `= \\infty`,
-                    sol: `\\text{Exponential growth outpaces polynomial growth as } x \\to \\infty`
-                }),
-                // The Logarithmic Identity: ln(1 + bx) / x
-                (a, b) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{\\ln(1 + ${b}x)}{x}`,
-                    ans: `= ${b}`,
-                    sol: `\\begin{aligned} 
-                            L &= \\lim_{x \\to 0} \\left[ \\frac{1}{x} \\ln(1 + ${b}x) \\right] \\\\ 
-                            &= \\lim_{x \\to 0} \\ln\\left( (1 + ${b}x)^{\\frac{1}{x}} \\right) \\quad \\text{(using } n \\ln A = \\ln A^n) \\\\ 
-                            &= \\ln\\left( \\lim_{x \\to 0} (1 + ${b}x)^{\\frac{1}{x}} \\right) \\\\ 
-                            &\\text{Let } u = ${b}x \\implies \\frac{1}{x} = \\frac{${b}}{u}. \\text{ As } x \\to 0, u \\to 0. \\\\ 
-                            L &= \\ln\\left( \\lim_{u \\to 0} (1 + u)^{\\frac{${b}}{u}} \\right) \\\\ 
-                            &= \\ln\\left( \\left[ \\lim_{u \\to 0} (1 + u)^{\\frac{1}{u}} \\right]^{${b}} \\right) \\\\ 
-                            &= \\ln(e^{${b}}) = ${b} 
-                          \\end{aligned}`
-                }),
-                (a, b) => ({
-                    expr: `\\lim_{x \\to \\infty} \\frac{x^2}{e^{${b}x}}`,
-                    ans: `= 0`,
-                    sol: `\\text{Exponentials dominate polynomials: denominator grows much faster. } = 0`
-                }),
-                // The Sin(3x) Difference: (sin 3x - 3x) / x^3
-                () => ({
-                    expr: `\\lim_{x \\to 0} \\frac{\\sin(3x) - 3x}{x^3}`,
-                    ans: `= -\\frac{9}{2}`,
-                    sol: `\\begin{aligned} 
-                            L &= \\lim_{x \\to 0} \\frac{(3\\sin x - 4\\sin^3 x) - 3x}{x^3} \\\\ 
-                            &= \\lim_{x \\to 0} \\left[ \\frac{3(\\sin x - x)}{x^3} - \\frac{4\\sin^3 x}{x^3} \\right] \\\\ 
-                            &= 3 \\lim_{x \\to 0} \\left( \\frac{\\sin x - x}{x^3} \\right) - 4 \\lim_{x \\to 0} \\left( \\frac{\\sin x}{x} \\right)^3 \\\\ 
-                            &\\text{Using the standard result } \\lim_{x \\to 0} \\frac{x - \\sin x}{x^3} = \\frac{1}{6}: \\\\ 
-                            L &= 3 \\left( -\\frac{1}{6} \\right) - 4(1)^3 \\\\ 
-                            &= -\\frac{1}{2} - 4 = -\\frac{9}{2}
-                          \\end{aligned}`
-                }),
-                // Family: Sine-Linear Difference. General Result: -(a^3) / 6
-                (a) => {
-                    const a3 = a ** 3;
-                    // Simplify fraction helper
-                    const gcd = (x, y) => y === 0 ? x : gcd(y, x % y);
-                    const common = gcd(a3, 6);
-                
-                    return {
-                        expr: `\\lim_{x \\to 0} \\frac{\\sin(${a}x) - ${a}x}{x^3}`,
-                        ans: `= -\\frac{${a3 / common}}{${6 / common}}`,
-                        sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to 0} \\frac{\\sin(${a}x) - ${a}x}{x^3} \\\\ 
-                                &\\text{Let } u = ${a}x \\implies x = \\frac{u}{${a}}. \\text{ As } x \\to 0, u \\to 0. \\\\ 
-                                L &= \\lim_{u \\to 0} \\frac{\\sin u - u}{(u/${a})^3} \\\\ 
-                                &= ${a}^3 \\lim_{u \\to 0} \\frac{\\sin u - u}{u^3} \\\\ 
-                                &\\text{Using the fundamental limit: } \\lim_{u \\to 0} \\frac{u - \\sin u}{u^3} = \\frac{1}{6} \\\\ 
-                                L &= ${a}^3 \\left( -\\frac{1}{6} \\right) = -\\frac{${a}^3}{6}
-                              \\end{aligned}`
-                    };
-                },
-                (a, b) => ({
-                    expr: `\\lim_{x \\to \\infty} \\left(1 + \\frac{${b}}{x}\\right)^{x}`,
-                    ans: `= e^{${b}}`,
-                    sol: `\\text{Standard definition limit: } \\lim_{x\\to\\infty} (1+a/x)^x = e^a`
-                }),
-                // Logarithmic vs Power growth: ln(x) / x^c
-                (c) => ({
-                    expr: `\\lim_{x \\to \\infty} \\frac{\\ln x}{x^{${c}}}`,
-                    ans: `= 0`,
-                    sol: `\\begin{aligned} 
-                            &\\text{Let } x^c = e^u \\implies c \\ln x = u \\implies \\ln x = \\frac{u}{c}. \\\\ 
-                            &\\text{As } x \\to \\infty, u \\to \\infty. \\\\ 
-                            L &= \\lim_{u \\to \\infty} \\frac{u/c}{e^u} \\\\ 
-                            &= \\frac{1}{c} \\lim_{u \\to \\infty} \\frac{u}{e^u} \\\\ 
-                            &\\text{Since } e^u > \\frac{u^2}{2} \\text{ for large } u, \\\\ 
-                            L &= 0 \\quad (\\text{Exponential growth dominates polynomial growth})
-                          \\end{aligned}`
-                }),
-                (a, b, c) => ({
-                    expr: `\\lim_{x \\to ${c}^-} \\frac{|x - ${c}|}{x - ${c}}`,
-                    ans: `= -1`,
-                    sol: `\\text{For } x < ${c}, |x-${c}| = -(x-${c}) \\implies \\frac{-(x-${c})}{x-${c}} = -1`
-                }),
-                () => ({
-                    expr: `\\lim_{x \\to 0} x^2 \\sin\\left(\\frac{1}{x}\\right)`,
-                    ans: `= 0`,
-                    sol: `\\text{Squeeze Theorem: } -x^2 \\le x^2\\sin(1/x) \\le x^2. \\text{ Both sides } \\to 0`
-                }),
-                (a, b, c) => ({
-                    expr: `\\lim_{h \\to 0} \\frac{(${c}+h)^2 - ${c*c}}{h}`,
-                    ans: `= ${2*c}`,
-                    sol: `\\begin{aligned} &= \\lim_{h\\to 0} \\frac{${c*c}+${2*c}h+h^2-${c*c}}{h} = ${2*c} \\end{aligned}`
-                }),
-                (a, b) => {
-                    let ang = '\\frac{\\pi}{4}';
-                    return {
-                        expr: `\\lim_{x \\to ${ang}} \\frac{\\tan(${b}(x - ${ang}))}{x - ${ang}}`,
-                        ans: `= ${b}`,
-                        sol: `\\text{Let } u = x - ${ang}. \\implies \\lim_{u \\to 0} \\frac{\\tan(${b}u)}{u} = ${b}`
-                    };
-                },
-                (a, b) => {
-                    let ang = '\\frac{\\pi}{2}';
-                    return {
-                        expr: `\\lim_{x \\to ${ang}} \\frac{1 - \\cos(${b}(x - ${ang}))}{(x - ${ang})^2}`,
-                        ans: `= ${(b*b)/2}`,
-                        sol: `\\text{Let } u = x - ${ang}. \\implies \\lim_{u \\to 0} \\frac{1 - \\cos(${b}u)}{u^2} = \\frac{${b}^2}{2}`
-                    };
-                },
-                (a, b) => {
-                    let sign = (b % 2 === 0) ? '' : '-';
-                    return {
-                        expr: `\\lim_{x \\to \\pi} \\frac{\\sin(${b}x)}{x - \\pi}`,
-                        ans: `= ${sign}${b}`,
-                        sol: `\\text{Let } u = x - \\pi. \\text{ Identity: } \\sin(${b}(u+\\pi)) = ${sign}\\sin(${b}u).`
-                    };
-                },
-              // The "x * sin(ax) / sin^2(bx)" family 
-                (a, b) => {
-                    const b2 = b * b;
-                    return {
-                        expr: `\\lim_{x \\to 0} \\frac{x \\sin(${a}x)}{\\sin^2(${b}x)}`,
-                        ans: `= \\frac{${a}}{${b2}}`,
-                        sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to 0} \\left[ \\frac{\\sin(${a}x)}{${a}x} \\cdot \\left( \\frac{${b}x}{\\sin(${b}x)} \\right)^2 \\cdot \\frac{x(${a}x)}{(${b}x)^2} \\right] \\\\ 
-                                &= \\lim_{x \\to 0} \\left[ \\frac{\\sin(${a}x)}{${a}x} \\right] \\cdot \\left( \\lim_{x \\to 0} \\frac{${b}x}{\\sin(${b}x)} \\right)^2 \\cdot \\frac{${a}x^2}{${b2}x^2} \\\\ 
-                                &= 1 \\cdot (1)^2 \\cdot \\frac{${a}}{${b2}} = \\frac{${a}}{${b2}}
-                              \\end{aligned}`
-                    };
-                },
-                
-                // The Tangent and Sine mix: tan(ax) / sin(bx)
-                (a, b) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{\\tan(${a}x)}{\\sin(${b}x)}`,
-                    ans: `= \\frac{${a}}{${b}}`,
-                    sol: `\\begin{aligned} 
-                            L &= \\lim_{x \\to 0} \\left[ \\frac{\\tan(${a}x)}{${a}x} \\cdot \\frac{${b}x}{\\sin(${b}x)} \\cdot \\frac{${a}x}{${b}x} \\right] \\\\ 
-                            &= \\lim_{x \\to 0} \\left[ \\frac{\\tan(${a}x)}{${a}x} \\right] \\cdot \\lim_{x \\to 0} \\left[ \\frac{${b}x}{\\sin(${b}x)} \\right] \\cdot \\frac{${a}}{${b}} \\\\ 
-                            &= 1 \\cdot 1 \\cdot \\frac{${a}}{${b}} = \\frac{${a}}{${b}} 
-                          \\end{aligned}`
-                }),
-                
-                // The Squared Sine family: sin^2(ax) / (x * tan(bx))
-                (a, b) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{\\sin^2(${a}x)}{x \\tan(${b}x)}`,
-                    ans: `= \\frac{${a * a}}{${b}}`,
-                    sol: `\\begin{aligned} 
-                            L &= \\lim_{x \\to 0} \\left[ \\frac{\\sin^2(${a}x)}{(${a}x)^2} \\cdot \\frac{${b}x}{\\tan(${b}x)} \\cdot \\frac{${a * a}x^2}{x(${b}x)} \\right] \\\\ 
-                            &= \\left( \\lim_{x \\to 0} \\frac{\\sin(${a}x)}{${a}x} \\right)^2 \\cdot \\lim_{x \\to 0} \\left[ \\frac{${b}x}{\\tan(${b}x)} \\right] \\cdot \\frac{${a * a}}{${b}} \\\\ 
-                            &= (1)^2 \\cdot 1 \\cdot \\frac{${a * a}}{${b}} = \\frac{${a * a}}{${b}} 
-                          \\end{aligned}`
-                }),
-                
-                // Higher Order Powers: x^2 * sin(ax) / sin^3(bx)
-                (a, b) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{x^2 \\sin(${a}x)}{\\sin^3(${b}x)}`,
-                    ans: `= \\frac{${a}}{${b ** 3}}`,
-                    sol: `\\begin{aligned} 
-                            L &= \\lim_{x \\to 0} \\left[ \\frac{\\sin(${a}x)}{${a}x} \\cdot \\left(\\frac{${b}x}{\\sin(${b}x)}\\right)^3 \\cdot \\frac{x^2(${a}x)}{(${b}x)^3} \\right] \\\\ 
-                            &= \\lim_{x \\to 0} \\left[ \\frac{\\sin(${a}x)}{${a}x} \\right] \\cdot \\left( \\lim_{x \\to 0} \\frac{${b}x}{\\sin(${b}x)} \\right)^3 \\cdot \\frac{${a}x^3}{${b ** 3}x^3} \\\\ 
-                            &= 1 \\cdot (1)^3 \\cdot \\frac{${a}}{${b ** 3}} = \\frac{${a}}{${b ** 3}} 
-                          \\end{aligned}`
-                }),
-
-                // Product form: (sin ax * sin bx) / (x * tan cx)
-                (a, b, c) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{\\sin(${a}x) \\sin(${b}x)}{x \\tan(${c}x)}`,
-                    ans: `= \\frac{${a * b}}{${c}}`,
-                    sol: `\\begin{aligned} 
-                            L &= \\lim_{x \\to 0} \\left[ \\frac{\\sin(${a}x)}{${a}x} \\cdot \\frac{\\sin(${b}x)}{${b}x} \\cdot \\frac{${c}x}{\\tan(${c}x)} \\cdot \\frac{(${a}x)(${b}x)}{x(${c}x)} \\right] \\\\ 
-                            &= 1 \\cdot 1 \\cdot 1 \\cdot \\frac{${a * b}x^2}{${c}x^2} = \\frac{${a * b}}{${c}} 
-                          \\end{aligned}`
-                }),
-                // The requested sin(2x)-sin(3x) / (cos x - 1)
-                (a, b) => {
-                    const n1 = 2; // From your example
-                    const n2 = 3;
-                    return {
-                        expr: `\\lim_{x \\to 0} \\frac{\\sin ${n1}x - \\sin ${n2}x}{\\cos x - 1}`,
-                        ans: `\\infty \\text{ (DNE)}`,
-                        sol: `\\begin{aligned} 
-                        &\\text{Numerator: } 2\\cos\\left(\\tfrac{${n1}+${n2}}{2}x\\right)\\sin\\left(\\tfrac{${n1}-${n2}}{2}x\\right) = 2\\cos(2.5x)\\sin(-0.5x) \\\\
-                        &\\text{Denominator: } -2\\sin^2(x/2) \\\\
-                        &\\lim_{x \\to 0} \\frac{2(1)(-0.5x)}{-2(0.5x)^2} = \\lim_{x \\to 0} \\frac{-x}{-0.5x^2} = \\lim_{x \\to 0} \\frac{2}{x} = \\infty
-                        \\end{aligned}`
-                    };
-                },
-                // Form: (cos ax - cos bx) / x^2 -> (b^2 - a^2) / 2
-                (a, b) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{\\cos ${a}x - \\cos ${b}x}{x^2}`,
-                    ans: `= \\frac{${b * b - a * a}}{2}`,
-                    sol: `\\begin{aligned} 
-                    &\\text{Use: } \\cos A - \\cos B = -2\\sin\\tfrac{A+B}{2}\\sin\\tfrac{A-B}{2} \\\\
-                    &\\lim_{x \\to 0} \\frac{-2\\sin(\\frac{${a+b}}{2}x)\\sin(\\frac{${a-b}}{2}x)}{x^2} \\\\
-                    &= -2\\left(\\frac{${a+b}}{2}\\right)\\left(\\frac{${a-b}}{2}\\right) = \\frac{${b*b} - ${a*a}}{2}
-                    \\end{aligned}`
-                }),
-                // Form: (sin ax - sin bx) / sin cx -> (a - b) / c
-                (a, b, c) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{\\sin ${a}x - \\sin ${b}x}{\\sin ${c}x}`,
-                    ans: `= \\frac{${a - b}}{${c}}`,
-                    sol: `\\begin{aligned} 
-                    &\\text{Numerator: } 2\\cos\\left(\\tfrac{${a+b}}{2}x\\right)\\sin\\left(\\tfrac{${a-b}}{2}x\\right) \\\\
-                    &\\text{Limit: } \\frac{2(1)(\\frac{${a-b}}{2}x)}{${c}x} = \\frac{${a-b}}{${c}}
-                    \\end{aligned}`
-                }),
-                // Form: (sin ax - sin bx) / (tan cx - tan dx)
-                (a, b, c, d) => ({
-                    expr: `\\lim_{x \\to 0} \\frac{\\sin ${a}x - \\sin ${b}x}{\\tan ${c}x - \\tan ${d}x}`,
-                    ans: `= \\frac{${a - b}}{${c - d}}`,
-                    sol: `\\text{Using } \\lim_{x \\to 0} \\frac{\\sin kx}{x} = k \\text{ and } \\frac{\\tan kx}{x} = k, \\text{ we get } \\frac{${a}-${b}}{${c}-${d}}.`
-                }),
-                // Cosine-Tangent Product: (1 - cos ax)(b + cos x) / (x * tan cx)
-                (a, b, c) => {
-                    const a2 = a ** 2;
-                    const b1 = b + 1;
-                    const numerator = a2 * b1;
-                    const denominator = 2 * c;
-                    const finalAns = numerator / denominator;
-                
-                    return {
-                        expr: `\\lim_{x \\to 0} \\frac{(1 - \\cos ${a}x)(${b} + \\cos x)}{x \\tan ${c}x}`,
-                        ans: `= ${finalAns}`,
-                        sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to 0} \\left[ \\frac{1 - \\cos ${a}x}{x^2} \\cdot \\frac{x}{\\tan ${c}x} \\cdot (${b} + \\cos x) \\right] \\\\ 
-                                &= \\lim_{x \\to 0} \\left[ \\frac{1 - \\cos ${a}x}{x^2} \\right] \\cdot \\lim_{x \\to 0} \\left[ \\frac{${c}x}{\\tan ${c}x} \\cdot \\frac{1}{${c}} \\right] \\cdot \\lim_{x \\to 0} (${b} + \\cos x) \\\\ 
-                                &= \\frac{${a}^2}{2} \\cdot \\frac{1}{${c}} \\cdot (${b} + 1) \\\\ 
-                                &= \\frac{${a2}}{2} \\cdot \\frac{${b1}}{${c}} = \\frac{${numerator}}{${denominator}} = ${finalAns}
-                              \\end{aligned}`
-                    };
-                },
-                // Periodic Composite Family: sin(k * pi * cos^2(ax)) / x^2
-                (k, a) => {
-                    const isKEven = k % 2 === 0;
-                    const sign = isKEven ? "-" : "";
-                    const coefficient = k * (a ** 2);
-                    
-                    return {
-                        expr: `\\lim_{x \\to 0} \\frac{\\sin(${k === 1 ? "" : k} \\pi \\cos^2 ${a === 1 ? "" : a}x)}{x^2}`,
-                        ans: `= ${sign}${coefficient}\\pi`,
-                        sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to 0} \\frac{\\sin(${k === 1 ? "" : k} \\pi (1 - \\sin^2 ${a === 1 ? "" : a}x))}{x^2} \\\\ 
-                                &= \\lim_{x \\to 0} \\frac{\\sin(${k === 1 ? "" : k} \\pi - ${k === 1 ? "" : k} \\pi \\sin^2 ${a === 1 ? "" : a}x)}{x^2} \\\\ 
-                                &= \\lim_{x \\to 0} \\frac{ ${sign} \\sin(${k === 1 ? "" : k} \\pi \\sin^2 ${a === 1 ? "" : a}x)}{x^2} \\quad \\text{(using } \\sin(k\\pi - \\theta) = (-1)^{k-1}\\sin\\theta) \\\\ 
-                                &= ${sign} \\lim_{x \\to 0} \\left[ \\frac{\\sin(${k === 1 ? "" : k} \\pi \\sin^2 ${a === 1 ? "" : a}x)}{${k === 1 ? "" : k} \\pi \\sin^2 ${a === 1 ? "" : a}x} \\cdot \\frac{${k === 1 ? "" : k} \\pi \\sin^2 ${a === 1 ? "" : a}x}{x^2} \\right] \\\\ 
-                                &= ${sign} (1) \\cdot ${k === 1 ? "" : k} \\pi \\cdot (${a === 1 ? "" : a})^2 = ${sign}${coefficient}\\pi
-                              \\end{aligned}`
-                    };
-                },
-                // Family: Tangent Difference with Cosine Power (Pure Trigonometric Identity Method)
-                (a, b) => {
-                    const num = 4 * a * (a ** 2 - 1);
-                    const den = 3 * (b ** 4);
-                    const gcd = (x, y) => y === 0 ? x : gcd(y, x % y);
-                    const common = gcd(Math.abs(num), Math.abs(den));
-                
-                    return {
-                        expr: `\\lim_{x \\to 0} \\frac{x \\tan ${a}x - ${a}x \\tan x}{(1 - \\cos ${b}x)^2}`,
-                        ans: `= \\frac{${num / common}}{${den / common}}`,
-                        sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to 0} \\frac{x[\\tan ${a}x - ${a}\\tan x]}{(1 - \\cos ${b}x)^2} \\\\ 
-                                &\\text{Using } \\tan A - \\tan B = \\frac{\\sin(A-B)}{\\cos A \\cos B}, \\text{ but applied iteratively or via:} \\\\ 
-                                &\\lim_{x \\to 0} \\frac{\\tan ${a}x - ${a}\\tan x}{x^3} = \\frac{${a}(${a}^2-1)}{3} \\\\ 
-                                L &= \\lim_{x \\to 0} \\left[ \\frac{\\tan ${a}x - ${a}\\tan x}{x^3} \\right] \\cdot \\frac{x^4}{(1 - \\cos ${b}x)^2} \\\\ 
-                                &\\text{Applying } \\lim_{x \\to 0} \\frac{1 - \\cos ${b}x}{x^2} = \\frac{${b}^2}{2} \\implies \\lim_{x \\to 0} \\frac{x^2}{1 - \\cos ${b}x} = \\frac{2}{${b}^2} \\\\ 
-                                L &= \\left( \\frac{${a}(${a}^2-1)}{3} \\right) \\cdot \\left( \\frac{2}{${b}^2} \\right)^2 \\\\ 
-                                &= \\frac{4${a}(${a}^2-1)}{3${b}^4} = \\frac{${num / common}}{${den / common}}
-                              \\end{aligned}`
-                    };
-                },
-                // Family: Shifted Cubic Trig Limits
-                // General Result: -1 / (2 * c)
-                (c) => {
-                    const den = -2 * c;
-                    return {
-                        expr: `\\lim_{x \\to \\frac{\\pi}{2}} \\frac{(1 - \\sin x) \\cot x}{${c} \\left(x - \\frac{\\pi}{2}\\right)^3}`,
-                        ans: `= \\frac{1}{${den}}`,
-                        sol: `\\begin{aligned} 
-                                &\\text{Substitute } h = x - \\frac{\\pi}{2}: \\\\ 
-                                L &= \\lim_{h \\to 0} \\frac{(1 - \\cos h)(-\\tan h)}{${c}h^3} \\\\ 
-                                &= \\frac{-1}{${c}} \\lim_{h \\to 0} \\left( \\frac{1 - \\cos h}{h^2} \\right) \\left( \\frac{\\tan h}{h} \\right) \\\\ 
-                                &= \\frac{-1}{${c}} \\cdot \\frac{1}{2} \\cdot 1 = -\\frac{1}{2${c}}
-                              \\end{aligned}`
-                    };
-                },
-                // Trigonometric Rationalization: (tan x - 1) / (2 sin x - sqrt(2))
-                () => ({
-                    expr: `\\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\tan x - 1}{2\\sin x - \\sqrt{2}}`,
-                    ans: `= \\sqrt{2}`,
-                    sol: `\\begin{aligned} 
-                            &\\text{Let } h = x - \\frac{\\pi}{4} \\implies x = h + \\frac{\\pi}{4}. \\text{ As } x \\to \\frac{\\pi}{4}, h \\to 0. \\\\ 
-                            \\text{Num: } & \\tan(h + \\frac{\\pi}{4}) - 1 = \\frac{\\tan h + 1}{1 - \\tan h} - 1 = \\frac{2\\tan h}{1 - \\tan h} \\\\ 
-                            \\text{Den: } & 2\\sin(h + \\frac{\\pi}{4}) - \\sqrt{2} = 2\\left(\\frac{\\sin h + \\cos h}{\\sqrt{2}}\\right) - \\sqrt{2} = \\sqrt{2}(\\sin h + \\cos h - 1) \\\\ 
-                            L &= \\lim_{h \\to 0} \\frac{2\\tan h}{\\sqrt{2}(1 - \\tan h)(\\sin h + \\cos h - 1)} \\\\ 
-                            &= \\frac{\\sqrt{2}}{1} \\lim_{h \\to 0} \\left[ \\frac{\\tan h}{h} \\cdot \\frac{h}{\\sin h + (\\cos h - 1)} \\right] \\\\ 
-                            &= \\sqrt{2} \\cdot (1) \\cdot \\lim_{h \\to 0} \\frac{1}{\\frac{\\sin h}{h} + \\frac{\\cos h - 1}{h}} = \\sqrt{2} \\cdot \\frac{1}{1 + 0} = \\sqrt{2}
-                          \\end{aligned}`
-                }),
-                // Family: Pi/4 Tangent-Sine Ratio (Algebraic Rationalization)
-                (k) => {
-                    return {
-                        expr: `\\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\tan x - 1}{${k}\\sin x - \\frac{${k}}{\\sqrt{2}}}`,
-                        ans: `= \\frac{2\\sqrt{2}}{${k}}`,
-                        sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\frac{\\sin x - \\cos x}{\\cos x}}{${k} \\left( \\sin x - \\frac{1}{\\sqrt{2}} \\right)} \\\\ 
-                                &= \\frac{1}{${k}} \\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\sin x - \\cos x}{\\cos x (\\sin x - \\sin \\frac{\\pi}{4})} \\\\ 
-                                \\\\
-                                &\\text{Using } \\sin x - \\cos x = \\sqrt{2}\\sin(x - \\frac{\\pi}{4}) \\\\
-                                &\\text{ and the sum-to-product identity:} \\\\ 
-                                L &= \\frac{1}{${k}} \\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\sqrt{2}\\sin(x - \\frac{\\pi}{4})}{\\cos x \\left[ 2\\sin\\left(\\frac{x - \\pi/4}{2}\\right)\\cos\\left(\\frac{x + \\pi/4}{2}\\right) \\right]} \\\\ 
-                                &\\text{Apply double angle } \\sin(2\\theta) = 2\\sin\\theta\\cos\\theta \\text{ to the numerator:} \\\\ 
-                                L &= \\frac{\\sqrt{2}}{${k}} \\lim_{x \\to \\frac{\\pi}{4}} \\frac{2\\sin(\\frac{x - \\pi/4}{2})\\cos(\\frac{x - \\pi/4}{2})}{\\cos x \\cdot 2\\sin(\\frac{x - \\pi/4}{2})\\cos(\\frac{x + \\pi/4}{2})} \\\\ 
-                                &= \\frac{\\sqrt{2}}{${k}} \\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\cos(\\frac{x - \\pi/4}{2})}{\\cos x \\cdot \\cos(\\frac{x + \\pi/4}{2})} \\\\ 
-                                &= \\frac{\\sqrt{2}}{${k}} \\cdot \\frac{\\cos(0)}{\\cos(\\frac{\\pi}{4}) \\cdot \\cos(\\frac{\\pi}{4})} = \\frac{\\sqrt{2}}{k} \\cdot \\frac{1}{\\frac{1}{\\sqrt{2}} \\cdot \\frac{1}{\\sqrt{2}}} \\\\ 
-                                &= \\frac{\\sqrt{2}}{${k}} \\cdot 2 = \\frac{2\\sqrt{2}}{${k}}
-                              \\end{aligned}`
-                    };
-                },
-                // Family: Pythagorean Boundary Limits (k = 1 or 2)
-                (k) => {
-                    // Only handling k=1 and k=2 as requested
-                    const result = k === 1 ? "0" : "-1";
-                
-                    return {
-                        expr: `\\lim_{x \\to \\frac{\\pi}{2}} \\frac{\\sin^2 x - 1}{\\cos^{${k}} x}`,
-                        ans: `= ${result}`,
-                        sol: `\\begin{aligned} 
-                                L &= \\lim_{x \\to \\frac{\\pi}{2}} \\frac{-(1 - \\sin^2 x)}{\\cos^{${k}} x} \\\\ 
-                                &= \\lim_{x \\to \\frac{\\pi}{2}} \\frac{-\\cos^2 x}{\\cos^{${k}} x} \\quad \\text{(using } \\sin^2 x + \\cos^2 x = 1) \\\\ 
-                                ${k === 1 
-                                    ? `&= \\lim_{x \\to \\frac{\\pi}{2}} (-\\cos x) \\\\ &= -\\cos\\left(\\frac{\\pi}{2}\\right) = 0` 
-                                    : `&= \\lim_{x \\to \\frac{\\pi}{2}} (-1) = -1`
-                                }
-                              \\end{aligned}`
+                        expr: `\\lim_{x \\to 0} \\frac{1 - \\cos(${b}x)}{x^2}`, ans: `= \\frac{${b2}}{2}`,
+                        sol: `\\begin{aligned} L &= \\lim_{x \\to 0} \\frac{1 - \\cos^2(${b}x)}{x^2(1 + \\cos ${b}x)} \\\\ &= \\lim_{x \\to 0} \\left[ \\left( \\frac{\\sin(${b}x)}{${b}x} \\right)^2 \\cdot \\frac{${b2}}{1 + \\cos ${b}x} \\right] = \\frac{${b2}}{2} \\end{aligned}`
                     };
                 }
             ]
@@ -1143,116 +192,16 @@
                 })
             ],
             med: [
-                (a, b) => {
-                    let funcs = [`\\sin(${b}x)`, `\\cos(${b}x)`, `e^{${b}x}`];
-                    let ansFuncs = [`${b}\\cos(${b}x)`, `-${b}\\sin(${b}x)`, `${b}e^{${b}x}`];
-                    let r = Math.floor(Math.random() * 3);
-                    let sign = (a < 0 && r === 1) ? "" : (a > 0 && r === 1) ? "-" : "";
-                    return {
-                        expr: `\\frac{d}{dx} \\left[ ${a}${funcs[r]} \\right]`,
-                        ans: `= ${sign}${Math.abs(a * b)}${ansFuncs[r].replace(/-?${b}/, '')}`,
-                        sol: `\\text{Chain Rule: multiply by outer derivative.}`
-                    };
-                }
+                (a, b, c) => ({
+                    expr: `\\frac{d}{dx} \\left[ \\ln(${b}x^2 + ${c}) \\right]`, ans: `= \\frac{${2 * b}x}{${b}x^2 + ${c}}`,
+                    sol: `\\text{Chain rule: } \\frac{1}{u} \\cdot u' \\implies \\frac{1}{${b}x^2+${c}} \\cdot (${2*b}x)`
+                })
             ],
             hard: [
-                (a, b, c) => ({
-                    expr: `\\frac{d}{dx} \\left[ \\ln(${b}x^2 + ${c}) \\right]`,
-                    ans: `= \\frac{${2 * b}x}{${b}x^2 + ${c}}`,
-                    sol: `\\text{Chain rule: } \\frac{1}{u} \\cdot u' \\implies \\frac{1}{${b}x^2+${c}} \\cdot (${2*b}x)`
-                }),
-                (a, b, c) => ({
-                    expr: `\\frac{d}{dx} \\left[ e^{${b}x^2 + ${c}} \\right]`,
-                    ans: `= ${2 * b}x \\, e^{${b}x^2 + ${c}}`,
-                    sol: `\\text{Chain rule: } e^u \\cdot u' \\implies e^{${b}x^2+${c}} \\cdot (${2*b}x)`
-                }),
-                (a, b, c) => ({
-                    expr: `\\frac{d}{dx} \\left[ \\sin(${Math.abs(a)}x^2 + ${b}) \\right]`,
-                    ans: `= ${2 * Math.abs(a)}x \\, \\cos(${Math.abs(a)}x^2 + ${b})`,
-                    sol: `\\text{Chain rule: } \\cos(u) \\cdot u' \\implies \\cos(${Math.abs(a)}x^2+${b}) \\cdot (${2*Math.abs(a)}x)`
-                }),
-                (a, b, c, d) => {
-                    let n = d + 1;
-                    return {
-                        expr: `\\frac{d}{dx} \\left[ (${b}x + ${c})^{${n}} \\right]`,
-                        ans: `= ${n * b} (${b}x + ${c})^{${n-1}}`,
-                        sol: `\\text{General Power Rule: } n u^{n-1} \\cdot u' \\implies ${n}(${b}x+${c})^{${n-1}} \\cdot (${b})`
-                    };
-                },
-                (a, b, c) => ({
-                    expr: `\\frac{d}{dx} \\left[ \\tan(${b}x + ${c}) \\right]`,
-                    ans: `= ${b} \\sec^{2}(${b}x + ${c})`,
-                    sol: `\\text{Derivative of } \\tan(u) \\text{ is } \\sec^2(u) \\cdot u' \\implies \\sec^2(${b}x+${c}) \\cdot ${b}`
-                }),
-                (a, b, c) => ({
-                    expr: `\\frac{d}{dx} \\left[ \\sqrt{${b}x^2 + ${c}} \\right]`,
-                    ans: `= \\frac{${b}x}{\\sqrt{${b}x^2 + ${c}}}`,
-                    sol: `\\text{Chain Rule: } \\frac{1}{2\\sqrt{u}} \\cdot u' = \\frac{${2*b}x}{2\\sqrt{${b}x^2+${c}}}`
-                }),
-                (a, b, c) => ({
-                    expr: `\\frac{d}{dx} \\left[ \\cos(3x^2 + ${c}) \\right]`,
-                    ans: `= -6x \\sin(3x^2 + ${c})`,
-                    sol: `\\text{Chain rule: } -\\sin(u) \\cdot u' \\implies -\\sin(3x^2+${c}) \\cdot (6x)`
-                }),
-                () => ({
-                    expr: `\\frac{d}{dx} \\left[ e^{x} \\sin(x) \\right]`,
-                    ans: `= e^{x} (\\sin(x) + \\cos(x))`,
-                    sol: `\\text{Product Rule: } (e^x)'\\sin(x) + e^x(\\sin(x))' = e^x\\sin(x) + e^x\\cos(x)`
-                }),
                 (a, b, c) => ({
                     expr: `\\frac{d}{dx} \\left[ \\frac{${a}x}{x^2 + ${c}} \\right]`,
                     ans: `= \\frac{${a}(x^2 + ${c}) - 2x(${a}x)}{(x^2 + ${c})^2}`,
                     sol: `\\text{Quotient Rule: } \\frac{f'g - fg'}{g^2} \\implies \\frac{(${a})(x^2+${c}) - (${a}x)(2x)}{(x^2+${c})^2}`
-                }),
-                (a, b) => ({
-                    expr: `\\frac{d}{dx} \\left[ \\ln(\\sin(${b}x)) \\right]`,
-                    ans: `= ${b} \\cot(${b}x)`,
-                    sol: `\\text{Chain rule: } \\frac{1}{\\sin(${b}x)} \\cdot \\cos(${b}x) \\cdot ${b} = ${b}\\frac{\\cos(${b}x)}{\\sin(${b}x)}`
-                }),
-                (a, b, c) => ({
-                    expr: `\\frac{d}{dx} \\left[ (x^2 + ${c}) e^{${b}x} \\right]`,
-                    ans: `= e^{${b}x}(2x + ${b}(x^2 + ${c}))`,
-                    sol: `\\text{Product Rule: } (2x)e^{${b}x} + (x^2+${c})(${b}e^{${b}x})`
-                }),
-                () => ({
-                    expr: `\\frac{d}{dx} \\left[ x^{x} \\right]`,
-                    ans: `= x^{x} (\\ln x + 1)`,
-                    sol: `\\text{Logarithmic Diff: } \\ln y = x\\ln x \\implies \\frac{y'}{y} = \\ln x + 1 \\implies y' = x^x(\\ln x + 1)`
-                }),
-                (a, b) => ({
-                    expr: `\\frac{d^{2}}{dx^{2}} \\left[ x^{${b}} \\right]`,
-                    ans: `= ${b}(${b}-1)x^{${b-2}}`,
-                    sol: `\\text{First Deriv: } ${b}x^{${b-1}}. \\text{ Second Deriv: } ${b}(${b-1})x^{${b-2}}`
-                }),
-                (a, b) => ({
-                    expr: `\\frac{d}{dx} \\left[ \\arctan(${b}x) \\right]`,
-                    ans: `= \\frac{${b}}{1 + (${b}x)^2}`,
-                    sol: `\\text{Deriv of } \\arctan(u) \\text{ is } \\frac{u'}{1+u^2} \\implies \\frac{${b}}{1+(${b}x)^2}`
-                }),
-                () => ({
-                    expr: `\\frac{d}{dx} \\left[ \\ln(x^2 + 1) \\right]`,
-                    ans: `= \\frac{2x}{x^2 + 1}`,
-                    sol: `\\text{Chain rule: } \\frac{1}{u} \\cdot u' \\implies \\frac{2x}{x^2+1}`
-                }),
-                () => ({
-                    expr: `\\frac{d}{dx} \\left[ x^{\\ln x} \\right]`,
-                    ans: `= 2x^{\\ln x - 1} \\ln x`,
-                    sol: `\\text{Log Diff: } \\ln y = (\\ln x)^2 \\implies \\frac{y'}{y} = 2\\ln x (1/x) \\implies y' = 2x^{\\ln x - 1}\\ln x`
-                }),
-                (a, b, c) => ({
-                    expr: `\\frac{dy}{dx} \\text{ for } x^2 + y^2 = ${c*c}`,
-                    ans: `= -\\frac{x}{y}`,
-                    sol: `\\text{Implicit: } 2x + 2yy' = 0 \\implies 2yy' = -2x \\implies y' = -x/y`
-                }),
-                (a, b, c) => ({
-                    expr: `\\frac{d}{dx} \\left[ \\arcsin(${c}x) \\right]`,
-                    ans: `= \\frac{${c}}{\\sqrt{1 - ${c*c}x^2}}`,
-                    sol: `\\text{Deriv of } \\arcsin(u) \\text{ is } \\frac{u'}{\\sqrt{1-u^2}} \\implies \\frac{${c}}{\\sqrt{1-(${c}x)^2}}`
-                }),
-                () => ({
-                    expr: `\\frac{d}{dx} \\left[ \\frac{\\sin x}{x} \\right]`,
-                    ans: `= \\frac{x\\cos x - \\sin x}{x^2}`,
-                    sol: `\\text{Quotient Rule: } \\frac{f'g - fg'}{g^2} = \\frac{(\\cos x)x - (\\sin x)(1)}{x^2}`
                 })
             ]
         },
@@ -1261,467 +210,220 @@
                 (a, b, c) => {
                     let coef = a * (b + 1);
                     return {
-                        expr: `\\int \\left( ${coef}x^{${b}} - ${c} \\right) \\, dx`,
-                        ans: `= ${a}x^{${b + 1}} - ${c}x + C`,
+                        expr: `\\int \\left( ${coef}x^{${b}} - ${c} \\right) \\, dx`, ans: `= ${a}x^{${b + 1}} - ${c}x + C`,
                         sol: `\\text{Reverse Power Rule: } \\int x^n dx = \\frac{x^{n+1}}{n+1}`
                     };
                 }
             ],
             med: [
                 (a, b) => ({
-                    expr: `\\int ${a * b} \\cos(${b}x) \\, dx`,
-                    ans: `= ${a} \\sin(${b}x) + C`,
+                    expr: `\\int ${a * b} \\cos(${b}x) \\, dx`, ans: `= ${a} \\sin(${b}x) + C`,
                     sol: `\\text{U-Substitution: } u=${b}x, du=${b}dx \\implies \\int ${a} \\cos(u) du = ${a}\\sin(u)+C`
                 })
             ],
             hard: [
                 (a, b) => ({
-                    expr: `\\int x e^{${b}x} \\, dx`,
-                    ans: `= \\frac{1}{${b}} x e^{${b}x} - \\frac{1}{${b * b}} e^{${b}x} + C`,
+                    expr: `\\int x e^{${b}x} \\, dx`, ans: `= \\frac{1}{${b}} x e^{${b}x} - \\frac{1}{${b * b}} e^{${b}x} + C`,
                     sol: `\\text{By Parts: } u=x, dv=e^{${b}x}dx. \\implies uv - \\int v du = \\frac{x}{${b}}e^{${b}x} - \\int \\frac{1}{${b}}e^{${b}x} dx`
-                }),
-                (a, b, c) => ({
-                    expr: `\\int \\frac{${2*b}x}{${b}x^2 + ${c}} \\, dx`,
-                    ans: `= \\ln|${b}x^2 + ${c}| + C`,
-                    sol: `\\text{Notice numerator is exact derivative of denominator. } \\int \\frac{du}{u} = \\ln|u|`
-                }),
-                (a, b, c) => ({
-                    expr: `\\int_{0}^{${c}} ${b}x \\, dx`,
-                    ans: `= ${(b * c * c) / 2}`,
-                    sol: `\\text{Antiderivative is } \\frac{${b}x^2}{2}. \\text{ Evaluate } \\frac{${b}(${c})^2}{2} - 0 = ${(b * c * c) / 2}`
-                }),
-                (a, b) => ({
-                    expr: `\\int \\sin(${b}x) \\, dx`,
-                    ans: `= -\\frac{1}{${b}} \\cos(${b}x) + C`,
-                    sol: `\\text{U-sub: } u=${b}x \\implies du=${b}dx. \\int \\sin(u) \\frac{du}{${b}} = -\\frac{1}{${b}}\\cos(u)`
-                }),
-                (a, b, c) => ({
-                    expr: `\\int e^{${c}x} \\, dx`,
-                    ans: `= \\frac{1}{${c}} e^{${c}x} + C`,
-                    sol: `\\text{U-sub: } u=${c}x \\implies du=${c}dx. \\int e^u \\frac{du}{${c}}`
-                }),
-                (a, b) => ({
-                    expr: `\\int \\frac{1}{x^2 + ${b}^2} \\, dx`,
-                    ans: `= \\frac{1}{${b}} \\arctan\\left(\\frac{x}{${b}}\\right) + C`,
-                    sol: `\\text{Standard inverse trig integral form: } \\int \\frac{1}{x^2+a^2} = \\frac{1}{a}\\arctan(x/a)`
-                }),
-                () => ({
-                    expr: `\\int x^2 \\, dx`,
-                    ans: `= \\frac{x^3}{3} + C`,
-                    sol: `\\text{Power Rule: Add 1 to exponent, divide by new exponent.}`
-                }),
-                (a, b) => ({
-                    expr: `\\int \\sec^2(${b}x) \\, dx`,
-                    ans: `= \\frac{1}{${b}} \\tan(${b}x) + C`,
-                    sol: `\\text{The antiderivative of } \\sec^2(u) \\text{ is } \\tan(u). \\text{ Adjust for inner } ${b}.`
-                }),
-                () => ({
-                    expr: `\\int \\frac{1}{x} \\, dx`,
-                    ans: `= \\ln|x| + C`,
-                    sol: `\\text{Fundamental integration rule for } x^{-1}.`
-                }),
-                () => ({
-                    expr: `\\int \\cos^2(x) \\, dx`,
-                    ans: `= \\frac{x}{2} + \\frac{\\sin(2x)}{4} + C`,
-                    sol: `\\text{Use power reduction: } \\cos^2x = \\frac{1+\\cos(2x)}{2}. \\text{ Integrate each term.}`
-                }),
-                () => ({
-                    expr: `\\int_{0}^{\\pi} \\sin(x) \\, dx`,
-                    ans: `= 2`,
-                    sol: `\\begin{aligned} &= [-\\cos x]_0^\\pi = -\\cos(\\pi) - (-\\cos(0)) = 2 \\end{aligned}`
-                }),
-                () => ({
-                    expr: `\\int x \\ln(x) \\, dx`,
-                    ans: `= \\frac{1}{2}x^2 \\ln(x) - \\frac{1}{4}x^2 + C`,
-                    sol: `\\text{By Parts: } u=\\ln x, dv=x dx \\implies du = 1/x dx, v = x^2/2`
-                }),
-                (a, b) => ({
-                    expr: `\\int \\frac{1}{\\sqrt{x^2 + ${b}^2}} \\, dx`,
-                    ans: `= \\ln|x + \\sqrt{x^2 + ${b}^2}| + C`,
-                    sol: `\\text{Standard integral requiring Trig Substitution } x = ${b}\\tan(\\theta)`
-                }),
-                () => ({
-                    expr: `\\int e^{x} \\sin(x) \\, dx`,
-                    ans: `= \\frac{1}{2}e^{x}(\\sin x - \\cos x) + C`,
-                    sol: `\\text{Integration by Parts applied twice wraps around to original integral.}`
-                }),
-                (a, b, c) => ({
-                    expr: `\\int \\frac{x}{\\sqrt{x^2 + ${c}}} \\, dx`,
-                    ans: `= \\sqrt{x^2 + ${c}} + C`,
-                    sol: `\\text{U-sub: } u=x^2+${c}, du=2x dx \\implies \\frac{1}{2}\\int u^{-1/2}du = u^{1/2}`
-                }),
-                (a, b) => ({
-                    expr: `\\int x \\cos(${b}x) \\, dx`,
-                    ans: `= \\frac{1}{${b}} x \\sin(${b}x) + \\frac{1}{${b*b}} \\cos(${b}x) + C`,
-                    sol: `\\text{By Parts: } u=x, dv=\\cos(${b}x)dx \\implies uv - \\int v du`
-                }),
-                (a, b, c) => ({
-                    expr: `\\int \\frac{1}{x^2 - ${c*c}} \\, dx`,
-                    ans: `= \\frac{1}{${2*c}} \\ln\\left|\\frac{x-${c}}{x+${c}}\\right| + C`,
-                    sol: `\\text{Partial Fractions: } \\frac{1}{(x-${c})(x+${c})} = \\frac{A}{x-${c}} + \\frac{B}{x+${c}}`
-                }),
-                () => ({
-                    expr: `\\int_{1}^{\\infty} \\frac{1}{x^2} \\, dx`,
-                    ans: `= 1`,
-                    sol: `\\text{Improper integral: } \\lim_{t\\to\\infty} [-1/x]_1^t = 0 - (-1) = 1`
-                }),
-                (a, b) => ({
-                    expr: `\\int \\tan(${b}x) \\, dx`,
-                    ans: `= \\frac{1}{${b}} \\ln|\\sec(${b}x)| + C`,
-                    sol: `\\text{Write as } \\sin/\\cos \\text{, then use u-sub: } u=\\cos(${b}x), du=-${b}\\sin(${b}x)dx`
-                })
-            ]
-        },
-        sequences: {
-            easy: [
-                (a, b, c) => {
-                    let n = c + 3;
-                    return {
-                        expr: `a_n = ${a} + (n-1)\\cdot ${b} \\; (n = ${n})`,
-                        ans: `= ${a + (n-1) * b}`,
-                        sol: `\\text{Plug in } n=${n}: \\quad a_{${n}} = ${a} + (${n}-1)(${b}) = ${a + (n-1) * b}`
-                    };
-                }
-            ],
-            med: [
-                (a, b, c) => {
-                    let n = c + 2, r = b > 0 ? b : 2;
-                    return {
-                        expr: `a_n = ${Math.abs(a)} \\cdot ${r}^{n-1} \\; (n = ${n})`,
-                        ans: `= ${Math.abs(a) * Math.pow(r, n-1)}`,
-                        sol: `\\text{Plug in } n=${n}: \\quad a_{${n}} = ${Math.abs(a)} \\cdot ${r}^{${n-1}} = ${Math.abs(a) * Math.pow(r, n-1)}`
-                    };
-                }
-            ],
-            hard: [
-                () => ({
-                    expr: `a_1 = 5, a_2 = 8, a_3 = 11 \\text{ find } d`,
-                    ans: `d = 3`,
-                    sol: `d = a_2 - a_1 = 8 - 5 = 3`
-                }),
-                (a, b, c) => ({
-                    expr: `a_1 = ${a},\\ a_n = a_{n-1} + ${b} \\; (a_{${c+4}})`,
-                    ans: `= ${a + b * (c + 3)}`,
-                    sol: `\\text{Arithmetic series with } a_1=${a}, d=${b}. \\; a_{${c+4}} = ${a} + (${c+4}-1)(${b})`
-                }),
-                () => ({
-                    expr: `a_1 = 3, a_2 = 6, a_3 = 12 \\text{ find } r`,
-                    ans: `r = 2`,
-                    sol: `r = a_2 / a_1 = 6 / 3 = 2`
-                }),
-                (a, b, c) => ({
-                    expr: `a_n = ${c} \\cdot 2^{n-1} \\; (a_6)`,
-                    ans: `= ${c * Math.pow(2, 5)}`,
-                    sol: `\\text{Plug in } n=6: \\; a_6 = ${c} \\cdot 2^{6-1} = ${c} \\cdot 32 = ${c * Math.pow(2, 5)}`
-                }),
-                (a, b, c) => ({
-                    expr: `a_5 = ${b},\\ d = ${c} \\text{ find } a_1`,
-                    ans: `a_1 = ${b - 4 * c}`,
-                    sol: `a_5 = a_1 + 4d \\implies ${b} = a_1 + 4(${c}) \\implies a_1 = ${b} - ${4*c}`
-                }),
-                (a, b, c) => ({
-                    expr: `a_1 = ${c}, r = 0.5 \\; (a_4)`,
-                    ans: `= ${c * Math.pow(0.5, 3)}`,
-                    sol: `a_4 = a_1 r^3 = ${c}(0.5)^3 = ${c}(0.125) = ${c * Math.pow(0.5, 3)}`
-                }),
-                (a, b, c, d) => ({
-                    expr: `a_n = 3n + ${b} \\; (a_{${d+2}})`,
-                    ans: `= ${3 * (d+2) + b}`,
-                    sol: `\\text{Plug in } n=${d+2}: \\; 3(${d+2}) + ${b} = ${3 * (d+2) + b}`
-                }),
-                (a, b, c) => {
-                    let a2 = 2*c - 1, a3 = 2*a2 - 1;
-                    return {
-                        expr: `a_1 = ${c}, a_n = 2a_{n-1} - 1 \\; (a_3)`,
-                        ans: `= ${a3}`,
-                        sol: `\\begin{aligned} a_2 &= 2(${c}) - 1 = ${a2} \\\\ a_3 &= 2(${a2}) - 1 = ${a3} \\end{aligned}`
-                    };
-                },
-                (a, b) => ({
-                    expr: `a_n = n^2 + ${b} \\; (a_5)`,
-                    ans: `= ${25 + b}`,
-                    sol: `\\text{Plug in } n=5: \\; 5^2 + ${b} = 25 + ${b}`
-                }),
-                () => ({
-                    expr: `7, 11, 15, \\dots \\text{ find } d`,
-                    ans: `d = 4`,
-                    sol: `d = 11 - 7 = 4`
-                }),
-                (a, b, c) => ({
-                    expr: `a_1 = ${c}, r = -2 \\; (a_4)`,
-                    ans: `= ${c * Math.pow(-2, 3)}`,
-                    sol: `a_4 = ${c}(-2)^3 = ${c}(-8) = ${c * Math.pow(-2, 3)}`
-                }),
-                () => ({
-                    expr: `a_n = 1/n \\; (a_{10})`,
-                    ans: `= 0.1`,
-                    sol: `a_{10} = 1/10 = 0.1`
-                }),
-                () => ({
-                    expr: `a_1=1, a_2=1, a_n=a_{n-1}+a_{n-2} \\; (a_6)`,
-                    ans: `= 8`,
-                    sol: `\\text{Fibonacci: } 1, 1, 2, 3, 5, 8`
-                }),
-                () => ({
-                    expr: `a_n = \\left(1 + \\frac{1}{n}\\right)^n \\text{ convergent?}`,
-                    ans: `\\text{Converges to } e`,
-                    sol: `\\text{This is the fundamental definition of the mathematical constant } e.`
-                }),
-                () => ({
-                    expr: `a_n = n! \\; (a_5)`,
-                    ans: `= 120`,
-                    sol: `5! = 5 \\times 4 \\times 3 \\times 2 \\times 1 = 120`
-                }),
-                () => ({
-                    expr: `a_n = (-1)^n \\frac{n}{n+1} \\; (a_3)`,
-                    ans: `= -\\frac{3}{4}`,
-                    sol: `a_3 = (-1)^3 \\frac{3}{3+1} = -1 \\cdot \\frac{3}{4} = -3/4`
-                }),
-                (a, b, c) => ({
-                    expr: `a_1 = ${c}, a_n = (a_{n-1})^2 \\; (a_3)`,
-                    ans: `= ${Math.pow(c, 4)}`,
-                    sol: `a_2 = ${c}^2. \\quad a_3 = (${c}^2)^2 = ${c}^4 = ${Math.pow(c, 4)}`
-                }),
-                (a, b, c) => ({
-                    expr: `\\lim_{n \\to \\infty} \\frac{${Math.abs(a)}n + 1}{${c}n + 2}`,
-                    ans: `= \\frac{${Math.abs(a)}}{${c}}`,
-                    sol: `\\text{Degrees are equal, limit is ratio of leading coefficients.}`
-                }),
-                (a, b, c) => ({
-                    expr: `a_n = \\ln(n) \\text{ find } a_{e^{${c}}}`,
-                    ans: `= ${c}`,
-                    sol: `\\ln(e^{${c}}) = ${c}\\ln(e) = ${c}`
-                })
-            ]
-        },
-        series: {
-            easy: [
-                (a, b, c) => {
-                    let n = c + 5;
-                    let sum = n * (2 * a + (n - 1) * b) / 2;
-                    return {
-                        expr: `S_{${n}} = \\frac{${n}}{2} [2(${a}) + (${n}-1)(${b})]`,
-                        ans: `= ${sum}`,
-                        sol: `\\text{Evaluate brackets: } \\frac{${n}}{2}[${2*a} + ${b*(n-1)}] = ${sum}`
-                    };
-                }
-            ],
-            med: [
-                (a, b, c) => {
-                    let r = b > 0 ? b : 2, n = c + 3;
-                    let sum = Math.abs(a) * (Math.pow(r, n) - 1) / (r - 1);
-                    return {
-                        expr: `S_{${n}} = ${Math.abs(a)} \\frac{${r}^{${n}} - 1}{${r} - 1}`,
-                        ans: `= ${Math.round(sum)}`,
-                        sol: `\\text{Geometric Sum formula evaluation.}`
-                    };
-                }
-            ],
-            hard: [
-                (a, b, c) => {
-                    let n = c + 6, sum = n * (2 * a + (n - 1) * b) / 2;
-                    return {
-                        expr: `\\sum_{k=1}^{${n}} (${a} + (k-1)\\cdot${b})`,
-                        ans: `= ${sum}`,
-                        sol: `\\text{Arithmetic series: } S_n = \\frac{n}{2}(2a_1 + (n-1)d)`
-                    };
-                },
-                (a, b, c, d) => {
-                    let n = d + 4, sum = a * (Math.pow(2, n) - 1);
-                    return {
-                        expr: `\\sum_{k=0}^{${n-1}} ${a} \\cdot 2^k`,
-                        ans: `= ${sum}`,
-                        sol: `\\text{Geometric series: } S_n = a\\frac{r^n-1}{r-1}`
-                    };
-                },
-                () => ({
-                    expr: `\\sum_{k=0}^{\\infty} (0.5)^k`,
-                    ans: `= 2`,
-                    sol: `\\text{Infinite Geometric: } S = \\frac{a}{1-r} = \\frac{1}{1-0.5} = 2`
-                }),
-                () => ({
-                    expr: `\\sum_{k=1}^{10} k`,
-                    ans: `= 55`,
-                    sol: `\\text{Sum of first } n \\text{ integers: } \\frac{n(n+1)}{2} = \\frac{10(11)}{2} = 55`
-                }),
-                () => ({
-                    expr: `\\sum_{k=1}^{\\infty} 10 \\cdot (0.5)^{k-1}`,
-                    ans: `= 20`,
-                    sol: `S = \\frac{a}{1-r} = \\frac{10}{1 - 0.5} = 20`
-                }),
-                () => ({
-                    expr: `\\sum_{k=1}^{n} (3k - 1)`,
-                    ans: `= \\frac{3n(n+1)}{2} - n`,
-                    sol: `3\\sum k - \\sum 1 = 3\\frac{n(n+1)}{2} - n`
-                }),
-                () => ({
-                    expr: `\\sum_{k=1}^{6} 2^k`,
-                    ans: `= 126`,
-                    sol: `2+4+8+16+32+64 = 126`
-                }),
-                () => ({
-                    expr: `\\sum_{k=1}^{\\infty} \\frac{1}{2^k}`,
-                    ans: `= 1`,
-                    sol: `S = \\frac{1/2}{1 - 1/2} = 1`
-                }),
-                () => ({
-                    expr: `\\sum_{k=1}^{n} k^2`,
-                    ans: `= \\frac{n(n+1)(2n+1)}{6}`,
-                    sol: `\\text{Standard formula for sum of consecutive squares.}`
-                }),
-                () => ({
-                    expr: `\\sum_{k=1}^{8} (2k - 1)`,
-                    ans: `= 64`,
-                    sol: `\\text{Sum of first } n \\text{ odd integers is } n^2 \\implies 8^2 = 64`
-                }),
-                () => ({
-                    expr: `\\sum_{k=0}^{\\infty} (1/3)^k`,
-                    ans: `= 1.5`,
-                    sol: `S = \\frac{1}{1 - 1/3} = \\frac{1}{2/3} = 1.5`
-                }),
-                (a, b) => ({
-                    expr: `\\sum_{k=1}^{n} (k + ${b})`,
-                    ans: `= \\frac{n(n+1)}{2} + ${b}n`,
-                    sol: `\\sum k + \\sum ${b} = \\frac{n(n+1)}{2} + ${b}n`
-                }),
-                () => ({
-                    expr: `\\sum_{k=1}^{10} \\frac{1}{k(k+1)}`,
-                    ans: `= \\frac{10}{11}`,
-                    sol: `\\text{Telescoping sum: } (1 - 1/2) + (1/2 - 1/3) \\dots = 1 - 1/11`
-                }),
-                () => ({
-                    expr: `\\sum_{k=1}^{\\infty} \\frac{1}{k^2}`,
-                    ans: `= \\frac{\\pi^2}{6}`,
-                    sol: `\\text{Basel Problem: famous known convergence to } \\pi^2/6`
-                }),
-                () => ({
-                    expr: `\\sum_{k=1}^{n} \\left( \\frac{1}{k} - \\frac{1}{k+1} \\right)`,
-                    ans: `= 1 - \\frac{1}{n+1}`,
-                    sol: `\\text{Telescoping series: all middle terms cancel out.}`
-                }),
-                () => ({
-                    expr: `\\sum_{k=1}^{\\infty} \\frac{1}{k(k+2)}`,
-                    ans: `= \\frac{3}{4}`,
-                    sol: `\\text{Partial fractions } \\frac{1}{2}(\\frac{1}{k} - \\frac{1}{k+2}). \\text{ Telescoping leaves } 1/2(1 + 1/2)`
-                }),
-                () => ({
-                    expr: `\\lim_{n \\to \\infty} \\left| \\frac{a_{n+1}}{a_n} \\right| < 1 \\text{ means?}`,
-                    ans: `\\text{Absolute convergence}`,
-                    sol: `\\text{This is the formal definition of the Ratio Test.}`
-                }),
-                (a, b, c) => ({
-                    expr: `\\text{Maclaurin for } e^x \\text{ at } x=\\ln(${c})`,
-                    ans: `= ${c}`,
-                    sol: `e^{\\ln(${c})} = ${c}`
-                }),
-                () => ({
-                    expr: `\\sum_{n=1}^{\\infty} \\frac{(-1)^{n-1}}{n}`,
-                    ans: `= \\ln(2)`,
-                    sol: `\\text{This is the alternating harmonic series, evaluating Maclaurin } \\ln(1+x) \\text{ at } x=1`
                 })
             ]
         }
     };
 
-    // --- SMART GENERATOR ENGINE ---
-    function generateNewData() {
-        saveSettingsForCalculus();
-        config.data = [];
-        const numInput = document.getElementById('num-problems');
-        const num = parseInt(numInput.value) || 10;
-        const activeOp = document.getElementById('subject').value;
-        const difficulty = document.querySelector('.segment.active').dataset.diff;
-        
-        updateColumns();
-        const seenExprs = new Set();
-
-        // 1. Gather all potential generators for the selected configuration
-        let availableGenerators = [];
-        const topicsToDrawFrom = activeOp === 'mixed' ? ['limit', 'derivative', 'integral'] : [activeOp];
-        
-        topicsToDrawFrom.forEach(topic => {
-            if (ProblemRegistry[topic] && ProblemRegistry[topic][difficulty]) {
-                availableGenerators = availableGenerators.concat(ProblemRegistry[topic][difficulty]);
-            }
-        });
-
-        if (availableGenerators.length === 0) {
-            console.warn(`No problem generators found for ${activeOp} - ${difficulty}`);
-            renderWorksheet();
-            return;
+    // ==========================================
+    // 3. ENGINE (DATA GENERATOR)
+    // ==========================================
+    class WorksheetEngine {
+        constructor(registry) {
+            this.registry = registry;
+            this.currentData = [];
         }
 
-        // 2. Generation Loop
-        for (let i = 0; i < num; i++) {
-            let foundUnique = false;
+        generateProblems(subject, difficulty, numProblems) {
+            let availableGenerators = [];
+            const subjectsToDraw = subject === 'mixed' ? ['limit', 'derivative', 'integral'] : [subject];
             
-            // Shuffle the available generators to ensure a random mix of problem types
-            const shuffledGenerators = shuffle([...availableGenerators]);
+            subjectsToDraw.forEach(topic => {
+                if (this.registry[topic] && this.registry[topic][difficulty]) {
+                    availableGenerators.push(...this.registry[topic][difficulty]);
+                }
+            });
 
-            // Test each generator
-            for (const generator of shuffledGenerators) {
-                let attempts = 0;
-                let expr, ans, sol;
-                
-                // Give this specific generator a few tries to produce a mathematically unique output
-                while (attempts < 10) {
-                    const a = getRnd(2, 9), b = getRnd(2, 9), c = getRnd(1, 5), d = getRnd(2, 5);
-                    const result = generator(a, b, c, d);
-                    expr = result.expr;
-                    ans = result.ans;
-                    sol = result.sol;
-                    
-                    if (!seenExprs.has(expr)) {
-                        foundUnique = true;
-                        seenExprs.add(expr);
-                        config.data.push({ expr, ans, sol });
-                        break; // Success! Break out of the while loop
+            if (availableGenerators.length === 0) {
+                console.warn(`No problem generators found for ${subject} - ${difficulty}`);
+                return [];
+            }
+
+            const problems = [];
+            const seenExprs = new Set();
+            
+            for (let i = 0; i < numProblems; i++) {
+                let foundUnique = false;
+                const shuffledGenerators = Utils.shuffle([...availableGenerators]);
+
+                for (const generator of shuffledGenerators) {
+                    let attempts = 0;
+                    while (attempts < 10) {
+                        const a = Utils.getRnd(2, 9), b = Utils.getRnd(2, 9), c = Utils.getRnd(1, 5), d = Utils.getRnd(2, 5);
+                        const result = generator(a, b, c, d);
+                        
+                        if (!seenExprs.has(result.expr)) {
+                            seenExprs.add(result.expr);
+                            
+                            // Automatically clean up solution formatting via Utility
+                            result.sol = Utils.formatSolution(result.sol);
+                            
+                            problems.push(result);
+                            foundUnique = true;
+                            break; 
+                        }
+                        attempts++;
                     }
-                    attempts++;
+                    if (foundUnique) break;
                 }
-                
-                if (foundUnique) {
-                    break; // Success! Break out of the generator search loop and move to the next problem 'i'
-                }
-            }
 
-            // 3. Exhaustion Check
-            if (!foundUnique) {
-                console.warn(`Pool exhausted. Stopped at ${i} problems.`);
-                // Automatically update the input to reflect the maximum possible unique problems generated
-                numInput.value = i;
-                break; 
+                if (!foundUnique) {
+                    console.warn(`Pool exhausted. Stopped at ${i} problems.`);
+                    document.getElementById('num-problems').value = i; // Auto-update UI
+                    break; 
+                }
             }
+            this.currentData = problems;
+            return problems;
         }
-        
-        renderWorksheet();
     }
 
-    // --- RENDER LOGIC ---
-    function renderWorksheet() {
-        const grid = document.getElementById('worksheet-grid');
-        const showAns = document.getElementById('show-answers').checked;
-        const showSol = document.getElementById('show-solutions').checked;
-        
-        let html = '';
+    // ==========================================
+    // 4. UI & STATE CONTROLLER
+    // ==========================================
+    const Engine = new WorksheetEngine(ProblemRegistry);
 
-        config.data.forEach((item, index) => {
-            let e = katex.renderToString(item.expr, { displayMode: true, throwOnError: false });
-            let a = showAns ? katex.renderToString(item.ans, { displayMode: true, throwOnError: false }) : '';
-            let s = showSol ? katex.renderToString(item.sol || '', { displayMode: true, throwOnError: false }) : '';
+    const App = {
+        init: () => {
+            App.populateSubjects();
+            App.loadSettings();
+        },
 
-            html += `
-                <div class="math-problem">
-                    <div class="prob-header">Problem ${index + 1}</div>
-                    <div class="expression">${e}</div>
-                    ${showAns ? `<div class="answer">${a}</div>` : ''}
-                    ${showSol ? `<div class="solution"><div class="step">Solution:</div>${s}</div>` : ''}
-                </div>`;
-        });
-        
-        grid.innerHTML = html;
-        saveSettingsForCalculus();
-        triggerHaptic();
-    }
-  
+        populateSubjects: () => {
+            const select = document.getElementById('subject');
+            select.innerHTML = ''; 
+
+            // Dynamically build dropdown from Registry keys
+            Object.keys(ProblemRegistry).forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+                select.appendChild(opt);
+            });
+
+            // Add the 'Mixed' option
+            const mixedOpt = document.createElement('option');
+            mixedOpt.value = 'mixed';
+            mixedOpt.textContent = 'Mixed Calculus';
+            select.appendChild(mixedOpt);
+        },
+
+        saveSettings: () => {
+            const settings = {
+                subject: document.getElementById('subject').value,
+                difficulty: document.querySelector('.segment.active').dataset.diff,
+                numProblems: document.getElementById('num-problems').value,
+                columns: document.getElementById('num-columns').value,
+                showAnswers: document.getElementById('show-answers').checked,
+                showSolutions: document.getElementById('show-solutions').checked
+            };
+            localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
+            if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
+                window.webkit.messageHandlers.saveSettingsForCalculus.postMessage(JSON.stringify(settings));
+            }
+        },
+
+        loadSettings: (jsonString) => {
+            const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
+            if (saved) {
+                const s = JSON.parse(saved);
+                if (s.subject && document.querySelector(`#subject option[value="${s.subject}"]`)) {
+                    document.getElementById('subject').value = s.subject;
+                }
+                if (s.numProblems) document.getElementById('num-problems').value = s.numProblems;
+                if (s.columns) {
+                    document.getElementById('num-columns').value = s.columns;
+                    document.documentElement.style.setProperty('--grid-cols', s.columns);
+                }
+                document.getElementById('show-answers').checked = s.showAnswers || false;
+                document.getElementById('show-solutions').checked = s.showSolutions || false;
+                
+                if (s.difficulty) {
+                    document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
+                    const activeBtn = document.querySelector(`.segment[data-diff="${s.difficulty}"]`);
+                    if (activeBtn) activeBtn.classList.add('active');
+                }
+            }
+            App.generateNewData();
+        },
+
+        toggleSettings: () => {
+            document.getElementById('settings-panel').classList.toggle('hidden');
+            Utils.triggerHaptic();
+        },
+
+        setDifficulty: (level) => {
+            document.querySelectorAll('.segment').forEach(seg => seg.classList.remove('active'));
+            document.getElementById('seg-' + level).classList.add('active');
+            Utils.triggerHaptic();
+            App.generateNewData();
+        },
+
+        updateColumns: () => {
+            const cols = document.getElementById('num-columns').value || 1;
+            document.documentElement.style.setProperty('--grid-cols', cols);
+            App.saveSettings();
+        },
+
+        generateNewData: () => {
+            const subject = document.getElementById('subject').value;
+            const difficulty = document.querySelector('.segment.active').dataset.diff;
+            const numProblems = parseInt(document.getElementById('num-problems').value) || 10;
+            
+            App.updateColumns();
+            Engine.generateProblems(subject, difficulty, numProblems);
+            
+            App.renderWorksheet();
+            App.saveSettings();
+        },
+
+        renderWorksheet: () => {
+            const grid = document.getElementById('worksheet-grid');
+            const showAns = document.getElementById('show-answers').checked;
+            const showSol = document.getElementById('show-solutions').checked;
+            let html = '';
+
+            Engine.currentData.forEach((item, index) => {
+                // Ensure katex is available before rendering
+                if (typeof katex !== 'undefined') {
+                    let e = katex.renderToString(item.expr, { displayMode: true, throwOnError: false });
+                    let a = showAns ? katex.renderToString(item.ans, { displayMode: true, throwOnError: false }) : '';
+                    let s = showSol ? katex.renderToString(item.sol || '', { displayMode: true, throwOnError: false }) : '';
+
+                    html += `
+                        <div class="math-problem">
+                            <div class="prob-header">Problem ${index + 1}</div>
+                            <div class="expression">${e}</div>
+                            ${showAns ? `<div class="answer">${a}</div>` : ''}
+                            ${showSol ? `<div class="solution"><div class="step">Solution:</div>${s}</div>` : ''}
+                        </div>`;
+                } else {
+                    html += `<div class="math-problem"><p>KaTeX not loaded.</p></div>`;
+                }
+            });
+            
+            grid.innerHTML = html;
+            Utils.triggerHaptic();
+            App.saveSettings();
+        }
+    };
+
+    // Initialize application on load
+    window.addEventListener('DOMContentLoaded', App.init);
+
 </script>
