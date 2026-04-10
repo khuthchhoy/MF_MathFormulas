@@ -100,7 +100,12 @@
             if (solStr.includes('=')) return `\\begin{aligned} ${solStr} \\end{aligned}`;
             return solStr;
         },
-        triggerHaptic();
+        triggerHaptic: () => {
+            // Placeholder for native haptics if connected to Swift/Android
+            if (window.webkit && window.webkit.messageHandlers.triggerHaptic) {
+                window.webkit.messageHandlers.triggerHaptic.postMessage("");
+            }
+        }
     };
 
     // ==========================================
