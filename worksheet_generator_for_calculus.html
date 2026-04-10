@@ -239,39 +239,66 @@
         }
 
         generateProblems(subject, difficulty, numProblems) {
-            let availableGenerators = [];
-            const subjectsToDraw = subject === 'mixed' ? ['limit', 'derivative', 'integral'] : [subject];
+            // 1. Dynamic Subject Lookup: If mixed, automatically use all keys in the registry
+            const subjectsToDraw = subject === 'mixed' ? Object.keys(this.registry) : [subject];
             
+            const problems = [];
+            const seenExprs = new Set();
+        
+            // 2. Variety Logic: If mixed, try to pick at least one problem from each subject first
+            if (subject === 'mixed') {
+                for (const topic of subjectsToDraw) {
+                    if (problems.length >= numProblems) break;
+        
+                    const generators = this.registry[topic][difficulty];
+                    if (!generators) continue;
+        
+                    // Try to find one unique problem for this specific topic
+                    let foundForTopic = false;
+                    const shuffledGens = Utils.shuffle([...generators]);
+                    
+                    for (const generator of shuffledGens) {
+                        let attempts = 0;
+                        while (attempts < 30) { // Increased buffer
+                            const a = Utils.getRnd(2, 9), b = Utils.getRnd(2, 9), c = Utils.getRnd(1, 5), d = Utils.getRnd(2, 5);
+                            const result = generator(a, b, c, d);
+        
+                            if (!seenExprs.has(result.expr)) {
+                                seenExprs.add(result.expr);
+                                result.sol = Utils.formatSolution(result.sol);
+                                problems.push(result);
+                                foundForTopic = true;
+                                break;
+                            }
+                            attempts++;
+                        }
+                        if (foundForTopic) break;
+                    }
+                }
+            }
+        
+            // 3. Fill the Remaining Slots: Draw randomly from the entire available pool
+            let availableGenerators = [];
             subjectsToDraw.forEach(topic => {
                 if (this.registry[topic] && this.registry[topic][difficulty]) {
                     availableGenerators.push(...this.registry[topic][difficulty]);
                 }
             });
-
-            if (availableGenerators.length === 0) {
-                console.warn(`No problem generators found for ${subject} - ${difficulty}`);
-                return [];
-            }
-
-            const problems = [];
-            const seenExprs = new Set();
-            
-            for (let i = 0; i < numProblems; i++) {
+        
+            const remainingNeeded = numProblems - problems.length;
+            for (let i = 0; i < remainingNeeded; i++) {
                 let foundUnique = false;
                 const shuffledGenerators = Utils.shuffle([...availableGenerators]);
-
+        
                 for (const generator of shuffledGenerators) {
                     let attempts = 0;
-                    while (attempts < 10) {
+                    while (attempts < 30) { // Increased buffer
                         const a = Utils.getRnd(2, 9), b = Utils.getRnd(2, 9), c = Utils.getRnd(1, 5), d = Utils.getRnd(2, 5);
                         const result = generator(a, b, c, d);
                         
                         if (!seenExprs.has(result.expr)) {
                             seenExprs.add(result.expr);
-                            
-                            // Automatically clean up solution formatting via Utility
                             result.sol = Utils.formatSolution(result.sol);
-                            
                             problems.push(result);
                             foundUnique = true;
                             break; 
@@ -280,13 +307,14 @@
                     }
                     if (foundUnique) break;
                 }
-
+        
                 if (!foundUnique) {
-                    console.warn(`Pool exhausted. Stopped at ${i} problems.`);
-                    document.getElementById('num-problems').value = i; // Auto-update UI
+                    console.warn(`Pool exhausted. Stopped at ${problems.length} problems.`);
+                    document.getElementById('num-problems').value = problems.length;
                     break; 
                 }
             }
+        
             this.currentData = problems;
             return problems;
         }
@@ -335,7 +363,7 @@
         }
 
     // ==========================================
-    // 4. UI & STATE CONTROLLER
+    // 5. UI & STATE CONTROLLER
     // ==========================================
     const Engine = new WorksheetEngine(ProblemRegistry);
 
