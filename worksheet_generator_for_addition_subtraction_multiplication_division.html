@@ -62,7 +62,7 @@
       <div class="row">
         <label>Show Answers</label>
         <label class="switch">
-          <input type="checkbox" id="answers" onchange="updateState();">
+          <input type="checkbox" id="answers" onchange="toggleAnswers();">
           <span class="slider"></span>
         </label>
       </div>
@@ -216,6 +216,20 @@
     config.data.sort(() => Math.random() - 0.5);
     renderWorksheet();
     // document.getElementById('worksheet-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function toggleAnswers() {
+  // 1. Update the config state
+    config.answers = document.getElementById("answers").checked;
+    
+    // 2. Save the preference
+    save();
+    
+    // 3. Re-draw the worksheet using the EXISTING config.data
+    renderWorksheet();
+    
+    // 4. Fire the haptic feedback
+    triggerHaptic();
   }
 
   window.onload = () => {
