@@ -65,36 +65,6 @@
         <h2 class="section-title">Worksheet Preview</h2>
         <div id="worksheet-grid"></div>
     </div>
-
-
-    <script>
-        // Fetch and render test.html content
-        async function loadAndRenderMath() {
-            try {
-                const container = document.getElementById('worksheet-grid');
-                renderMathInElement(container, {
-                    delimiters: [
-                        { left: "$$", right: "$$", display: true },
-                        { left: "$", right: "$", display: false },
-                        { left: "\\(", right: "\\)", display: false },
-                        { left: "\\[", right: "\\]", display: true }
-                    ],
-                    throwOnError: false,
-                    macros: {
-                        "\\cbar": "\\overline{#1}"
-                    }
-                });
-
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('content-container').innerHTML =
-                    `<p class="error">Error loading content: ${error.message}</p>`;
-            }
-        }
-
-        // Initialize when page loads
-        document.addEventListener("DOMContentLoaded", loadAndRenderMath);
-    </script>
     <script src="worksheet_generator_algebra.js"></script>
     <script src="worksheet_generator_limit.js"></script>
     <!-- <script src="worksheet_generator_arithmetic.js"></script> -->
