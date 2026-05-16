@@ -1290,3 +1290,4 @@ const limit = {
             }
         ]
     };
+    window.limit = limit;
