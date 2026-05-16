@@ -1,129 +1,75 @@
 
-import { Utils } from './worksheet_generator_utils.js';
-export const series = {
-        easy: [
-            (a, b, c) => {
-                let n = c + 5;
-                let sum = n * (2 * a + (n - 1) * b) / 2;
-                return {
-                    expr: `S_{${n}} = \\frac{${n}}{2} [2(${a}) + (${n}-1)(${b})]`,
-                    ans: `= ${sum}`,
-                    sol: `\\text{Evaluate brackets: } \\frac{${n}}{2}[${2 * a} + ${b * (n - 1)}] = ${sum}`
-                };
-            }
-        ],
-        med: [
-            (a, b, c) => {
-                let r = b > 0 ? b : 2, n = c + 3;
-                let sum = Math.abs(a) * (Math.pow(r, n) - 1) / (r - 1);
-                return {
-                    expr: `S_{${n}} = ${Math.abs(a)} \\frac{${r}^{${n}} - 1}{${r} - 1}`,
-                    ans: `= ${Math.round(sum)}`,
-                    sol: `\\text{Geometric Sum formula evaluation.}`
-                };
-            }
-        ],
-        hard: [
-            (a, b, c) => {
-                let n = c + 6, sum = n * (2 * a + (n - 1) * b) / 2;
-                return {
-                    expr: `\\sum_{k=1}^{${n}} (${a} + (k-1)\\cdot${b})`,
-                    ans: `= ${sum}`,
-                    sol: `\\text{Arithmetic series: } S_n = \\frac{n}{2}(2a_1 + (n-1)d)`
-                };
-            },
-            (a, b, c, d) => {
-                let n = d + 4, sum = a * (Math.pow(2, n) - 1);
-                return {
-                    expr: `\\sum_{k=0}^{${n - 1}} ${a} \\cdot 2^k`,
-                    ans: `= ${sum}`,
-                    sol: `\\text{Geometric series: } S_n = a\\frac{r^n-1}{r-1}`
-                };
-            },
-            () => ({
-                expr: `\\sum_{k=0}^{\\infty} (0.5)^k`,
-                ans: `= 2`,
-                sol: `\\text{Infinite Geometric: } S = \\frac{a}{1-r} = \\frac{1}{1-0.5} = 2`
-            }),
-            () => ({
-                expr: `\\sum_{k=1}^{10} k`,
-                ans: `= 55`,
-                sol: `\\text{Sum of first } n \\text{ integers: } \\frac{n(n+1)}{2} = \\frac{10(11)}{2} = 55`
-            }),
-            () => ({
-                expr: `\\sum_{k=1}^{\\infty} 10 \\cdot (0.5)^{k-1}`,
-                ans: `= 20`,
-                sol: `S = \\frac{a}{1-r} = \\frac{10}{1 - 0.5} = 20`
-            }),
-            () => ({
-                expr: `\\sum_{k=1}^{n} (3k - 1)`,
-                ans: `= \\frac{3n(n+1)}{2} - n`,
-                sol: `3\\sum k - \\sum 1 = 3\\frac{n(n+1)}{2} - n`
-            }),
-            () => ({
-                expr: `\\sum_{k=1}^{6} 2^k`,
-                ans: `= 126`,
-                sol: `2+4+8+16+32+64 = 126`
-            }),
-            () => ({
-                expr: `\\sum_{k=1}^{\\infty} \\frac{1}{2^k}`,
-                ans: `= 1`,
-                sol: `S = \\frac{1/2}{1 - 1/2} = 1`
-            }),
-            () => ({
-                expr: `\\sum_{k=1}^{n} k^2`,
-                ans: `= \\frac{n(n+1)(2n+1)}{6}`,
-                sol: `\\text{Standard formula for sum of consecutive squares.}`
-            }),
-            () => ({
-                expr: `\\sum_{k=1}^{8} (2k - 1)`,
-                ans: `= 64`,
-                sol: `\\text{Sum of first } n \\text{ odd integers is } n^2 \\implies 8^2 = 64`
-            }),
-            () => ({
-                expr: `\\sum_{k=0}^{\\infty} (1/3)^k`,
-                ans: `= 1.5`,
-                sol: `S = \\frac{1}{1 - 1/3} = \\frac{1}{2/3} = 1.5`
-            }),
-            (a, b) => ({
-                expr: `\\sum_{k=1}^{n} (k + ${b})`,
-                ans: `= \\frac{n(n+1)}{2} + ${b}n`,
-                sol: `\\sum k + \\sum ${b} = \\frac{n(n+1)}{2} + ${b}n`
-            }),
-            () => ({
-                expr: `\\sum_{k=1}^{10} \\frac{1}{k(k+1)}`,
-                ans: `= \\frac{10}{11}`,
-                sol: `\\text{Telescoping sum: } (1 - 1/2) + (1/2 - 1/3) \\dots = 1 - 1/11`
-            }),
-            () => ({
-                expr: `\\sum_{k=1}^{\\infty} \\frac{1}{k^2}`,
-                ans: `= \\frac{\\pi^2}{6}`,
-                sol: `\\text{Basel Problem: famous known convergence to } \\pi^2/6`
-            }),
-            () => ({
+const series = {
+    easy: [
+        // Family: Finite Arithmetic Series Summation
+        (a, b, c, d) => {
+            let n = Math.abs(c) % 5 + 6; 
+            let start = a !== 0 ? a : 2;
+            let diff = b !== 0 ? b : 4;
+            let insideBrackets = 2 * start + (n - 1) * diff;
+            let sum = (n * insideBrackets) / 2;
+            
+            return {
+                expr: `\\text{Evaluate } S_{${n}} \\text{ given } a_1 = ${start}, \\, d = ${diff}`,
+                ans: `= ${sum}`,
+                sol: `\\begin{aligned}
+                    &\\text{Use the partial sum formula: } S_n = \\frac{n}{2}[2a_1 + (n-1)d] \\\\
+                    &S_{${n}} = \\frac{${n}}{2} \\left[ 2(${start}) + (${n}-1)(${diff}) \\right] \\\\
+                    &= \\frac{${n}}{2} \\left[ ${2 * start} + ${n - 1} \\cdot ${diff} \\right] \\\\
+                    &= \\frac{${n}}{2} \\left[ ${insideBrackets} \\right] = ${sum}
+                \\end{aligned}`
+            };
+        }
+    ],
+    med: [
+        // Family: Telescoping Cancellations
+        (a, b, c, d) => {
+            return {
                 expr: `\\sum_{k=1}^{n} \\left( \\frac{1}{k} - \\frac{1}{k+1} \\right)`,
                 ans: `= 1 - \\frac{1}{n+1}`,
-                sol: `\\text{Telescoping series: all middle terms cancel out.}`
-            }),
-            () => ({
-                expr: `\\sum_{k=1}^{\\infty} \\frac{1}{k(k+2)}`,
-                ans: `= \\frac{3}{4}`,
-                sol: `\\text{Partial fractions } \\frac{1}{2}(\\frac{1}{k} - \\frac{1}{k+2}). \\text{ Telescoping leaves } 1/2(1 + 1/2)`
-            }),
-            () => ({
-                expr: `\\lim_{n \\to \\infty} \\left| \\frac{a_{n+1}}{a_n} \\right| < 1 \\text{ means?}`,
-                ans: `\\text{Absolute convergence}`,
-                sol: `\\text{This is the formal definition of the Ratio Test.}`
-            }),
-            (a, b, c) => ({
-                expr: `\\text{Maclaurin for } e^x \\text{ at } x=\\ln(${c})`,
-                ans: `= ${c}`,
-                sol: `e^{\\ln(${c})} = ${c}`
-            }),
-            () => ({
-                expr: `\\sum_{n=1}^{\\infty} \\frac{(-1)^{n-1}}{n}`,
-                ans: `= \\ln(2)`,
-                sol: `\\text{This is the alternating harmonic series, evaluating Maclaurin } \\ln(1+x) \\text{ at } x=1`
-            })
-        ]
-    };
+                sol: `\\begin{aligned}
+                    &\\text{Expand out the early terms to visualize the sequence cancellation:} \\\\
+                    &= \\left(1 - \\frac{1}{2}\\right) + \\left(\\frac{1}{2} - \\frac{1}{3}\\right) + \\dots + \\left(\\frac{1}{n} - \\frac{1}{n+1}\\right) \\\\
+                    &\\text{All interior cascading fractions cancel out, leaving:} \\\\
+                    &= 1 - \\frac{1}{n+1}
+                \\end{aligned}`
+            };
+        }
+    ],
+    hard: [
+        // Family: Infinite Geometric Sum Convergency
+        (a, b, c, d) => {
+            let firstTerm = Math.abs(a) > 0 ? Math.abs(a) : 3;
+            const denominators = [2, 3, 4];
+            let den = denominators[Math.abs(b) % 3];
+            let numAns = firstTerm * den;
+            let denAns = den - 1;
+            
+            let common = Utils.gcd ? Utils.gcd(numAns, denAns) : 1;
+            let finalNum = numAns / common;
+            let finalDen = denAns / common;
+            let ansStr = finalDen === 1 ? `${finalNum}` : `\\frac{${finalNum}}{${finalDen}}`;
+            
+            return {
+                expr: `\\sum_{k=0}^{\\infty} ${firstTerm} \\cdot \\left(\\frac{1}{${den}}\\right)^k`,
+                ans: `= ${ansStr}`,
+                sol: `\\begin{aligned}
+                    &\\text{An infinite geometric series with } a = ${firstTerm} \\text{ and } r = \\frac{1}{${den}}. \\\\
+                    &\\text{Since } |r| < 1, \\text{ it converges using } S = \\frac{a}{1 - r}: \\\\
+                    &S = \\frac{${firstTerm}}{1 - \\frac{1}{${den}}} = \\frac{${firstTerm}}{\\frac{${den - 1}}{${den}}} = \\frac{${numAns}}{${denAns}} ${common > 1 ? ` = ${ansStr}` : ''}
+                \\end{aligned}`
+            };
+        },
+        // Family: Famous Classical Series Constants
+        (a, b, c, d) => {
+            return {
+                expr: `\\sum_{k=1}^{\\infty} \\frac{1}{k^2}`,
+                ans: `= \\frac{\\pi^2}{6}`,
+                sol: `\\begin{aligned}
+                    &\\text{This is the famous Basel Problem, originally solved by Euler.} \\\\
+                    &\\text{It is a classic convergent } p\\text{-series with } p=2, \\text{ summing to } \\frac{\\pi^2}{6}.
+                \\end{aligned}`
+            };
+        }
+    ]
+};

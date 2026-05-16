@@ -1,134 +1,167 @@
 
-import { Utils } from './worksheet_generator_utils.js';
-export const algebra = {
-        easy: [
-            (a, b, c) => {
-                let rhs = a * c + b;
-                return {
-                    expr: `${a}x ${b > 0 ? '+' : '-'} ${Math.abs(b)} = ${rhs}`,
-                    ans: `x = ${c}`,
-                    sol: `\\begin{aligned} ${a}x &= ${rhs} ${b > 0 ? '-' : '+'} ${Math.abs(b)} \\\\ x &= ${c} \\end{aligned}`
-                };
+const algebra = {
+    easy: [
+        (a, b, c, d) => {
+            // 1. Setup predictable coefficients to guarantee a balance of real and complex cases
+            let A = Math.abs(a) % 4 + 1; // Keep A positive and small (1 to 4) for clean denominators
+            let B = b % 7; 
+            if (B === 0) B = 3;          // Prevent B from being 0 to keep linear term visible
+            
+            // Router: 0 = Real Roots (Disc >= 0), 1 = Complex Roots (Disc < 0)
+            let variant = Math.abs(d) % 2;
+            let C = 0;
+
+            if (variant === 0) {
+                // Force C to be negative to guarantee a positive discriminant (Real roots)
+                C = -(Math.abs(c) % 5 + 1); 
+            } else {
+                // Force C to be large enough relative to B so that B^2 - 4AC < 0 (Complex roots)
+                C = Math.floor((B * B) / (4 * A)) + Math.abs(c % 3) + 1;
             }
-        ],
-        med: [
-            (a, b) => {
-                let mid = a + b, last = a * b;
-                let ansStr = `= x^2 ${mid === 0 ? "" : (mid > 0 ? `+ ${mid}x` : `- ${Math.abs(mid)}x`)} ${last > 0 ? `+ ${last}` : `- ${Math.abs(last)}`}`;
-                return {
-                    expr: `(x ${a > 0 ? '+' : '-'} ${Math.abs(a)})(x ${b > 0 ? '+' : '-'} ${Math.abs(b)})`,
-                    ans: ansStr,
-                    sol: `\\begin{aligned} &\\text{FOIL Method: } \\\\ &${ansStr} \\end{aligned}`
+
+            const gcd = (x, y) => y === 0 ? Math.abs(x) : gcd(y, x % y);
+
+            // Helper to extract square factors from a radical expression
+            const simplifyRadical = (n) => {
+                let outside = 1;
+                let inside = n;
+                for (let i = Math.floor(Math.sqrt(n)); i >= 2; i--) {
+                    if (n % (i * i) === 0) {
+                        outside = i;
+                        inside = n / (i * i);
+                        break;
+                    }
+                }
+                return { outside, inside };
+            };
+
+            // Calculate Discriminant (Delta)
+            let disc = B * B - 4 * A * C;
+            let absDisc = Math.abs(disc);
+            let isComplex = disc < 0;
+
+            // 2. Format the initial quadratic equation string beautifully
+            const formatTerm = (coeff, literal, isFirst) => {
+                if (coeff === 0) return "";
+                let sign = coeff > 0 ? (isFirst ? "" : " + ") : (isFirst ? "-" : " - ");
+                let absC = Math.abs(coeff);
+                let valStr = (absC === 1 && literal !== "") ? "" : `${absC}`;
+                return `${sign}${valStr}${literal}`;
+            };
+
+            let exprStr = formatTerm(A, "x^2", true) + formatTerm(B, "x", false) + formatTerm(C, "", false) + " = 0";
+
+            let ansStr = "";
+            let solLines = [];
+
+            solLines.push(`\\text{Identify coefficients: } a = ${A}, \\, b = ${B}, \\, c = ${C}`);
+            solLines.push(`\\text{Calculate the discriminant } \\Delta = b^2 - 4ac:`);
+            solLines.push(`\\Delta = (${B})^2 - 4(${A})(${C}) = ${B * B} - ${4 * A * C} = ${disc}`);
+
+            // Scaffolding helper to insulate 1 and -1 constants from Utils.clean macro stripping
+            const insulateConstant = (val) => Math.abs(val) === 1 ? `{${val}}` : `${val}`;
+            let initialBStr = insulateConstant(-B);
+
+            // 3. Resolve Root Calculations & Simplify Structural Layouts
+            let sqrtVal = Math.sqrt(absDisc);
+            let isSquare = Number.isInteger(sqrtVal);
+
+            if (isSquare && !isComplex) {
+                // Case A: Real Roots with Perfect Square Discriminant (Rational Numbers)
+                solLines.push(`\\text{Since } \\Delta > 0 \\text{ and is a perfect square, we find two distinct rational roots.}`);
+                
+                let num1 = -B + sqrtVal;
+                let num2 = -B - sqrtVal;
+                let den = 2 * A;
+
+                const formatFraction = (n, d) => {
+                    if (n === 0) return "0";
+                    let isNeg = (n < 0 && d > 0) || (n > 0 && d < 0);
+                    let g = Math.abs(gcd(n, d));
+                    let finalN = Math.abs(n) / g;
+                    let finalD = Math.abs(d) / g;
+                    if (finalD === 1) return isNeg ? `-${finalN}` : `${finalN}`;
+                    return isNeg ? `-\\frac{${finalN}}{${finalD}}` : `\\frac{${finalN}}{${finalD}}`;
                 };
+
+                let r1 = formatFraction(num1, den);
+                let r2 = formatFraction(num2, den);
+                
+                ansStr = r1 === r2 ? `x = ${r1}` : `x = ${r1}, \\quad x = ${r2}`;
+                solLines.push(`x = \\frac{-(${B}) \\pm \\sqrt{${disc}}}{2(${A})} = \\frac{${initialBStr} \\pm ${sqrtVal}}{${den}}`);
+                solLines.push(`\\text{Roots: } ${ansStr}`);
+
+            } else if (isSquare && isComplex) {
+                // Case B: Complex Roots with Perfect Square Magnitudes (e.g., -49 -> ±7i)
+                solLines.push(`\\text{Since } \\Delta < 0, \\text{ we obtain two distinct complex conjugate roots.}`);
+                
+                let g = gcd(gcd(Math.abs(B), sqrtVal), 2 * A);
+                let finalB = -B / g;
+                let finalI = sqrtVal / g;
+                let finalDen = (2 * A) / g;
+                
+                let iTerm = finalI === 1 ? "i" : `${finalI}i`;
+                let bStr = finalB === 0 ? "" : insulateConstant(finalB);
+                let combinedRoots = "";
+                
+                if (finalDen === 1) {
+                    combinedRoots = finalB === 0 ? `\\pm ${iTerm}` : `${bStr} \\pm ${iTerm}`;
+                } else {
+                    combinedRoots = finalB === 0 ? `\\frac{\\pm ${iTerm}}{${finalDen}}` : `\\frac{${bStr} \\pm ${iTerm}}{${finalDen}}`;
+                }
+                
+                ansStr = `x = ${combinedRoots}`;
+                solLines.push(`x = \\frac{-(${B}) \\pm \\sqrt{${absDisc}}i}{2(${A})} = \\frac{${initialBStr} \\pm ${sqrtVal}i}{${2 * A}}`);
+                solLines.push(`\\text{Simplify fractions: } ${ansStr}`);
+
+            } else {
+                // Case C: Irrational Real Roots OR Complex Roots with Radical Components
+                let { outside, inside } = simplifyRadical(absDisc);
+                solLines.push(isComplex 
+                    ? `\\text{Since } \\Delta < 0, \\text{ we find two distinct complex roots containing radicals.}` 
+                    : `\\text{Since } \\Delta > 0 \\text{ and is not a perfect square, we find two irrational real roots.}`
+                );
+
+                let g = gcd(gcd(Math.abs(B), outside), 2 * A);
+                let finalB = -B / g;
+                let finalOutside = outside / g;
+                let finalDen = (2 * A) / g;
+
+                let radicalPart = finalOutside === 1 ? `\\sqrt{${inside}}` : `${finalOutside}\\sqrt{${inside}}`;
+                let suffix = isComplex ? `${radicalPart}i` : radicalPart;
+                let bStr = finalB === 0 ? "" : insulateConstant(finalB);
+                let combinedRoots = "";
+
+                if (finalDen === 1) {
+                    combinedRoots = finalB === 0 ? `\\pm ${suffix}` : `${bStr} \\pm ${suffix}`;
+                } else {
+                    combinedRoots = finalB === 0 ? `\\frac{\\pm ${suffix}}{${finalDen}}` : `\\frac{${bStr} \\pm ${suffix}}{${finalDen}}`;
+                }
+
+                ansStr = `x = ${combinedRoots}`;
+                let basicRadicalForm = isComplex ? `\\sqrt{${absDisc}}i` : `\\sqrt{${disc}}`;
+                let simplifiedRadicalForm = isComplex ? `${outside}\\sqrt{${inside}}i` : `${outside}\\sqrt{${inside}}`;
+
+                solLines.push(`x = \\frac{-(${B}) \\pm ${basicRadicalForm}}{2(${A})}`);
+                solLines.push(`\\text{Simplify the radical: } x = \\frac{${initialBStr} \\pm ${simplifiedRadicalForm}}{${2 * A}}`);
+                solLines.push(`\\text{Reduce to lowest terms: } ${ansStr}`);
             }
-        ],
-        hard: [
-            (a, b, c, d) => {
-                let base = Utils.getRnd(2, 4), val = Utils.getRnd(1, 3);
-                return {
-                    expr: `\\log_{${base}}(x - ${c}) = ${val}`,
-                    ans: `x = ${Math.pow(base, val) + c}`,
-                    sol: `\\begin{aligned} x - ${c} &= ${base}^{${val}} \\implies x = ${Math.pow(base, val) + c} \\end{aligned}`
-                };
-            },
-            (a, b, c, d) => {
-                let base = Utils.getRnd(2, 4), val = Utils.getRnd(2, 4);
-                return {
-                    expr: `${base}^{x + ${c}} = ${Math.pow(base, val)}`,
-                    ans: `x = ${val - c}`,
-                    sol: `\\begin{aligned} ${base}^{x+${c}} &= ${base}^{${val}} \\implies x + ${c} = ${val} \\implies x = ${val - c} \\end{aligned}`
-                };
-            },
-            (a, b, c, d) => {
-                let B = -(c + d), C = c * d;
-                return {
-                    expr: `x^2 ${B > 0 ? `+${B}` : B}x ${C > 0 ? `+${C}` : C} = 0`,
-                    ans: `x = ${c}, ${d}`,
-                    sol: `\\begin{aligned} &(x - ${c})(x - ${d}) = 0 \\implies x = ${c}, \\; x = ${d} \\end{aligned}`
-                };
-            },
-            () => ({
-                expr: `2x^2 - 5x + 3 = 0`,
-                ans: `x = 1, \\frac{3}{2}`,
-                sol: `\\begin{aligned} &(2x - 3)(x - 1) = 0 \\implies x=\\frac{3}{2}, \\; x=1 \\end{aligned}`
-            }),
-            (a, b, c, d) => {
-                let base = Utils.getRnd(2, 3);
-                return {
-                    expr: `\\log_{${base}}(x) + \\log_{${base}}(${b}) = ${c}`,
-                    ans: `x = ${Math.pow(base, c) / b}`,
-                    sol: `\\begin{aligned} \\log_{${base}}(${b}x) &= ${c} \\implies ${b}x = ${base}^{${c}} \\implies x = ${Math.pow(base, c) / b} \\end{aligned}`
-                };
-            },
-            (a, b, c, d) => ({
-                expr: `(x + ${a})^2 = ${Math.abs(b)}`,
-                ans: `x = -${a} \\pm \\sqrt{${Math.abs(b)}}`,
-                sol: `\\begin{aligned} x + ${a} &= \\pm \\sqrt{${Math.abs(b)}} \\implies x = -${a} \\pm \\sqrt{${Math.abs(b)}} \\end{aligned}`
-            }),
-            (a, b, c, d) => ({
-                expr: `\\frac{x}{${a}} - ${b} = ${c}`,
-                ans: `x = ${a * (b + c)}`,
-                sol: `\\begin{aligned} \\frac{x}{${a}} &= ${c + b} \\implies x = ${a * (b + c)} \\end{aligned}`
-            }),
-            (a, b, c, d) => ({
-                expr: `x^3 - ${c}x^2 + ${d}x - 6 = 0 \\; (x=2)`,
-                ans: `\\text{Evaluate } P(2)`,
-                sol: `\\begin{aligned} P(2) &= 2^3 - ${c}(2)^2 + ${d}(2) - 6 \\end{aligned}`
-            }),
-            (a, b, c, d) => ({
-                expr: `|2x - ${a}| = ${b}`,
-                ans: `x = \\frac{${a + b}}{2}, \\frac{${a - b}}{2}`,
-                sol: `\\begin{aligned} 2x - ${a} &= \\pm ${b} \\implies x = \\frac{${a} \\pm ${b}}{2} \\end{aligned}`
-            }),
-            (a, b, c, d) => ({
-                expr: `\\frac{x+${c}}{x-${d}} = ${a}`,
-                ans: `x = \\frac{${a * d + c}}{a-1}`,
-                sol: `\\begin{aligned} x+${c} &= ${a}(x-${d}) \\implies x = \\frac{${a * d + c}}{${a - 1}} \\end{aligned}`
-            }),
-            (a, b, c, d) => ({
-                expr: `x^2 + ${b}x + ${c} = 0`,
-                ans: `x = \\frac{-${b} \\pm \\sqrt{${b * b - 4 * c}}}{2}`,
-                sol: `\\begin{aligned} x &= \\frac{-${b} \\pm \\sqrt{${b}^2 - 4(1)(${c})}}{2(1)} \\end{aligned}`
-            }),
-            (a, b, c, d) => ({
-                expr: `x + y = ${a}, \\; 2x - y = ${b}`,
-                ans: `x = \\frac{${a + b}}{3}`,
-                sol: `\\begin{aligned} &\\text{Add equations: } 3x = ${a + b} \\implies x = \\frac{${a + b}}{3} \\end{aligned}`
-            }),
-            (a, b, c, d) => ({
-                expr: `x^2 - ${c + d}x + ${c * d} > 0`,
-                ans: `x < ${Math.min(c, d)} \\text{ or } x > ${Math.max(c, d)}`,
-                sol: `\\begin{aligned} &(x - ${c})(x - ${d}) > 0 \\end{aligned}`
-            }),
-            (a, b, c, d) => ({
-                expr: `\\frac{x^2 - ${c * c}}{x-${c}} = x + k`,
-                ans: `k = ${c}`,
-                sol: `\\begin{aligned} &\\frac{(x-${c})(x+${c})}{x-${c}} = x+${c} \\implies k=${c} \\end{aligned}`
-            }),
-            (a, b, c, d) => ({
-                expr: `x^2 + ${b * 2}x = ${c}`,
-                ans: `(x + ${b})^2 = ${c + b * b}`,
-                sol: `\\begin{aligned} &x^2 + ${b * 2}x + (${b})^2 = ${c} + (${b})^2 \\end{aligned}`
-            }),
-            (a, b, c, d) => ({
-                expr: `\\frac{${a}}{x} + \\frac{${b}}{x} = ${c}`,
-                ans: `x = \\frac{${a + b}}{${c}}`,
-                sol: `\\begin{aligned} \\frac{${a + b}}{x} &= ${c} \\implies x = \\frac{${a + b}}{${c}} \\end{aligned}`
-            }),
-            (a, b, c, d) => ({
-                expr: `2^{x} = 4^{x - ${c}}`,
-                ans: `x = ${2 * c}`,
-                sol: `\\begin{aligned} 2^x &= 2^{2(x-${c})} \\implies x = 2x - ${2 * c} \\implies x = ${2 * c} \\end{aligned}`
-            }),
-            (a, b, c, d) => ({
-                expr: `f(x) = ${Math.abs(a)}x+${b}, g(x) = x^2, \\; f(g(${c}))`,
-                ans: `= ${Math.abs(a) * c * c + b}`,
-                sol: `\\begin{aligned} g(${c}) &= ${c * c} \\implies f(${c * c}) = ${Math.abs(a) * c * c + b} \\end{aligned}`
-            }),
-            (a, b, c, d) => ({
-                expr: `|x - ${c}| < ${d}`,
-                ans: `${c - d} < x < ${c + d}`,
-                sol: `\\begin{aligned} -${d} &< x - ${c} < ${d} \\implies ${c - d} < x < ${c + d} \\end{aligned}`
-            })
-        ]
-    };
+
+            // Combine step strings into aligned structure
+            let solStr = `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`;
+
+            return {
+                expr: exprStr,
+                ans: `= ${ansStr}`,
+                sol: solStr
+            };
+        }
+    ],
+    med: [
+       
+    ],
+    hard: [
+        
+    ]
+};
+window.algebra = algebra;

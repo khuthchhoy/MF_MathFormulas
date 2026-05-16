@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="km">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="katex/katex.css">
+    <script src="katex/katex.min.js"></script>
+    <script src="katex/contrib/auto-render.min.js"></script>
+
+</head>
+
+<body>
+    <div class="sticky-bar">
+        <button class="btn-settings" onclick="App.toggleSettings()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                </path>
+            </svg>
+            Configure
+        </button>
+        <div class="action-stack">
+            <button class="btn-generate" onclick="App.generateNewData()">Generate</button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div id="settings-panel" class="hidden">
+
+            <h2 class="section-title">Include Subjects</h2>
+            <div class="card" id="subject-list">
+            </div>
+
+            <h2 class="section-title">Difficulty Level</h2>
+            <div class="card">
+                <div class="segmented-control">
+                    <div id="seg-easy" class="segment active" data-diff="easy" onclick="App.setDifficulty('easy')">Easy
+                    </div>
+                    <div id="seg-med" class="segment" data-diff="med" onclick="App.setDifficulty('med')">Medium</div>
+                    <div id="seg-hard" class="segment" data-diff="hard" onclick="App.setDifficulty('hard')">Hard</div>
+                </div>
+            </div>
+
+            <h2 class="section-title">Worksheet Settings</h2>
+            <div class="card">
+                <div class="row">
+                    <label>Problems</label>
+                    <input type="number" id="num-problems" value="10" min="1" max="100"
+                        onchange="App.generateNewData()">
+                </div>
+                <div class="row">
+                    <label>Columns</label>
+                    <input type="number" id="num-columns" value="1" min="1" max="4" onchange="App.updateColumns()">
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="row">
+                    <label>Show Answers</label>
+                    <label class="switch">
+                        <input type="checkbox" id="show-answers" onchange="App.renderWorksheet()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="row">
+                    <label>Show Detail Solutions</label>
+                    <label class="switch">
+                        <input type="checkbox" id="show-solutions" onchange="App.renderWorksheet()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <h2 class="section-title">Worksheet Preview</h2>
+        <div id="worksheet-grid"></div>
+    </div>
+
+
+    <script>
+        // Fetch and render test.html content
+        async function loadAndRenderMath() {
+            try {
+                const container = document.getElementById('worksheet-grid');
+                renderMathInElement(container, {
+                    delimiters: [
+                        { left: "$$", right: "$$", display: true },
+                        { left: "$", right: "$", display: false },
+                        { left: "\\(", right: "\\)", display: false },
+                        { left: "\\[", right: "\\]", display: true }
+                    ],
+                    throwOnError: false,
+                    macros: {
+                        "\\cbar": "\\overline{#1}"
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('content-container').innerHTML =
+                    `<p class="error">Error loading content: ${error.message}</p>`;
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener("DOMContentLoaded", loadAndRenderMath);
+    </script>
+    <script src="worksheet_generator_algebra.js"></script>
+    <script src="worksheet_generator_limit.js"></script>
+    <!-- <script src="worksheet_generator_arithmetic.js"></script> -->
+    <!-- <script src="worksheet_generator_derivative.js"></script>
+    <script src="worksheet_generator_trigonometry.js"></script>
+    <script src="worksheet_generator_integral.js"></script>
+    <script src="worksheet_generator_sequences.js"></script>
+    <script src="worksheet_generator_series.js"></script> -->
+    <script src="worksheet_generator_registry.js"></script>
+    <script src="worksheet_generator_utils.js"></script>
+    <script src="worksheet_generator.js"></script>
+</body>
+</html>

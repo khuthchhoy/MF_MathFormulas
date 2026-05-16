@@ -1,5 +1,5 @@
+import { Utils } from './worksheet_generator_utils.js'; // Note: Utils is currently unused in this file
 
-import { Utils } from './worksheet_generator_utils.js';
 export const sequences = {
         easy: [
             (a, b, c) => {
@@ -121,4 +121,4 @@ export const sequences = {
                 sol: `\\ln(e^{${c}}) = ${c}\\ln(e) = ${c}`
             })
         ]
-    };
+};

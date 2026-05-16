@@ -1,5 +1,5 @@
 
-export const Utils = {
+const Utils = {
     getRnd: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
     shuffle: (array) => {
         let currentIndex = array.length, randomIndex;
@@ -9,6 +9,25 @@ export const Utils = {
             [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
         }
         return array;
+    },
+    gcd: (x, y) => y === 0 ? Math.abs(x) : Utils.gcd(y, x % y),
+    
+    formatFraction: (num, den) => {
+        if (num === 0 || den === 0) return "0";
+        
+        const isNegative = (num < 0 && den > 0) || (num > 0 && den < 0);
+        const absNum = Math.abs(num);
+        const absDen = Math.abs(den);
+        
+        const g = Utils.gcd(absNum, absDen);
+        const finalNum = absNum / g;
+        const finalDen = absDen / g;
+        
+        if (finalDen === 1) {
+            return isNegative ? `-${finalNum}` : `${finalNum}`;
+        }
+        
+        return isNegative ? `-\\frac{${finalNum}}{${finalDen}}` : `\\frac{${finalNum}}{${finalDen}}`;
     },
     generateNiceParams: () => {
         let a, k1, k2, m, n, p, q, val_den;
@@ -38,13 +57,41 @@ export const Utils = {
         if (b > 0) res += ` + ${b}`; if (b < 0) res += ` - ${Math.abs(b)}`;
         return res;
     },
-    gcd: function (x, y) {
-        x = Math.abs(x); y = Math.abs(y);
-        return y === 0 ? x : this.gcd(y, x % y);
-    },
     formatSolution: (solStr) => {
         if (!solStr || solStr.includes('\\begin{aligned}')) return solStr;
         if (solStr.includes('=')) return `\\begin{aligned} ${solStr} \\end{aligned}`;
         return solStr;
+    },
+    // Centralized math expression sanitizer
+    clean: (str) => {
+        if (!str) return str;
+        return str
+            // 1. Remove 1 as a coefficient before variables or LaTeX macros (EXCEPT before structural tags like \end, \text, \left, \right)
+            .replace(/(^|[^a-zA-Z0-9\\])1\s*(?=[a-zA-Z]|\\(?!end|text|quad|\\|Rightarrow|implies|left|right))/g, '$1')
+            
+            // 2. Convert -1 coefficient to just a negative sign (EXCEPT before structural tags)
+            .replace(/(^|[^a-zA-Z0-9\\])-1\s*(?=[a-zA-Z]|\\(?!end|text|quad|\\|Rightarrow|implies|left|right))/g, '$1-')
+            
+            // 3. Remove clean 0 terms added or subtracted
+            .replace(/\s*[\+\-]\s*0(?=[a-zA-Z]|\\)[^ \+\-\)]*/g, '')
+            
+            // 4. Clean up standalone trailing or leading ±0 inside expression blocks safely
+            .replace(/\s*[\+\-]\s*0\s*(?=\\right|\\,|$|\))/g, '')
+            
+            // 5. Simplify redundant math signs
+            .replace(/\+\s*-/g, '-')
+            .replace(/-\s*-/g, ' + ')
+            .replace(/-\s*\+/g, '-')
+            .replace(/\+\s*\+/g, ' + ')
+            
+            // 6. Strip away unnecessary algebraic power definitions of 1
+            .replace(/\^1_*(?![0-9])/g, '')
+            .replace(/\^\{1\}/g, '')
+            
+            // 7. Fix lingering formatting double spaces or leading plus signs
+            .replace(/^\s*\+\s*/, '')
+            .replace(/\s+/g, ' ')
+            .trim();
     }
 };
+window.Utils = Utils;

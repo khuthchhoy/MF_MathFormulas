@@ -1,7 +1,7 @@
 
-import { Utils } from './worksheet_generator_utils.js';
-import { ProblemRegistry } from './worksheet_generator_registry.js';
-
+// ==========================================
+// WORKSHEET GENERATOR - MINIMAL ALGEBRA VERSION
+// ==========================================
 window.triggerHaptic = window.triggerHaptic || function () {};
 
 class WorksheetEngine {
@@ -14,29 +14,33 @@ class WorksheetEngine {
         let problems = [];
         const seen = new Set();
 
-        // Get one from each subject first
         subjects.forEach(topic => {
             const pool = this.registry[topic]?.[difficulty] || [];
             if (!pool.length) return;
 
             const gen = pool[Utils.getRnd(0, pool.length - 1)];
-            for (let attempt = 0; attempt < 20; attempt++) {
+            for (let attempt = 0; attempt < 25; attempt++) {
                 const args = Array(4).fill(0).map(() => Utils.getRnd(-10, 10));
                 try {
                     const result = gen(...args);
-                    if (result?.expr && !seen.has(result.expr)) {
-                        seen.add(result.expr);
-                        problems.push({
-                            ...result,
-                            sol: Utils.formatSolution(result.sol)
-                        });
-                        return;
+                    if (result?.expr) {
+                        // Sanitize math expressions dynamically
+                        const cleanExpr = Utils.clean(result.expr);
+                        if (!seen.has(cleanExpr)) {
+                            seen.add(cleanExpr);
+                            problems.push({
+                                expr: cleanExpr,
+                                ans: Utils.clean(result.ans),
+                                sol: Utils.formatSolution(Utils.clean(result.sol))
+                            });
+                            return;
+                        }
                     }
-                } catch (e) {}
+                } catch (e) { console.log(e); }
             }
         });
 
-        // Fill the rest
+        // Fill remaining
         let allGens = [];
         subjects.forEach(t => {
             if (this.registry[t]?.[difficulty]) allGens.push(...this.registry[t][difficulty]);
@@ -44,17 +48,22 @@ class WorksheetEngine {
 
         while (problems.length < numProblems && allGens.length) {
             const gen = allGens[Utils.getRnd(0, allGens.length - 1)];
-            for (let attempt = 0; attempt < 20; attempt++) {
+            for (let attempt = 0; attempt < 25; attempt++) {
                 const args = Array(4).fill(0).map(() => Utils.getRnd(-10, 10));
                 try {
                     const result = gen(...args);
-                    if (result?.expr && !seen.has(result.expr)) {
-                        seen.add(result.expr);
-                        problems.push({
-                            ...result,
-                            sol: Utils.formatSolution(result.sol)
-                        });
-                        break;
+                    if (result?.expr) {
+                        // Sanitize math expressions dynamically
+                        const cleanExpr = Utils.clean(result.expr);
+                        if (!seen.has(cleanExpr)) {
+                            seen.add(cleanExpr);
+                            problems.push({
+                                expr: cleanExpr,
+                                ans: Utils.clean(result.ans),
+                                sol: Utils.formatSolution(Utils.clean(result.sol))
+                            });
+                            break;
+                        }
                     }
                 } catch (e) {}
             }
@@ -76,7 +85,6 @@ const App = {
     populateSubjects() {
         const container = document.getElementById('subject-list');
         if (!container) return;
-
         container.innerHTML = Object.keys(ProblemRegistry).map(key => `
             <div class="row">
                 <label>${key.charAt(0).toUpperCase() + key.slice(1)}</label>
@@ -90,7 +98,7 @@ const App = {
 
     getSelectedSubjects() {
         return Array.from(document.querySelectorAll('#subject-list input:checked'))
-                   .map(el => el.value);
+                    .map(el => el.value);
     },
 
     toggleSettings() {
@@ -183,6 +191,5 @@ const App = {
         }
     }
 };
-
 window.App = App;
 window.addEventListener('DOMContentLoaded', () => App.init());

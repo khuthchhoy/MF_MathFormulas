@@ -1,124 +1,143 @@
 
-import { Utils } from './worksheet_generator_utils.js';
-export const derivative = {
-        easy: [
-            (a, b, c) => ({
-                expr: `\\frac{d}{dx} \\left[ ${a}x^{${b}} ${c > 0 ? '+' : '-'} ${Math.abs(c)}x \\right]`,
-                ans: `= ${a * b}x^{${b - 1}} ${c > 0 ? '+' : '-'} ${Math.abs(c)}`,
-                sol: `\\text{Power Rule: } \\frac{d}{dx}(ax^n) = anx^{n-1}`
-            })
-        ],
-        med: [
-            (a, b) => {
-                let funcs = [`\\sin(${b}x)`, `\\cos(${b}x)`, `e^{${b}x}`];
-                let ansFuncs = [`${b}\\cos(${b}x)`, `-${b}\\sin(${b}x)`, `${b}e^{${b}x}`];
-                let r = Math.floor(Math.random() * 3);
-                let sign = (a < 0 && r === 1) ? "" : (a > 0 && r === 1) ? "-" : "";
+const derivative = {
+    easy: [
+        // Family: Power Rule Poly combination
+        (a, b, c, d) => {
+            let p1 = Math.abs(a) > 1 ? Math.abs(a) : 3;
+            let e1 = Math.abs(b) > 1 ? Math.abs(b) : 3;
+            let p2 = c !== 0 ? c : 2;
+            
+            let exprStr = `${p1}x^{${e1}} ${p2 > 0 ? '+ ' : '- '}${Math.abs(p2)}x`;
+            let ansStr = `= ${p1 * e1}x^{${e1 - 1 === 1 ? '' : e1 - 1}} ${p2 > 0 ? '+ ' : '- '}${Math.abs(p2)}`;
+            if (e1 - 1 === 1) {
+                ansStr = `= ${p1 * e1}x ${p2 > 0 ? '+ ' : '- '}${Math.abs(p2)}`;
+            }
+            
+            return {
+                expr: `\\frac{d}{dx}\\left[ ${exprStr} \\right]`,
+                ans: ansStr,
+                sol: `\\begin{aligned}
+                    &\\text{Apply the Power Rule: } \\frac{d}{dx}(kx^n) = k \\cdot n x^{n-1} \\\\
+                    &= \\frac{d}{dx}(${p1}x^{${e1}}) + \\frac{d}{dx}(${p2}x) \\\\
+                    &= ${p1} \\cdot ${e1}x^{${e1 - 1}} + (${p2}) \\\\
+                    &= ${ansStr.replace('= ', '')}
+                \\end{aligned}`
+            };
+        },
+        // Family: Power Rule with Reciprocals
+        (a, b, c, d) => {
+            let co = a !== 0 ? a : 2;
+            return {
+                expr: `\\frac{d}{dx}\\left[ \\frac{${Math.abs(co)}}{x} \\right]`,
+                ans: `= -\\frac{${Math.abs(co)}}{x^2}`,
+                sol: `\\begin{aligned}
+                    &\\text{Rewrite with a negative exponent:} \\\\
+                    &\\frac{${Math.abs(co)}}{x} = ${Math.abs(co)}x^{-1} \\\\
+                    &\\text{Apply the Power Rule:} \\\\
+                    &= ${Math.abs(co)} \\cdot (-1)x^{-2} = -\\frac{${Math.abs(co)}}{x^2}
+                \\end{aligned}`
+            };
+        }
+    ],
+    med: [
+        // Family: Chain Rule with Transcendental Functions
+        (a, b, c, d) => {
+            let co = a !== 0 ? a : 2;
+            let k = b !== 0 ? b : 3;
+            const funcs = [
+                { name: `\\sin(${k}x)`, deriv: `\\cos(${k}x)`, outerSign: 1 },
+                { name: `\\cos(${k}x)`, deriv: `\\sin(${k}x)`, outerSign: -1 },
+                { name: `e^{${k}x}`, deriv: `e^{${k}x}`, outerSign: 1 }
+            ];
+            let idx = Math.abs(co + k) % 3;
+            let f = funcs[idx];
+            
+            let finalCo = co * k * f.outerSign;
+            let finalCoStr = finalCo === 1 ? "" : finalCo === -1 ? "-" : `${finalCo}`;
+            
+            return {
+                expr: `\\frac{d}{dx}\\left[ ${co === 1 ? '' : co === -1 ? '-' : co}${f.name} \\right]`,
+                ans: `= ${finalCoStr}${f.deriv}`,
+                sol: `\\begin{aligned}
+                    &\\text{Apply the Chain Rule: } \\frac{d}{dx}[f(g(x))] = f'(g(x)) \\cdot g'(x) \\\\
+                    &\\text{Outer derivative: } \\frac{d}{dx}(${f.name.split('(')[0]}) \\\\
+                    &\\text{Inner derivative: } \\frac{d}{dx}(${k}x) = ${k} \\\\
+                    &= ${co} \\cdot (${f.outerSign === -1 ? '-' : ''}${f.deriv.split('(')[0]}(${k}x)) \\cdot ${k} \\\\
+                    &= ${finalCoStr}${f.deriv}
+                \\end{aligned}`
+            };
+        },
+        // Family: Product Rule basics
+        (a, b, c, d) => {
+            let choice = Math.abs(b) % 2;
+            if (choice === 0) {
                 return {
-                    expr: `\\frac{d}{dx} \\left[ ${a}${funcs[r]} \\right]`,
-                    ans: `= ${sign}${Math.abs(a * b)}${ansFuncs[r].replace(/-?${b}/, '')}`,
-                    sol: `\\text{Chain Rule: multiply by outer derivative.}`
+                    expr: `\\frac{d}{dx}\\left[ x^2 e^{x} \\right]`,
+                    ans: `= x e^x (x + 2)`,
+                    sol: `\\begin{aligned}
+                        &\\text{Apply the Product Rule: } (uv)' = u'v + uv' \\\\
+                        &\\text{Let } u = x^2 \\implies u' = 2x \\\\
+                        &\\text{Let } v = e^x \\implies v' = e^x \\\\
+                        &= (2x)(e^x) + (x^2)(e^x) \\\\
+                        &= e^x(2x + x^2) = x e^x(x + 2)
+                    \\end{aligned}`
+                };
+            } else {
+                return {
+                    expr: `\\frac{d}{dx}\\left[ x \\ln(x) \\right]`,
+                    ans: `= \\ln(x) + 1`,
+                    sol: `\\begin{aligned}
+                        &\\text{Apply the Product Rule: } (uv)' = u'v + uv' \\\\
+                        &\\text{Let } u = x \\implies u' = 1 \\\\
+                        &\\text{Let } v = \\ln(x) \\implies v' = \\frac{1}{x} \\\\
+                        &= (1)(\\ln x) + (x)\\left(\\frac{1}{x}\\right) \\\\
+                        &= \\ln(x) + 1
+                    \\end{aligned}`
                 };
             }
-        ],
-        hard: [
-            (a, b, c) => ({
-                expr: `\\frac{d}{dx} \\left[ \\ln(${b}x^2 + ${c}) \\right]`,
-                ans: `= \\frac{${2 * b}x}{${b}x^2 + ${c}}`,
-                sol: `\\text{Chain rule: } \\frac{1}{u} \\cdot u' \\implies \\frac{1}{${b}x^2+${c}} \\cdot (${2 * b}x)`
-            }),
-            (a, b, c) => ({
-                expr: `\\frac{d}{dx} \\left[ e^{${b}x^2 + ${c}} \\right]`,
-                ans: `= ${2 * b}x \\, e^{${b}x^2 + ${c}}`,
-                sol: `\\text{Chain rule: } e^u \\cdot u' \\implies e^{${b}x^2+${c}} \\cdot (${2 * b}x)`
-            }),
-            (a, b, c) => ({
-                expr: `\\frac{d}{dx} \\left[ \\sin(${Math.abs(a)}x^2 + ${b}) \\right]`,
-                ans: `= ${2 * Math.abs(a)}x \\, \\cos(${Math.abs(a)}x^2 + ${b})`,
-                sol: `\\text{Chain rule: } \\cos(u) \\cdot u' \\implies \\cos(${Math.abs(a)}x^2+${b}) \\cdot (${2 * Math.abs(a)}x)`
-            }),
-            (a, b, c, d) => {
-                let n = d + 1;
-                return {
-                    expr: `\\frac{d}{dx} \\left[ (${b}x + ${c})^{${n}} \\right]`,
-                    ans: `= ${n * b} (${b}x + ${c})^{${n - 1}}`,
-                    sol: `\\text{General Power Rule: } n u^{n-1} \\cdot u' \\implies ${n}(${b}x+${c})^{${n - 1}} \\cdot (${b})`
-                };
-            },
-            (a, b, c) => ({
-                expr: `\\frac{d}{dx} \\left[ \\tan(${b}x + ${c}) \\right]`,
-                ans: `= ${b} \\sec^{2}(${b}x + ${c})`,
-                sol: `\\text{Derivative of } \\tan(u) \\text{ is } \\sec^2(u) \\cdot u' \\implies \\sec^2(${b}x+${c}) \\cdot ${b}`
-            }),
-            (a, b, c) => ({
-                expr: `\\frac{d}{dx} \\left[ \\sqrt{${b}x^2 + ${c}} \\right]`,
-                ans: `= \\frac{${b}x}{\\sqrt{${b}x^2 + ${c}}}`,
-                sol: `\\text{Chain Rule: } \\frac{1}{2\\sqrt{u}} \\cdot u' = \\frac{${2 * b}x}{2\\sqrt{${b}x^2+${c}}}`
-            }),
-            (a, b, c) => ({
-                expr: `\\frac{d}{dx} \\left[ \\cos(3x^2 + ${c}) \\right]`,
-                ans: `= -6x \\sin(3x^2 + ${c})`,
-                sol: `\\text{Chain rule: } -\\sin(u) \\cdot u' \\implies -\\sin(3x^2+${c}) \\cdot (6x)`
-            }),
-            () => ({
-                expr: `\\frac{d}{dx} \\left[ e^{x} \\sin(x) \\right]`,
-                ans: `= e^{x} (\\sin(x) + \\cos(x))`,
-                sol: `\\text{Product Rule: } (e^x)'\\sin(x) + e^x(\\sin(x))' = e^x\\sin(x) + e^x\\cos(x)`
-            }),
-            (a, b, c) => ({
-                expr: `\\frac{d}{dx} \\left[ \\frac{${a}x}{x^2 + ${c}} \\right]`,
-                ans: `= \\frac{${a}(x^2 + ${c}) - 2x(${a}x)}{(x^2 + ${c})^2}`,
-                sol: `\\text{Quotient Rule: } \\frac{f'g - fg'}{g^2} \\implies \\frac{(${a})(x^2+${c}) - (${a}x)(2x)}{(x^2+${c})^2}`
-            }),
-            (a, b) => ({
-                expr: `\\frac{d}{dx} \\left[ \\ln(\\sin(${b}x)) \\right]`,
-                ans: `= ${b} \\cot(${b}x)`,
-                sol: `\\text{Chain rule: } \\frac{1}{\\sin(${b}x)} \\cdot \\cos(${b}x) \\cdot ${b} = ${b}\\frac{\\cos(${b}x)}{\\sin(${b}x)}`
-            }),
-            (a, b, c) => ({
-                expr: `\\frac{d}{dx} \\left[ (x^2 + ${c}) e^{${b}x} \\right]`,
-                ans: `= e^{${b}x}(2x + ${b}(x^2 + ${c}))`,
-                sol: `\\text{Product Rule: } (2x)e^{${b}x} + (x^2+${c})(${b}e^{${b}x})`
-            }),
-            () => ({
-                expr: `\\frac{d}{dx} \\left[ x^{x} \\right]`,
-                ans: `= x^{x} (\\ln x + 1)`,
-                sol: `\\text{Logarithmic Diff: } \\ln y = x\\ln x \\implies \\frac{y'}{y} = \\ln x + 1 \\implies y' = x^x(\\ln x + 1)`
-            }),
-            (a, b) => ({
-                expr: `\\frac{d^{2}}{dx^{2}} \\left[ x^{${b}} \\right]`,
-                ans: `= ${b}(${b}-1)x^{${b - 2}}`,
-                sol: `\\text{First Deriv: } ${b}x^{${b - 1}}. \\text{ Second Deriv: } ${b}(${b - 1})x^{${b - 2}}`
-            }),
-            (a, b) => ({
-                expr: `\\frac{d}{dx} \\left[ \\arctan(${b}x) \\right]`,
-                ans: `= \\frac{${b}}{1 + (${b}x)^2}`,
-                sol: `\\text{Deriv of } \\arctan(u) \\text{ is } \\frac{u'}{1+u^2} \\implies \\frac{${b}}{1+(${b}x)^2}`
-            }),
-            () => ({
-                expr: `\\frac{d}{dx} \\left[ \\ln(x^2 + 1) \\right]`,
-                ans: `= \\frac{2x}{x^2 + 1}`,
-                sol: `\\text{Chain rule: } \\frac{1}{u} \\cdot u' \\implies \\frac{2x}{x^2+1}`
-            }),
-            () => ({
-                expr: `\\frac{d}{dx} \\left[ x^{\\ln x} \\right]`,
-                ans: `= 2x^{\\ln x - 1} \\ln x`,
-                sol: `\\text{Log Diff: } \\ln y = (\\ln x)^2 \\implies \\frac{y'}{y} = 2\\ln x (1/x) \\implies y' = 2x^{\\ln x - 1}\\ln x`
-            }),
-            (a, b, c) => ({
-                expr: `\\frac{dy}{dx} \\text{ for } x^2 + y^2 = ${c * c}`,
+        }
+    ],
+    hard: [
+        // Family: Chain Rule with Composite Natural Logs
+        (a, b, c, d) => {
+            let constant = Math.abs(c) > 0 ? Math.abs(c) : 1;
+            return {
+                expr: `\\frac{d}{dx}\\left[ \\ln(x^2 + ${constant}) \\right]`,
+                ans: `= \\frac{2x}{x^2 + ${constant}}`,
+                sol: `\\begin{aligned}
+                    &\\text{Apply the Chain Rule for } \\ln(u): \\frac{d}{dx}[\\ln(u)] = \\frac{u'}{u} \\\\
+                    &\\text{Let } u = x^2 + ${constant} \\implies u' = 2x \\\\
+                    &= \\frac{2x}{x^2 + ${constant}}
+                \\end{aligned}`
+            };
+        },
+        // Family: Implicit Differentiation
+        (a, b, c, d) => {
+            let r2 = Math.abs(c) > 0 ? Math.abs(c) * Math.abs(c) : 25;
+            return {
+                expr: `\\text{Find } \\frac{dy}{dx} \\text{ for } x^2 + y^2 = ${r2}`,
                 ans: `= -\\frac{x}{y}`,
-                sol: `\\text{Implicit: } 2x + 2yy' = 0 \\implies 2yy' = -2x \\implies y' = -x/y`
-            }),
-            (a, b, c) => ({
-                expr: `\\frac{d}{dx} \\left[ \\arcsin(${c}x) \\right]`,
-                ans: `= \\frac{${c}}{\\sqrt{1 - ${c * c}x^2}}`,
-                sol: `\\text{Deriv of } \\arcsin(u) \\text{ is } \\frac{u'}{\\sqrt{1-u^2}} \\implies \\frac{${c}}{\\sqrt{1-(${c}x)^2}}`
-            }),
-            () => ({
-                expr: `\\frac{d}{dx} \\left[ \\frac{\\sin x}{x} \\right]`,
-                ans: `= \\frac{x\\cos x - \\sin x}{x^2}`,
-                sol: `\\text{Quotient Rule: } \\frac{f'g - fg'}{g^2} = \\frac{(\\cos x)x - (\\sin x)(1)}{x^2}`
-            })
-        ]
-    };
+                sol: `\\begin{aligned}
+                    &\\text{Differentiate both sides with respect to } x: \\\\
+                    &\\frac{d}{dx}(x^2) + \\frac{d}{dx}(y^2) = \\frac{d}{dx}(${r2}) \\\\
+                    &2x + 2y \\cdot \\frac{dy}{dx} = 0 \\\\
+                    &2y \\cdot \\frac{dy}{dx} = -2x \\\\
+                    &\\frac{dy}{dx} = -\\frac{2x}{2y} = -\\frac{x}{y}
+                \\end{aligned}`
+            };
+        },
+        // Family: Inverse Trig Derivatives
+        (a, b, c, d) => {
+            let k = Math.abs(b) > 1 ? Math.abs(b) : 2;
+            return {
+                expr: `\\frac{d}{dx}\\left[ \\arctan(${k}x) \\right]`,
+                ans: `= \\frac{${k}}{1 + ${k * k}x^2}`,
+                sol: `\\begin{aligned}
+                    &\\text{Use the rule: } \\frac{d}{dx}[\\arctan(u)] = \\frac{u'}{1+u^2} \\\\
+                    &\\text{Here } u = ${k}x \\implies u' = ${k} \\\\
+                    &= \\frac{${k}}{1 + (${k}x)^2} = \\frac{${k}}{1 + ${k * k}x^2}
+                \\end{aligned}`
+            };
+        }
+    ]
+};
