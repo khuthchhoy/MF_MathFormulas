@@ -1,12 +1,15 @@
+// ❌ DELETE ALL 8 IMPORT LINES AT THE TOP!
 
-window.ProblemRegistry = {
-    // arithmetic: window.arithmetic || { easy: [], med: [], hard: [] },
-    algebra: window.algebra || { easy: [], med: [], hard: [] },
-    // trigonometry: window.trigonometry || { easy: [], med: [], hard: [] },
-    limit: window.limit || { easy: [], med: [], hard: [] },
-    // derivative: window.derivative || { easy: [], med: [], hard: [] },
-    // integral: window.integral || { easy: [], med: [], hard: [] },
-    // sequences: window.sequences || { easy: [], med: [], hard: [] },
-    // series: window.series || { easy: [], med: [], hard: [] }
+const ProblemRegistry = {
+    // arithmetic: window.arithmetic,
+    algebra: window.algebra,
+    // trigonometry: window.trigonometry,
+    limit: window.limit
+    // derivative: window.derivative,
+    // integral: window.integral,
+    // sequences: window.sequences,
+    // series: window.series
 };
+
+// ADD this line at the absolute bottom
 window.ProblemRegistry = ProblemRegistry;
