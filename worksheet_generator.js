@@ -193,20 +193,4 @@ const App = {
 };
 // 1. Expose App globally
 window.App = App;
-
-// 2. Failsafe initialization
-const startApp = () => {
-    try {
-        App.init();
-        console.log("App initialized successfully");
-    } catch (error) {
-        document.body.innerHTML = `<div style="padding: 20px; background: red; color: white;">Init Error: ${error.message}</div>` + document.body.innerHTML;
-    }
-};
-
-// 3. Check if the page is already loaded, otherwise wait for it
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startApp);
-} else {
-    startApp();
-}
+window.addEventListener('DOMContentLoaded', App.init);
