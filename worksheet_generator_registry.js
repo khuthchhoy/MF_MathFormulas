@@ -4,9 +4,9 @@ const ProblemRegistry = {
     // arithmetic: window.arithmetic,
     algebra: window.algebra,
     // trigonometry: window.trigonometry,
-    limit: window.limit
+    limit: window.limit,
     // derivative: window.derivative,
-    // integral: window.integral,
+    integral: window.integral
     // sequences: window.sequences,
     // series: window.series
 };
