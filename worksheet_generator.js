@@ -193,4 +193,4 @@ const App = {
 };
 // 1. Expose App globally
 window.App = App;
-window.addEventListener('DOMContentLoaded', App.init);
+window.addEventListener('DOMContentLoaded', App.init());
