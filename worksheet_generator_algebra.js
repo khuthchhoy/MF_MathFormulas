@@ -1181,6 +1181,158 @@ const algebra = {
                 ans: `= x ${finalOp} ${finalAns}`,
                 sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
             };
+        },
+        //# Family: Solving Systems of Linear Equations in Two Variables (ax + by = c, dx + ey = f)
+        (a, b, c, d) => {
+            // 1. Core fraction arithmetic helper functions
+            const gcd = (m, n) => n === 0 ? Math.abs(m) : gcd(n, m % n);
+            const lcm = (m, n) => (Math.abs(m) * Math.abs(n)) / gcd(m, n);
+
+            const makeFrac = (n, d = 1) => {
+                if (d < 0) { n = -n; d = -d; }
+                let g = gcd(n, d);
+                return { num: n / g, den: d / g };
+            };
+
+            const addFrac = (f1, f2) => makeFrac(f1.num * f2.den + f2.num * f1.den, f1.den * f2.den);
+            const subFrac = (f1, f2) => makeFrac(f1.num * f2.den - f2.num * f1.den, f1.den * f2.den);
+            const multFrac = (f1, f2) => makeFrac(f1.num * f2.num, f1.den * f2.den);
+            const divFrac = (f1, f2) => makeFrac(f1.num * f2.den, f1.den * f2.num);
+
+            // 2. Dynamic generation of 6 parameters (A, B, C, D, E, F) from the 4 seeds
+            const getParam = (val, offset) => {
+                let num = (Math.abs(val + offset) % 13) - 6; // Values range from -6 to 6
+                if (num === 0) num = (offset % 2 === 0) ? 2 : -2; // Avoid zero coefficients
+                
+                // Mix of integers (denoted by 1) and small denominators for fractional variants
+                let dens = [1, 1, 1, 2, 3, 4];
+                let den = dens[Math.abs(val * offset) % dens.length];
+                return makeFrac(num, den);
+            };
+
+            let fracA = getParam(a, 1);
+            let fracB = getParam(b, 2);
+            let fracC = getParam(c, 3);
+            let fracD = getParam(d, 4);
+            let fracE = getParam(a + b, 5);
+            let fracF = getParam(c + d, 6);
+
+            // 3. Validation safeguard: Ensure the lines are not parallel or overlapping (Det != 0)
+            let det = subFrac(multFrac(fracA, fracE), multFrac(fracB, fracD));
+            if (det.num === 0) {
+                fracE = addFrac(fracE, makeFrac(1, 1));
+                det = subFrac(multFrac(fracA, fracE), multFrac(fracB, fracD));
+            }
+
+            // 4. LaTeX formatting string builders
+            const formatFracTerm = (f, variable, isFirst) => {
+                if (f.num === 0) return "";
+                let isNeg = f.num < 0;
+                let absNum = Math.abs(f.num);
+                let signStr = isFirst ? (isNeg ? "-" : "") : (isNeg ? "- " : "+ ");
+                
+                let termStr = "";
+                if (f.den === 1) {
+                    termStr = absNum === 1 ? variable : `${absNum}${variable}`;
+                } else {
+                    termStr = absNum === 1 ? `\\frac{${variable}}{${f.den}}` : `\\frac{${absNum}${variable}}{${f.den}}`;
+                }
+                return signStr + termStr;
+            };
+
+            const formatFracPure = (f) => {
+                if (f.num === 0) return "0";
+                if (f.den === 1) return f.num.toString();
+                return f.num < 0 ? `-\\frac{${Math.abs(f.num)}}{${f.den}}` : `\\frac{${f.num}}{${f.den}}`;
+            };
+
+            let eq1 = `${formatFracTerm(fracA, 'x', true)} ${formatFracTerm(fracB, 'y', false)} = ${formatFracPure(fracC)}`;
+            let eq2 = `${formatFracTerm(fracD, 'x', true)} ${formatFracTerm(fracE, 'y', false)} = ${formatFracPure(fracF)}`;
+            let exprStr = `\\begin{cases} ${eq1} \\\\ ${eq2} \\end{cases}`;
+
+            let solLines = [`\\text{Given the system of equations:}`];
+            solLines.push(`\\begin{cases} ${eq1} & \\text{(1)} \\\\ ${eq2} & \\text{(2)} \\end{cases}`);
+
+            // 5. Normalization: Clear denominators to transition smoothly to standard integer setups
+            let lcm1 = lcm(fracA.den, fracB.den); lcm1 = lcm(lcm1, fracC.den);
+            let lcm2 = lcm(fracD.den, fracE.den); lcm2 = lcm(lcm2, fracF.den);
+
+            let A_int = (fracA.num * lcm1) / fracA.den;
+            let B_int = (fracB.num * lcm1) / fracB.den;
+            let C_int = (fracC.num * lcm1) / fracC.den;
+
+            let D_int = (fracD.num * lcm2) / fracD.den;
+            let E_int = (fracE.num * lcm2) / fracE.den;
+            let F_int = (fracF.num * lcm2) / fracF.den;
+
+            const formatIntTerm = (coeff, variable, isFirst) => {
+                if (coeff === 0) return "";
+                let num = Math.abs(coeff);
+                let numStr = num === 1 ? "" : num.toString();
+                if (isFirst) {
+                    return coeff < 0 ? `-${numStr}${variable}` : `${numStr}${variable}`;
+                } else {
+                    return coeff < 0 ? `- ${numStr}${variable}` : `+ ${numStr}${variable}`;
+                }
+            };
+
+            let eq3_str = `${formatIntTerm(A_int, 'x', true)} ${formatIntTerm(B_int, 'y', false)} = ${C_int}`;
+            let eq4_str = `${formatIntTerm(D_int, 'x', true)} ${formatIntTerm(E_int, 'y', false)} = ${F_int}`;
+
+            if (lcm1 > 1 || lcm2 > 1) {
+                solLines.push(`\\text{Clear denominators by multiplying (1) by } ${lcm1} \\text{ and (2) by } ${lcm2}:`);
+            } else {
+                solLines.push(`\\text{The system has integer coefficients:}`);
+            }
+            solLines.push(`\\begin{cases} ${eq3_str} & \\text{(3)} \\\\ ${eq4_str} & \\text{(4)} \\end{cases}`);
+
+            // 6. Systematic Algebraic Elimination
+            let mult1 = Math.abs(D_int);
+            let mult2 = Math.abs(A_int);
+            if (A_int * D_int > 0) mult2 = -mult2;
+
+            let g = gcd(mult1, mult2);
+            mult1 /= g;
+            mult2 /= g;
+
+            let A1 = A_int * mult1, B1 = B_int * mult1, C1 = C_int * mult1;
+            let D2 = D_int * mult2, E2 = E_int * mult2, F2 = F_int * mult2;
+
+            solLines.push(`\\text{Multiply equation (3) by } ${mult1} \\text{ and equation (4) by } ${mult2}:`);
+            let eq3_mult = `${formatIntTerm(A1, 'x', true)} ${formatIntTerm(B1, 'y', false)} = ${C1}`;
+            let eq4_mult = `${formatIntTerm(D2, 'x', true)} ${formatIntTerm(E2, 'y', false)} = ${F2}`;
+            solLines.push(`\\begin{cases} ${eq3_mult} \\\\ ${eq4_mult} \\end{cases}`);
+
+            let sumB = B1 + E2;
+            let sumC = C1 + F2;
+
+            solLines.push(`\\text{Add the equations together to eliminate } x:`);
+            solLines.push(`${formatIntTerm(sumB, 'y', true)} = ${sumC}`);
+
+            let SolY = makeFrac(sumC, sumB);
+            solLines.push(`y = ${formatFracPure(SolY)}`);
+
+            // 7. Back-Substitution Step
+            solLines.push(`\\text{Substitute } y = ${formatFracPure(SolY)} \\text{ into equation (3):}`);
+            let B_times_Y = multFrac(makeFrac(B_int, 1), SolY);
+            
+            let sign = B_times_Y.num < 0 ? "-" : "+";
+            let absBY = formatFracPure(makeFrac(Math.abs(B_times_Y.num), B_times_Y.den));
+            solLines.push(`${formatIntTerm(A_int, 'x', true)} ${sign} ${absBY} = ${C_int}`);
+
+            let rhsFrac = subFrac(makeFrac(C_int, 1), B_times_Y);
+            solLines.push(`${formatIntTerm(A_int, 'x', true)} = ${formatFracPure(rhsFrac)}`);
+
+            let SolX = divFrac(rhsFrac, makeFrac(A_int, 1));
+            solLines.push(`x = ${formatFracPure(SolX)}`);
+
+            solLines.push(`\\text{Final Solution Set: } (x, y) = \\left(${formatFracPure(SolX)}, ${formatFracPure(SolY)}\\right)`);
+
+            return {
+                expr: `\\begin{aligned} &\\text{Solve system of equations:}\\\\ &\\quad ${exprStr}\\end{aligned}`,
+                ans: `x = ${formatFracPure(SolX)}, \\quad y = ${formatFracPure(SolY)}`,
+                sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
+            };
         }
     ],
     med: [
@@ -1940,8 +2092,341 @@ const algebra = {
             solLines.push(`\\text{Final Intersection Set: } ${ansStr}`);
 
             return {
-                expr: `\\begin{aligned} &\\text{Solve the system of inequalities: } \\\\ &\\quad ${exprStr}\\end{aligned}`,
+                expr: `\\begin{aligned} &\\text{Solve system of inequalities: } \\\\ &\\quad ${exprStr}\\end{aligned}`,
                 ans: `= ${ansStr}`,
+                sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
+            };
+        },
+        // # Family: Systems of three Linear Equations (a1x + b1y + c1z = d1, a2x + b2y + c2z = d2, a3x + b3y + c3z = d3)
+        (a, b, c, d) => {
+            // 1. Core fraction arithmetic helper functions
+            const gcd = (m, n) => n === 0 ? Math.abs(m) : gcd(n, m % n);
+            const lcm = (m, n) => (Math.abs(m) * Math.abs(n)) / gcd(m, n);
+
+            const makeFrac = (n, d = 1) => {
+                if (d < 0) { n = -n; d = -d; }
+                let g = gcd(n, d);
+                return { num: n / g, den: d / g };
+            };
+
+            const addFrac = (f1, f2) => makeFrac(f1.num * f2.den + f2.num * f1.den, f1.den * f2.den);
+            const subFrac = (f1, f2) => makeFrac(f1.num * f2.den - f2.num * f1.den, f1.den * f2.den);
+            const multFrac = (f1, f2) => makeFrac(f1.num * f2.num, f1.den * f2.den);
+            const divFrac = (f1, f2) => makeFrac(f1.num * f2.den, f1.den * f2.num);
+            const scaleFrac = (f, s) => makeFrac(f.num * s, f.den);
+
+            // 2. Generate a target integer solution (x, y, z) to guarantee a clean system
+            let X = (Math.abs(a) % 5) - 2; // -2 to 2
+            let Y = (Math.abs(b) % 5) - 2; // -2 to 2
+            let Z = (Math.abs(c) % 5) - 2; // -2 to 2
+            if (X === 0 && Y === 0 && Z === 0) { X = 1; Y = -1; Z = 2; } 
+
+            // 3. Helper to generate dynamic fractional coefficients
+            const getCoeff = (seed, offset) => {
+                let num = (Math.abs(seed + offset) % 9) - 4; // -4 to 4
+                if (num === 0) num = (offset % 2 === 0) ? 1 : -2; 
+                let dens = [1, 1, 2, 3]; 
+                let den = dens[Math.abs(seed * offset) % dens.length];
+                return makeFrac(num, den);
+            };
+
+            let fracA1, fracB1, fracC1, fracA2, fracB2, fracC2, fracA3, fracB3, fracC3;
+            let a1, b1, c1, a2, b2, c2, a3, b3, c3;
+            let h1, k1, h2, k2, det2x2;
+
+            let shift = 0;
+            while (true) {
+                fracA1 = getCoeff(a, 1 + shift); fracB1 = getCoeff(b, 2 + shift); fracC1 = getCoeff(c, 3 + shift);
+                fracA2 = getCoeff(d, 4 + shift); fracB2 = getCoeff(a + b, 5 + shift); fracC2 = getCoeff(c + d, 6 + shift);
+                fracA3 = getCoeff(b + c, 7 + shift); fracB3 = getCoeff(a + d, 8 + shift); fracC3 = getCoeff(a + b + c, 9 + shift);
+
+                let loopLcm1 = lcm(fracA1.den, lcm(fracB1.den, fracC1.den));
+                let loopLcm2 = lcm(fracA2.den, lcm(fracB2.den, fracC2.den));
+                let loopLcm3 = lcm(fracA3.den, lcm(fracB3.den, fracC3.den));
+
+                a1 = (fracA1.num * loopLcm1) / fracA1.den; b1 = (fracB1.num * loopLcm1) / fracB1.den; c1 = (fracC1.num * loopLcm1) / fracC1.den;
+                a2 = (fracA2.num * loopLcm2) / fracA2.den; b2 = (fracB2.num * loopLcm2) / fracB2.den; c2 = (fracC2.num * loopLcm2) / fracC2.den;
+                a3 = (fracA3.num * loopLcm3) / fracA3.den; b3 = (fracB3.num * loopLcm3) / fracB3.den; c3 = (fracC3.num * loopLcm3) / fracC3.den;
+
+                h1 = b1 * a2 - b2 * a1;
+                k1 = c1 * a2 - c2 * a1;
+                h2 = b1 * a3 - b3 * a1;
+                k2 = c1 * a3 - c3 * a1;
+                det2x2 = h1 * k2 - k1 * h2;
+
+                if (a1 !== 0 && h1 !== 0 && det2x2 !== 0) {
+                    break; 
+                }
+                shift++;
+            }
+
+            // Compute true constants based on target solutions
+            let fracD1 = addFrac(addFrac(scaleFrac(fracA1, X), scaleFrac(fracB1, Y)), scaleFrac(fracC1, Z));
+            let fracD2 = addFrac(addFrac(scaleFrac(fracA2, X), scaleFrac(fracB2, Y)), scaleFrac(fracC2, Z));
+            let fracD3 = addFrac(addFrac(scaleFrac(fracA3, X), scaleFrac(fracB3, Y)), scaleFrac(fracC3, Z));
+
+            // Final clean integer extraction
+            let lcm1 = lcm(fracA1.den, lcm(fracB1.den, fracC1.den)); lcm1 = lcm(lcm1, fracD1.den);
+            let lcm2 = lcm(fracA2.den, lcm(fracB2.den, fracC2.den)); lcm2 = lcm(lcm2, fracD2.den);
+            let lcm3 = lcm(fracA3.den, lcm(fracB3.den, fracC3.den)); lcm3 = lcm(lcm3, fracD3.den);
+
+            a1 = (fracA1.num * lcm1) / fracA1.den; b1 = (fracB1.num * lcm1) / fracB1.den; c1 = (fracC1.num * lcm1) / fracC1.den; let d1 = (fracD1.num * lcm1) / fracD1.den;
+            a2 = (fracA2.num * lcm2) / fracA2.den; b2 = (fracB2.num * lcm2) / fracB2.den; c2 = (fracC2.num * lcm2) / fracC2.den; let d2 = (fracD2.num * lcm2) / fracD2.den;
+            a3 = (fracA3.num * lcm3) / fracA3.den; b3 = (fracB3.num * lcm3) / fracB3.den; c3 = (fracC3.num * lcm3) / fracC3.den; let d3 = (fracD3.num * lcm3) / fracD3.den;
+
+            // 4. LaTeX formatting string builders (Updated to eliminate stacked fractions)
+            const formatFracTerm = (f, variable, isFirst) => {
+                if (f.num === 0) return "";
+                let isNeg = f.num < 0; let absNum = Math.abs(f.num);
+                let signStr = isFirst ? (isNeg ? "-" : "") : (isNeg ? "- " : "+ ");
+                
+                // Changed here: renders \frac{absNum}{den}variable instead of pulling variable inside the numerator
+                let termStr = f.den === 1 ? (absNum === 1 ? variable : `${absNum}${variable}`) : `\\frac{${absNum}}{${f.den}}${variable}`;
+                return signStr + termStr;
+            };
+
+            const formatFracPure = (f) => {
+                if (f.num === 0) return "0";
+                if (f.den === 1) return f.num.toString();
+                return f.num < 0 ? `-\\frac{${Math.abs(f.num)}}{${f.den}}` : `\\frac{${f.num}}{${f.den}}`;
+            };
+
+            const formatIntTerm = (coeff, variable, isFirst) => {
+                if (coeff === 0) return "";
+                let num = Math.abs(coeff); let numStr = num === 1 ? "" : num.toString();
+                return isFirst ? (coeff < 0 ? `-${numStr}${variable}` : `${numStr}${variable}`) : (coeff < 0 ? `- ${numStr}${variable}` : `+ ${numStr}${variable}`);
+            };
+
+            let eq1 = `${formatFracTerm(fracA1, 'x', true)} ${formatFracTerm(fracB1, 'y', false)} ${formatFracTerm(fracC1, 'z', false)} = ${formatFracPure(fracD1)}`;
+            let eq2 = `${formatFracTerm(fracA2, 'x', true)} ${formatFracTerm(fracB2, 'y', false)} ${formatFracTerm(fracC2, 'z', false)} = ${formatFracPure(fracD2)}`;
+            let eq3 = `${formatFracTerm(fracA3, 'x', true)} ${formatFracTerm(fracB3, 'y', false)} ${formatFracTerm(fracC3, 'z', false)} = ${formatFracPure(fracD3)}`;
+            let exprStr = `\\begin{cases} ${eq1} \\\\ ${eq2} \\\\ ${eq3} \\end{cases}`;
+
+            let solLines = [`\\text{Given the system of equations:}`];
+            solLines.push(`\\begin{cases} ${eq1} & \\text{(1)} \\\\ ${eq2} & \\text{(2)} \\\\ ${eq3} & \\text{(3)} \\end{cases}`);
+
+            // 5. Clear Denominators Step
+            let eq1_clear = `${formatIntTerm(a1, 'x', true)} ${formatIntTerm(b1, 'y', false)} ${formatIntTerm(c1, 'z', false)} = ${d1}`;
+            let eq2_clear = `${formatIntTerm(a2, 'x', true)} ${formatIntTerm(b2, 'y', false)} ${formatIntTerm(c2, 'z', false)} = ${d2}`;
+            let eq3_clear = `${formatIntTerm(a3, 'x', true)} ${formatIntTerm(b3, 'y', false)} ${formatIntTerm(c3, 'z', false)} = ${d3}`;
+
+            solLines.push(`\\text{Step 1: Multiply each equation by its coefficient LCM to work with integers:}`);
+            solLines.push(`\\begin{cases} ${eq1_clear} & \\text{(4)} \\\\ ${eq2_clear} & \\text{(5)} \\\\ ${eq3_clear} & \\text{(6)} \\end{cases}`);
+
+            // 6. Systematic Elimination of variable x
+            solLines.push(`\\text{Step 2: Eliminate } x \\text{ from equation (5) and (6) using equation (4):}`);
+            
+            h1 = b1 * a2 - b2 * a1; k1 = c1 * a2 - c2 * a1; let led1 = d1 * a2 - d2 * a1;
+            let g1 = gcd(gcd(h1, k1), led1); if (g1 > 1) { h1 /= g1; k1 /= g1; led1 /= g1; }
+            let eq4_str = `${formatIntTerm(h1, 'y', true)} ${formatIntTerm(k1, 'z', false)} = ${led1}`;
+            solLines.push(`\\text{Combine (4) and (5) } \\implies {${eq4_str}} \\quad \\text{(7)}`);
+
+            h2 = b1 * a3 - b3 * a1; k2 = c1 * a3 - c3 * a1; let led2 = d1 * a3 - d3 * a1;
+            let g2 = gcd(gcd(h2, k2), led2); if (g2 > 1) { h2 /= g2; k2 /= g2; led2 /= g2; }
+            let eq5_str = `${formatIntTerm(h2, 'y', true)} ${formatIntTerm(k2, 'z', false)} = ${led2}`;
+            solLines.push(`\\text{Combine (4) and (6) } \\implies {${eq5_str}} \\quad \\text{(8)}`);
+
+            // 7. Solve reduced 2x2 system
+            solLines.push(`\\text{Step 3: Solve the remaining } 2 \\times 2 \\text{ system of equations (7) and (8):}`);
+            
+            let zCoeff = k1 * h2 - k2 * h1;
+            let zConst = led1 * h2 - led2 * h1;
+            solLines.push(`\\text{Multiply and subtract (8) from (7) to eliminate } y:`);
+            solLines.push(`${formatIntTerm(zCoeff, 'z', true)} = ${zConst}`);
+            solLines.push(`z = \\frac{${zConst}}{${zCoeff}} = ${Z}`);
+
+            solLines.push(`\\text{Substitute } z = ${Z} \\text{ back into equation (7):}`);
+            let k1_times_Z = k1 * Z;
+            solLines.push(`${formatIntTerm(h1, 'y', true)} ${k1_times_Z < 0 ? '-' : '+'} ${Math.abs(k1_times_Z)} = ${led1}`);
+            let rhsY = led1 - k1_times_Z;
+            solLines.push(`${formatIntTerm(h1, 'y', true)} = ${rhsY}`);
+            solLines.push(`y = \\frac{${rhsY}}{${h1}} = ${Y}`);
+
+            // 8. Back substitute to find x
+            solLines.push(`\\text{Step 4: Substitute } y = ${Y} \\text{ and } z = ${Z} \\text{ back into equation (4) to find } x:`);
+            let b1_Y = b1 * Y;
+            let c1_Z = c1 * Z;
+            let combined_sub = b1_Y + c1_Z;
+            solLines.push(`${formatIntTerm(a1, 'x', true)} ${b1_Y < 0 ? '-' : '+'} ${Math.abs(b1_Y)} ${c1_Z < 0 ? '-' : '+'} ${Math.abs(c1_Z)} = ${d1}`);
+            solLines.push(`${formatIntTerm(a1, 'x', true)} ${combined_sub < 0 ? '-' : '+'} ${Math.abs(combined_sub)} = ${d1}`);
+            let rhsX = d1 - combined_sub;
+            solLines.push(`${formatIntTerm(a1, 'x', true)} = ${rhsX}`);
+            solLines.push(`x = \\frac{${rhsX}}{${a1}} = ${X}`);
+
+            solLines.push(`\\text{Final Solution Triplet: } (x, y, z) = (${X}, ${Y}, ${Z})`);
+
+            return {
+                expr: `\\begin{aligned} &\\text{Solve system of equations} \\\\ & \\quad${exprStr}\\end{aligned}`,
+                ans: `x = ${X}, \\quad y = ${Y}, \\quad z = ${Z}`,
+                sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
+            };
+        },
+        // # Family: Systems of Quadratic Equations and Linear Equations (ax^2 + by^2 = c, px + qy = r)
+        (a, b, c, d) => {
+            // 1. Core fraction arithmetic helper functions
+            const gcd = (m, n) => n === 0 ? Math.abs(m) : gcd(n, m % n);
+            const lcm = (m, n) => (Math.abs(m) * Math.abs(n)) / gcd(m, n);
+
+            const makeFrac = (n, d = 1) => {
+                if (d < 0) { n = -n; d = -d; }
+                let g = gcd(n, d);
+                return { num: n / g, den: d / g };
+            };
+
+            const addFrac = (f1, f2) => makeFrac(f1.num * f2.den + f2.num * f1.den, f1.den * f2.den);
+            const subFrac = (f1, f2) => makeFrac(f1.num * f2.den - f2.num * f1.den, f1.den * f2.den);
+            const multFrac = (f1, f2) => makeFrac(f1.num * f2.num, f1.den * f2.den);
+            const divFrac = (f1, f2) => makeFrac(f1.num * f2.den, f1.den * f2.num);
+            const scaleFrac = (f, s) => makeFrac(f.num * s, f.den);
+
+            // NEW: Beautiful Typographic Unified Equation Formatter
+            const formatPolynomial = (components, rhsFrac) => {
+                let str = "";
+                let firstRendered = false;
+                
+                components.forEach((c) => {
+                    if (c.frac.num === 0) return;
+                    
+                    let isNeg = c.frac.num < 0;
+                    let absNum = Math.abs(c.frac.num);
+                    let den = c.frac.den;
+                    
+                    // Handle spacing and operators beautifully
+                    if (!firstRendered) {
+                        if (isNeg) str += "-";
+                        firstRendered = true;
+                    } else {
+                        str += isNeg ? " - " : " + ";
+                    }
+                    
+                    // Format coefficients cleanly
+                    let coeffStr = "";
+                    if (den === 1) {
+                        if (absNum !== 1 || !c.var) coeffStr = absNum.toString();
+                    } else {
+                        coeffStr = `\\frac{${absNum}}{${den}}`;
+                    }
+                    
+                    str += coeffStr + (c.var || "");
+                });
+                
+                if (!firstRendered) str += "0";
+                
+                // Format Right Hand Side cleanly
+                let rhsStr = "";
+                if (rhsFrac.num < 0) rhsStr += "-";
+                let absRHS = Math.abs(rhsFrac.num);
+                rhsStr += rhsFrac.den === 1 ? absRHS.toString() : `\\frac{${absRHS}}{${rhsFrac.den}}`;
+                
+                return `${str} = ${rhsStr}`;
+            };
+
+            const formatFracPure = (f) => {
+                if (f.num === 0) return "0";
+                if (f.den === 1) return f.num.toString();
+                return f.num < 0 ? `-\\frac{${Math.abs(f.num)}}{${f.den}}` : `\\frac{${f.num}}{${f.den}}`;
+            };
+
+            // 2. Helper to generate dynamic fractional coefficients
+            const getCoeff = (seed, offset) => {
+                let num = (Math.abs(seed + offset) % 7) - 3; // Range: -3 to 3
+                if (num === 0) num = (offset % 2 === 0) ? 2 : -2; 
+                let dens = [1, 1, 2, 3]; 
+                let den = dens[Math.abs(seed * offset) % dens.length];
+                return makeFrac(num, den);
+            };
+
+            let shift = 0;
+            let fracA, fracB, fracP, fracQ, fracC, fracR;
+            let fracA_q, fracB_q, fracC_q;
+            let X1, Y1;
+
+            while (true) {
+                fracA = getCoeff(a, 1 + shift);
+                fracB = getCoeff(b, 2 + shift);
+                fracP = getCoeff(c, 3 + shift);
+                fracQ = getCoeff(d, 4 + shift);
+
+                if (fracQ.num === 0) { shift++; continue; }
+
+                X1 = (Math.abs(a + shift) % 3) - 1; 
+                Y1 = (Math.abs(b + shift) % 3) - 1; 
+                if (X1 === 0 && Y1 === 0) { X1 = 1; Y1 = 1; }
+
+                fracC = addFrac(scaleFrac(fracA, X1 * X1), scaleFrac(fracB, Y1 * Y1));
+                fracR = addFrac(scaleFrac(fracP, X1), scaleFrac(fracQ, Y1));
+
+                // System matrix expansion transformation setup
+                fracA_q = addFrac(multFrac(fracA, multFrac(fracQ, fracQ)), multFrac(fracB, multFrac(fracP, fracP)));
+                fracB_q = scaleFrac(multFrac(fracB, multFrac(fracP, fracR)), -2);
+                fracC_q = subFrac(multFrac(fracB, multFrac(fracR, fracR)), multFrac(fracC, multFrac(fracQ, fracQ)));
+
+                if (fracA_q.num !== 0) { break; }
+                shift++;
+            }
+
+            // 3. Clear denominators on intermediate steps to keep operations integer-focused
+            let L = lcm(fracA_q.den, lcm(fracB_q.den, fracC_q.den));
+            let A_int = (fracA_q.num * L) / fracA_q.den;
+            let B_int = (fracB_q.num * L) / fracB_q.den;
+            let C_int = (fracC_q.num * L) / fracC_q.den;
+
+            let disc = B_int * B_int - 4 * A_int * C_int;
+            let sqrtDisc = Math.round(Math.sqrt(disc));
+
+            let fracX1 = makeFrac(-B_int + sqrtDisc, 2 * A_int);
+            let fracX2 = makeFrac(-B_int - sqrtDisc, 2 * A_int);
+
+            let fracY1 = divFrac(subFrac(fracR, multFrac(fracP, fracX1)), fracQ);
+            let fracY2 = divFrac(subFrac(fracR, multFrac(fracP, fracX2)), fracQ);
+
+            // 4. Constructing Beautiful LaTeX Strings using our new component formatter
+            let eq1 = formatPolynomial([{frac: fracA, var: 'x^2'}, {frac: fracB, var: 'y^2'}], fracC);
+            let eq2 = formatPolynomial([{frac: fracP, var: 'x'}, {frac: fracQ, var: 'y'}], fracR);
+            let exprStr = `\\begin{cases} ${eq1} \\\\ ${eq2} \\end{cases}`;
+
+            let solLines = [`\\text{Given the system of equations:}`];
+            solLines.push(`\\begin{cases} ${eq1} & \\text{(1)} \\\\ ${eq2} & \\text{(2)} \\end{cases}`);
+
+            solLines.push(`\\text{Step 1: Isolate } y \\text{ from the linear equation (2):}`);
+            let y_isolated_lhs = formatPolynomial([{frac: divFrac(fracR, fracQ), var: ""}, {frac: scaleFrac(divFrac(fracP, fracQ), -1), var: "x"}], makeFrac(0, 1)).split(" = ")[0];
+            solLines.push(`y = ${y_isolated_lhs}`);
+
+            solLines.push(`\\text{Step 2: Substitute } y \\text{ into equation (1) and assemble the quadratic form:}`);
+            let rawQuadStr = formatPolynomial([{frac: fracA_q, var: 'x^2'}, {frac: fracB_q, var: 'x'}, {frac: fracC_q, var: ''}], makeFrac(0, 1));
+            solLines.push(`${rawQuadStr}`);
+
+            if (L > 1) {
+                solLines.push(`\\text{Clear fraction fractions by multiplying across by the LCM } (${L}):`);
+                let clearQuadStr = formatPolynomial([{frac: makeFrac(A_int), var: 'x^2'}, {frac: makeFrac(B_int), var: 'x'}, {frac: makeFrac(C_int), var: ''}], makeFrac(0, 1));
+                solLines.push(`${clearQuadStr}`);
+            }
+
+            solLines.push(`\\text{Apply the quadratic formula to find the rational roots for } x:`);
+            let b_display = B_int < 0 ? `(${B_int})` : B_int.toString();
+            solLines.push(`x = \\frac{-${b_display} \\pm \\sqrt{(${B_int})^2 - 4(${A_int})(${C_int})}}{2(${A_int})}`);
+            solLines.push(`x = \\frac{${-B_int} \\pm ${sqrtDisc}}{${2 * A_int}}`);
+
+            let x1_str = formatFracPure(fracX1);
+            let x2_str = formatFracPure(fracX2);
+            let y1_str = formatFracPure(fracY1);
+            let y2_str = formatFracPure(fracY2);
+
+            solLines.push(`\\implies x_1 = ${x1_str}, \\quad x_2 = ${x2_str}`);
+
+            solLines.push(`\\text{Step 3: Back-substitute each } x \\text{ value to solve for its paired } y \\text{ value:}`);
+            solLines.push(`\\text{For } x_1 = ${x1_str} \\implies y_1 = ${y1_str}`);
+            solLines.push(`\\text{For } x_2 = ${x2_str} \\implies y_2 = ${y2_str}`);
+
+            let finalAns = `\\left(${x1_str}, ${y1_str}\\right)`;
+            if (x1_str !== x2_str) {
+                finalAns += ` \\text{ and } \\left(${x2_str}, ${y2_str}\\right)`;
+            }
+            solLines.push(`\\text{Final Solution Set: } ${finalAns}`);
+
+            return {
+                expr: `\\begin{aligned}&\\text{Solve system equations: }\\\\ &\\quad ${exprStr} \\end{aligned}`,
+                ans: `(x, y) = ${finalAns}`,
                 sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
             };
         }
