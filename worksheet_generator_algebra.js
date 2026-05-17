@@ -1944,31 +1944,6 @@ const algebra = {
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
             };
-        },
-        // 
-        (a, b, c, d) => {
-            let valA = a !== 0 ? a : 2;
-            let valB = b !== 0 ? b : -3;
-            let mid = valA + valB;
-            let last = valA * valB;
-            
-            let signA = valA > 0 ? `+ ${valA}` : `- ${Math.abs(valA)}`;
-            let signB = valB > 0 ? `+ ${valB}` : `- ${Math.abs(valB)}`;
-            
-            let midStr = mid === 0 ? "" : mid === 1 ? " + x" : mid === -1 ? " - x" : mid > 0 ? ` + ${mid}x` : ` - ${Math.abs(mid)}x`;
-            let lastStr = last > 0 ? ` + ${last}` : ` - ${Math.abs(last)}`;
-            let ansStr = `x^2${midStr}${lastStr}`;
-            
-            return {
-                expr: `\\begin{aligned}&\\text{Solve equation: } \\\\ & \\quad (x ${signA})(x ${signB}) \\end{aligned}`,
-                ans: `= ${ansStr}`,
-                sol: `\\begin{aligned}
-                    &\\text{Expand via the FOIL method:} \\\\
-                    &= x \\cdot x + x \\cdot (${valB}) + (${valA}) \\cdot x + (${valA}) \\cdot (${valB}) \\\\
-                    &= x^2 ${valB > 0 ? '+ ' : '- '}${Math.abs(valB)}x ${valA > 0 ? '+ ' : '- '}${Math.abs(valA)}x ${last > 0 ? '+ ' : '- '}${Math.abs(last)} \\\\
-                    &= ${ansStr}
-                \\end{aligned}`
-            };
         }
     ],
     hard: [
