@@ -1185,7 +1185,7 @@ const algebra = {
     ],
     med: [
         //# Family: Solving Quadratic Equations by the Quadratic Formula (ax^2 + bx + c = 0)
-       (a, b, c, d) => {
+        (a, b, c, d) => {
             // Generate base value for A
             let A = (Math.abs(a) % 5) + 2;
             
@@ -1314,6 +1314,660 @@ const algebra = {
                 expr: `\\begin{aligned}&\\text{Solve equation: }\\\\ & ${  exprStr}\\end{aligned}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
+            };
+        },
+        //# Family: Solving Quadratic Inequalities (ax^2 + bx + c > 0, ax^2 + bx + c < 0, ax^2 + bx + c ≥ 0, ax^2 + bx + c ≤ 0)
+        (a, b, c, d) => {
+            // Generate base value for A (can be negative roughly 50% of the time)
+            let A = (Math.abs(a) % 5) + 2;
+            if (a < 0 || Math.abs(a) % 2 === 0) {
+                A = -A;
+            }
+
+            // Select initial inequality operator: 0: '>', 1: '<', 2: '>=', 3: '<='
+            let opIdx = Math.abs(d) % 4;
+            let ops = [">", "<", "\\ge", "\\le"];
+            let op = ops[opIdx];
+
+            // Give each denominator a distinct starting range
+            let denA = (Math.abs(a) % 4) + 2;       
+            let denB = (Math.abs(b + 2) % 4) + 2;   
+            let denC;
+
+            // Generate numerator B
+            let B = b % 7; if (B === 0) B = -3;     
+
+            // 0 = Two Real Roots (Δ > 0)
+            // 1 = One Repeated Root (Δ = 0, general interval solutions)
+            // 2 = One Repeated Root (Δ = 0, FORCED to have exactly one real number solution)
+            // 3 = Complex Roots (Δ < 0)
+            let discVariant = Math.abs(d) % 4; 
+            let C;
+
+            if (discVariant === 0) {
+                // Real distinct roots: force A and C to have opposite signs
+                denC = (Math.abs(c + 1) % 5) + 2;
+                let absC = (Math.abs(c) % 6) + 1;
+                C = A > 0 ? -absC : absC;
+            } else if (discVariant === 1 || discVariant === 2) {
+                // Repeated root: exact backward calculation to lock Δ completely to 0
+                let numC_raw = B * B * denA;
+                let denC_raw = 4 * A * denB * denB;
+                
+                const internalGcd = (x, y) => y === 0 ? Math.abs(x) : internalGcd(y, x % y);
+                let gC_raw = internalGcd(Math.abs(numC_raw), Math.abs(denC_raw));
+                C = numC_raw / gC_raw;
+                denC = denC_raw / gC_raw;
+                if (denC < 0) { C = -C; denC = -denC; }
+
+                // Force the matching operator to guarantee exactly ONE real number solution
+                if (discVariant === 2) {
+                    if (A > 0) {
+                        opIdx = 3; // Forces '<=' so the solution is just the vertex point
+                        op = "\\le";
+                    } else {
+                        opIdx = 2; // Forces '>=' so the solution is just the vertex point
+                        op = "\\ge";
+                    }
+                }
+            } else {
+                // Complex roots: calculate minimum boundaries required to push Δ under 0
+                denC = (Math.abs(c + 1) % 5) + 2;
+                let minC = (B * B * denA * denC) / (4 * A * denB * denB);
+                if (A > 0) {
+                    C = Math.floor(minC) + (Math.abs(c) % 3) + 2;
+                } else {
+                    C = Math.ceil(minC) - (Math.abs(c) % 3) - 2;
+                }
+            }
+
+            const gcd = (x, y) => y === 0 ? Math.abs(x) : gcd(y, x % y);
+            const lcm = (x, y) => (x * y) / gcd(x, y);
+
+            // Reduce all fraction layouts immediately
+            let gA = gcd(Math.abs(A), denA); A /= gA; denA /= gA;
+            let gB = gcd(Math.abs(B), denB); B /= gB; denB /= gB;
+            let gC = gcd(Math.abs(C), denC); C /= gC; denC /= gC;
+
+            const formatFrac = (num, den) => {
+                if (num === 0) return "0";
+                let isNeg = (num < 0) ^ (den < 0);
+                let n = Math.abs(num), d = Math.abs(den);
+                let g = gcd(n, d); n /= g; d /= g;
+                if (d === 1) return isNeg ? `-${n}` : `${n}`;
+                return isNeg ? `-\\frac{${n}}{${d}}` : `\\frac{${n}}{${d}}`;
+            };
+
+            const formatTerm = (num, den, literal, isFirst) => {
+                if (num === 0) return "";
+                let isNeg = (num < 0) ^ (den < 0);
+                let sign = isNeg ? (isFirst ? "-" : " - ") : (isFirst ? "" : " + ");
+                let n = Math.abs(num), d = Math.abs(den);
+                let g = gcd(n, d); n /= g; d /= g;
+                let valStr = d === 1 ? ((n === 1 && literal !== "") ? "" : `${n}`) : `\\frac{${n}}{${d}}`;
+                return `${sign}${valStr}${literal}`;
+            };
+
+            let exprStr = formatTerm(A, denA, "x^2", true) + formatTerm(B, denB, "x", false) + formatTerm(C, denC, "", false) + ` ${op} 0`;
+            let solLines = [`\\text{Given inequality: } ${exprStr}`];
+
+            // Handle LCD clearing calculations
+            let lcd = lcm(lcm(denA, denB), denC);
+            let intA = (A * lcd) / denA;
+            let intB = (B * lcd) / denB;
+            let intC = (C * lcd) / denC;
+
+            if (lcd > 1) {
+                solLines.push(`\\text{Multiply across by the LCD, } ${lcd}, \\text{ to clear fractions:}`);
+                let clearedStr = formatTerm(intA, 1, "x^2", true) + formatTerm(intB, 1, "x", false) + formatTerm(intC, 1, "", false) + ` ${op} 0`;
+                solLines.push(`${clearedStr}`);
+            }
+
+            solLines.push(`\\text{Find critical values from: } ${formatTerm(intA, 1, "x^2", true) + formatTerm(intB, 1, "x", false) + formatTerm(intC, 1, "", false)} = 0`);
+            
+            let disc = intB * intB - 4 * intA * intC;
+            let absDisc = Math.abs(disc);
+            solLines.push(`\\text{Calculate discriminant: } \\Delta = b^2 - 4ac = (${intB})^2 - 4(${intA})(${intC}) = ${disc}`);
+
+            let x1Str = "", x2Str = "";
+            let tableStr = "";
+            let ansStr = "";
+
+            // Custom table layout style rules
+            const macroSetup = "\\newcommand{\\vr}[1]{\\rule{0.4pt}{#1ex}} \\def\\arraystretch{0.6} ";
+
+            if (disc > 0) {
+                // Two distinct real roots branch
+                let outside = 1, inside = absDisc;
+                for (let i = Math.floor(Math.sqrt(absDisc)); i >= 2; i--) {
+                    if (absDisc % (i * i) === 0) { outside = i; inside = absDisc / (i * i); break; }
+                }
+
+                let pureDen = 2 * intA;
+                let g = gcd(gcd(Math.abs(intB), outside), Math.abs(pureDen));
+                let finalB = -intB / g, finalOutside = outside / g, finalDen = pureDen / g;
+                if (finalDen < 0) { finalB = -finalB; finalDen = -finalDen; }
+
+                const formatSingleRoot = (fb, sign, fo, ins, fd) => {
+                    if (ins === 1) return formatFrac(fb + sign * fo, fd);
+                    let radStr = fo === 1 ? `\\sqrt{${ins}}` : `${fo}\\sqrt{${ins}}`;
+                    let numStr = fb === 0 ? (sign === 1 ? radStr : `-${radStr}`) : (sign === 1 ? `${fb} + ${radStr}` : `${fb} - ${radStr}`);
+                    if (fd === 1) return numStr;
+                    return `\\frac{${numStr}}{${fd}}`;
+                };
+
+                let valMinus = (finalB - finalOutside * Math.sqrt(inside)) / finalDen;
+                let valPlus = (finalB + finalOutside * Math.sqrt(inside)) / finalDen;
+
+                if (valMinus < valPlus) {
+                    x1Str = formatSingleRoot(finalB, -1, finalOutside, inside, finalDen);
+                    x2Str = formatSingleRoot(finalB, 1, finalOutside, inside, finalDen);
+                } else {
+                    x1Str = formatSingleRoot(finalB, 1, finalOutside, inside, finalDen);
+                    x2Str = formatSingleRoot(finalB, -1, finalOutside, inside, finalDen);
+                }
+
+                solLines.push(`\\text{Critical Roots: } x_1 = ${x1Str}, \\quad x_2 = ${x2Str}`);
+                solLines.push(`\\text{Construct sign table:}`);
+
+                let signLeft = intA > 0 ? "+" : "-";
+                let signMid = intA > 0 ? "-" : "+";
+                let signRight = intA > 0 ? "+" : "-";
+
+                tableStr = macroSetup + 
+                    `\\begin{array}{c|lcccccr}` +
+                    `x & -\\infty & & ${x1Str} & & ${x2Str} & & +\\infty \\\\` +
+                    `\\hline` +
+                    ` & & & \\vr{1.6} & & \\vr{1.6} & & \\\\` +
+                    `f(x) & & ${signLeft} & 0 & ${signMid} & 0 & ${signRight} & \\\\` +
+                    ` & & & \\vr{1.6} & & \\vr{1.6} & & \\\\` +
+                    `\\end{array}`;
+
+                if (opIdx === 0) ansStr = intA > 0 ? `x \\in (-\\infty, ${x1Str}) \\cup (${x2Str}, \\infty)` : `x \\in (${x1Str}, ${x2Str})`;
+                if (opIdx === 1) ansStr = intA > 0 ? `x \\in (${x1Str}, ${x2Str})` : `x \\in (-\\infty, ${x1Str}) \\cup (${x2Str}, \\infty)`;
+                if (opIdx === 2) ansStr = intA > 0 ? `x \\in (-\\infty, ${x1Str}] \\cup [${x2Str}, \\infty)` : `x \\in [${x1Str}, ${x2Str}]`;
+                if (opIdx === 3) ansStr = intA > 0 ? `x \\in [${x1Str}, ${x2Str}]` : `x \\in (-\\infty, ${x1Str}] \\cup [${x2Str}, \\infty)`;
+
+            } else if (disc === 0) {
+                // One repeated root branch
+                let pureDen = 2 * intA;
+                let g = gcd(Math.abs(intB), Math.abs(pureDen));
+                let finalB = -intB / g, finalDen = pureDen / g;
+                if (finalDen < 0) { finalB = -finalB; finalDen = -finalDen; }
+                x1Str = formatFrac(finalB, finalDen);
+
+                solLines.push(`\\text{Critical Root (repeated): } x_1 = ${x1Str}`);
+                solLines.push(`\\text{Construct sign table:}`);
+
+                let signSide = intA > 0 ? "+" : "-";
+                
+                tableStr = macroSetup + 
+                    `\\begin{array}{c|lcccr}` +
+                    `x & -\\infty & & ${x1Str} & & +\\infty \\\\` +
+                    `\\hline` +
+                    ` & & & \\vr{1.6} & & \\\\` +
+                    `f(x) & & ${signSide} & 0 & ${signSide} & \\\\` +
+                    ` & & & \\vr{1.6} & & \\\\` +
+                    `\\end{array}`;
+
+                if (opIdx === 0) ansStr = intA > 0 ? `x \\in (-\\infty, ${x1Str}) \\cup (${x1Str}, \\infty)` : `\\emptyset`;
+                if (opIdx === 1) ansStr = intA > 0 ? `\\emptyset` : `x \\in (-\\infty, ${x1Str}) \\cup (${x1Str}, \\infty)`;
+                if (opIdx === 2) ansStr = intA > 0 ? `\\mathbb{R}` : `x \\in \\{${x1Str}\\}`;
+                if (opIdx === 3) ansStr = intA > 0 ? `x \\in \\{${x1Str}\\}` : `\\mathbb{R}`;
+
+            } else {
+                // No real roots branch
+                solLines.push(`\\text{Since } \\Delta < 0, \\text{ there are no real critical values. } f(x) \\text{ holds a constant sign.}`);
+                solLines.push(`\\text{Construct sign table:}`);
+
+                let signAll = intA > 0 ? "+" : "-";
+                
+                tableStr = macroSetup + 
+                    `\\begin{array}{c|lcr}` +
+                    `x & -\\infty & & +\\infty \\\\` +
+                    `\\hline` +
+                    ` & & & \\\\` +
+                    `f(x) & & ${signAll} & \\\\` +
+                    ` & & & \\\\` +
+                    `\\end{array}`;
+
+                if (opIdx === 0) ansStr = intA > 0 ? `\\mathbb{R}` : `\\emptyset`;
+                if (opIdx === 1) ansStr = intA > 0 ? `\\emptyset` : `\\mathbb{R}`;
+                if (opIdx === 2) ansStr = intA > 0 ? `\\mathbb{R}` : `\\emptyset`;
+                if (opIdx === 3) ansStr = intA > 0 ? `\\emptyset` : `\\mathbb{R}`;
+            }
+            
+            solLines.push(tableStr);
+            solLines.push(`\\text{Final Solution Set: } ${ansStr}`);
+
+            return {
+                expr: `\\begin{aligned} &\\text{Solve inequality: } \\\\ &\\quad ${exprStr}\\end{aligned}`,
+                ans: `= ${ansStr}`,
+                sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
+            };
+        },
+        //# Family: Solving Rational Inequalities (f(x)/g(x) > 0, f(x)/g(x) < 0, f(x)/g(x) ≥ 0, f(x)/g(x) ≤ 0)
+        (a, b, c, d) => {
+            // 1. Generate strictly distinct root ranges to guarantee clean intervals
+            let r1 = (Math.abs(a) % 3) - 4; // Ranges from -4 to -2
+            let r2 = (Math.abs(b) % 2) - 1; // Ranges from -1 to 0
+            let r3 = (Math.abs(c) % 2) + 1; // Ranges from 1 to 2
+            let r4 = (Math.abs(d) % 3) + 3; // Ranges from 3 to 5
+
+            // 2. Select inequality layout mode based on seed
+            let mode = Math.abs(a + b + c + d) % 3;
+            
+            let numRoots, denRoots;
+            if (mode === 0) {
+                // Quadratic over Linear (3 roots)
+                numRoots = [r1, r3];
+                denRoots = [r2];
+            } else if (mode === 1) {
+                // Quadratic over Quadratic (4 roots)
+                numRoots = [r1, r4];
+                denRoots = [r2, r3];
+            } else {
+                // Linear over Quadratic (3 roots)
+                numRoots = [r2];
+                denRoots = [r1, r3];
+            }
+
+            // 3. Establish leading coefficients (allow negative possibilities for both)
+            let A = (Math.abs(a) % 3) + 1;
+            if (a < 0 || Math.abs(c) % 2 === 0) A = -A;
+            
+            let P = (Math.abs(b) % 3) + 1;
+            if (b < 0 || Math.abs(d) % 2 === 0) P = -P;
+
+            // 4. Helper to expand roots into standard form polynomial coefficients [x^2, x, const]
+            const getCoeffs = (roots, lead) => {
+                if (roots.length === 1) {
+                    return [0, lead, -lead * roots[0]];
+                }
+                if (roots.length === 2) {
+                    return [lead, -lead * (roots[0] + roots[1]), lead * roots[0] * roots[1]];
+                }
+            };
+
+            let numCoeffs = getCoeffs(numRoots, A);
+            let denCoeffs = getCoeffs(denRoots, P);
+
+            const formatPoly = (coeffs) => {
+                let [c2, c1, c0] = coeffs;
+                let terms = [];
+                if (c2 !== 0) {
+                    if (c2 === 1) terms.push("x^2");
+                    else if (c2 === -1) terms.push("-x^2");
+                    else terms.push(`${c2}x^2`);
+                }
+                if (c1 !== 0) {
+                    let absC1 = Math.abs(c1);
+                    let val = absC1 === 1 ? "x" : `${absC1}x`;
+                    if (c1 > 0) terms.push(terms.length > 0 ? `+ ${val}` : val);
+                    else terms.push(terms.length > 0 ? `- ${val}` : `-${val}`);
+                }
+                if (c0 !== 0) {
+                    let absC0 = Math.abs(c0);
+                    if (c0 > 0) terms.push(terms.length > 0 ? `+ ${absC0}` : `${absC0}`);
+                    else terms.push(terms.length > 0 ? `- ${absC0}` : `-${absC0}`);
+                }
+                return terms.join(" ") || "0";
+            };
+
+            let numStr = formatPoly(numCoeffs);
+            let denStr = formatPoly(denCoeffs);
+
+            // Select operator
+            let opIdx = Math.abs(c) % 4;
+            let ops = [">", "<", "\\ge", "\\le"];
+            let op = ops[opIdx];
+
+            let exprStr = `\\frac{${numStr}}{${denStr}} ${op} 0`;
+            let solLines = [`\\text{Given inequality: } ${exprStr}`];
+
+            // 5. Track down and sort all critical points
+            let crits = [];
+            numRoots.forEach(r => crits.push({ val: r, type: 'num' }));
+            denRoots.forEach(r => crits.push({ val: r, type: 'den' }));
+            crits.sort((m, n) => m.val - n.val);
+
+            solLines.push(`\\text{Find critical values by setting the numerator and denominator to 0:}`);
+            solLines.push(`\\text{From Numerator: } ${numRoots.map(r => `x = ${r}`).join(", \\quad ")}`);
+            solLines.push(`\\text{From Denominator (Undefined Restrictions): } ${denRoots.map(r => `x = ${r}`).join(", \\quad ")}`);
+
+            // 6. Calculate precise signs across all intervals
+            const evalP = (x, c) => c[0] * x * x + c[1] * x + c[2];
+            const signF = (x) => evalP(x, numCoeffs) > 0 ? "+" : "-";
+            const signG = (x) => evalP(x, denCoeffs) > 0 ? "+" : "-";
+            const signT = (x) => (evalP(x, numCoeffs) / evalP(x, denCoeffs)) > 0 ? "+" : "-";
+
+            let N = crits.length;
+            let mids = [crits[0].val - 1];
+            for (let i = 0; i < N - 1; i++) {
+                mids.push((crits[i].val + crits[i + 1].val) / 2);
+            }
+            mids.push(crits[N - 1].val + 1);
+
+            let fSigns = mids.map(signF);
+            let gSigns = mids.map(signG);
+            let tSigns = mids.map(signT);
+
+            // 7. Dynamic layout array builder for the LaTeX table
+            let colsX = ["x", "-\\infty"];
+            let colsTicks = ["", ""];
+            let colsF = ["f(x)", ""];
+            let colsG = ["g(x)", ""];
+            let colsTtop = ["", ""];
+            let colsTmid = ["\\dfrac{f(x)}{g(x)}", ""];
+            let colsTbot = ["", ""];
+
+            for (let i = 0; i < N; i++) {
+                // Spacing interval for signs BEFORE the critical point
+                colsX.push(""); colsTicks.push("");
+                colsF.push(fSigns[i]); colsG.push(gSigns[i]);
+                colsTtop.push(""); colsTmid.push(tSigns[i]); colsTbot.push("");
+
+                // Data mapping perfectly on top of the critical point barrier
+                colsX.push(crits[i].val.toString());
+                colsTicks.push("\\vr{1.6}");
+                colsF.push(crits[i].type === 'num' ? "0" : "\\vr{1.6}");
+                colsG.push(crits[i].type === 'den' ? "0" : "\\vr{1.6}");
+                colsTtop.push(crits[i].type === 'den' ? "\\vr{1.6}\\,\\vr{1.6}" : "\\vr{1.6}");
+                colsTmid.push(crits[i].type === 'den' ? "\\smash{\\vr{4}\\,\\vr{4}}" : "0");
+                colsTbot.push(crits[i].type === 'den' ? "\\smash{\\vr{4}\\,\\vr{4}}" : "\\vr{1.6}");
+            }
+
+            // Spacing interval for final signs AFTER the last critical point
+            colsX.push(""); colsTicks.push("");
+            colsF.push(fSigns[N]); colsG.push(gSigns[N]);
+            colsTtop.push(""); colsTmid.push(tSigns[N]); colsTbot.push("");
+
+            // Infinity column mapping
+            colsX.push("+\\infty"); colsTicks.push("");
+            colsF.push(""); colsG.push("");
+            colsTtop.push(""); colsTmid.push(""); colsTbot.push("");
+
+            let alignStr = "c|l" + "c".repeat(2 * N + 1) + "r";
+            const macroSetup = "\\newcommand{\\vr}[1]{\\rule{0.4pt}{#1ex}} \\def\\arraystretch{0.6} ";
+
+            let tableStr = macroSetup + 
+                `\\begin{array}{${alignStr}}\n` +
+                `${colsX.join(" & ")} \\\\\n\\hline\n` +
+                `${colsTicks.join(" & ")} \\\\\n` +
+                `${colsF.join(" & ")} \\\\\n` +
+                `${colsTicks.join(" & ")} \\\\\n\\hline\n` +
+                `${colsTicks.join(" & ")} \\\\\n` +
+                `${colsG.join(" & ")} \\\\\n` +
+                `${colsTicks.join(" & ")} \\\\\n\\hline\n` +
+                `${colsTtop.join(" & ")} \\\\\n` +
+                `${colsTmid.join(" & ")} \\\\\n` +
+                `${colsTbot.join(" & ")} \\\\\n` +
+                `\\end{array}`;
+
+            solLines.push(`\\text{Construct the rational sign table:}`);
+            solLines.push(tableStr);
+
+            // 8. Extract the valid mathematical intervals based on operator and component limits
+            let matchingIntervals = [];
+            const getBracket = (critIdx, side) => {
+                if (opIdx === 0 || opIdx === 1) return side === 'left' ? '(' : ')';
+                if (crits[critIdx].type === 'den') return side === 'left' ? '(' : ')';
+                return side === 'left' ? '[' : ']';
+            };
+
+            let target = (opIdx === 0 || opIdx === 2) ? "+" : "-";
+
+            for (let i = 0; i <= N; i++) {
+                if (tSigns[i] === target) {
+                    if (i === 0) {
+                        matchingIntervals.push(`(-\\infty, ${crits[0].val}${getBracket(0, 'right')}`);
+                    } else if (i === N) {
+                        matchingIntervals.push(`${getBracket(N - 1, 'left')}${crits[N - 1].val}, +\\infty)`);
+                    } else {
+                        matchingIntervals.push(`${getBracket(i - 1, 'left')}${crits[i - 1].val}, ${crits[i].val}${getBracket(i, 'right')}`);
+                    }
+                }
+            }
+
+            let ansStr = matchingIntervals.length > 0 ? `x \\in ${matchingIntervals.join(" \\cup ")}` : `\\emptyset`;
+            solLines.push(`\\text{Final Solution Set: } ${ansStr}`);
+
+            return {
+                expr: `\\begin{aligned}&\\text{Solve inequality: }\\\\ & \\quad ${exprStr}\\end{aligned}`,
+                ans: `= ${ansStr}`,
+                sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
+            };
+        },
+        // # Family: Systems of Quadratic Inequalities (f(x) > 0, g(x) < 0, f(x) ≥ 0, g(x) ≤ 0)
+        (a, b, c, d) => {
+            // 1. Generate strictly distinct root ranges to guarantee clean intervals and no overlaps
+            let roots = [
+                (Math.abs(a) % 3) - 4, // Ranges from -4 to -2
+                (Math.abs(b) % 2) - 1, // Ranges from -1 to 0
+                (Math.abs(c) % 2) + 1, // Ranges from 1 to 2
+                (Math.abs(d) % 3) + 3  // Ranges from 3 to 5
+            ];
+            
+            // Assign alternating roots to f(x) and g(x) to intertwine their critical points
+            let fRoots = [roots[0], roots[2]];
+            let gRoots = [roots[1], roots[3]];
+
+            // 2. Establish leading coefficients (allow negative possibilities)
+            let A = (Math.abs(a) % 3) + 1;
+            if (a < 0 || Math.abs(c) % 2 === 0) A = -A;
+            
+            let P = (Math.abs(b) % 3) + 1;
+            if (b < 0 || Math.abs(d) % 2 === 0) P = -P;
+
+            // 3. Helper to expand roots into standard form polynomial coefficients [x^2, x, const]
+            const getCoeffs = (rs, lead) => [lead, -lead * (rs[0] + rs[1]), lead * rs[0] * rs[1]];
+
+            let fCoeffs = getCoeffs(fRoots, A);
+            let gCoeffs = getCoeffs(gRoots, P);
+
+            const formatPoly = (coeffs) => {
+                let [c2, c1, c0] = coeffs;
+                let terms = [];
+                if (c2 !== 0) {
+                    if (c2 === 1) terms.push("x^2");
+                    else if (c2 === -1) terms.push("-x^2");
+                    else terms.push(`${c2}x^2`);
+                }
+                if (c1 !== 0) {
+                    let absC1 = Math.abs(c1);
+                    let val = absC1 === 1 ? "x" : `${absC1}x`;
+                    if (c1 > 0) terms.push(terms.length > 0 ? `+ ${val}` : val);
+                    else terms.push(terms.length > 0 ? `- ${val}` : `-${val}`);
+                }
+                if (c0 !== 0) {
+                    let absC0 = Math.abs(c0);
+                    if (c0 > 0) terms.push(terms.length > 0 ? `+ ${absC0}` : `${absC0}`);
+                    else terms.push(terms.length > 0 ? `- ${absC0}` : `-${absC0}`);
+                }
+                return terms.join(" ") || "0";
+            };
+
+            let fStr = formatPoly(fCoeffs);
+            let gStr = formatPoly(gCoeffs);
+
+            // 4. Select inequality operators for the system
+            let ops = [">", "<", "\\ge", "\\le"];
+            let op1Idx = Math.abs(a + b) % 4;
+            let op2Idx = Math.abs(c + d) % 4;
+            
+            let op1Str = ops[op1Idx];
+            let op2Str = ops[op2Idx];
+
+            let exprStr = `\\begin{cases} ${fStr} ${op1Str} 0 \\\\[4pt] ${gStr} ${op2Str} 0 \\end{cases}`;
+            let solLines = [`\\text{Given the system of inequalities: } \\quad ${exprStr}`];
+
+            solLines.push(`\\text{Let } f(x) = ${fStr} \\text{ and } g(x) = ${gStr}.`);
+            solLines.push(`\\text{Set both polynomials to 0 to find critical values:}`);
+            solLines.push(`f(x) = 0 \\implies x = ${fRoots[0]}, \\quad x = ${fRoots[1]}`);
+            solLines.push(`g(x) = 0 \\implies x = ${gRoots[0]}, \\quad x = ${gRoots[1]}`);
+
+            // 5. Sort critical points for table mapping
+            let crits = [
+                { val: fRoots[0], type: 'f' },
+                { val: fRoots[1], type: 'f' },
+                { val: gRoots[0], type: 'g' },
+                { val: gRoots[1], type: 'g' }
+            ].sort((m, n) => m.val - n.val);
+
+            // 6. Calculate precise signs across all intervals
+            const evalP = (x, cfs) => cfs[0] * x * x + cfs[1] * x + cfs[2];
+            const signF = (x) => evalP(x, fCoeffs) > 0 ? "+" : "-";
+            const signG = (x) => evalP(x, gCoeffs) > 0 ? "+" : "-";
+
+            let N = crits.length;
+            let mids = [crits[0].val - 1];
+            for (let i = 0; i < N - 1; i++) {
+                mids.push((crits[i].val + crits[i + 1].val) / 2);
+            }
+            mids.push(crits[N - 1].val + 1);
+
+            let fSigns = mids.map(signF);
+            let gSigns = mids.map(signG);
+
+            // 7. Dynamic LaTeX table builder strictly respecting the visual layout
+            let colsX = ["x", "-\\infty"];
+            let colsTicks = ["", ""];
+            let colsF = ["f(x)", ""];
+            let colsG = ["g(x)", ""];
+
+            for (let i = 0; i < N; i++) {
+                // Spacing interval for signs BEFORE the critical point
+                colsX.push(""); colsTicks.push("");
+                colsF.push(fSigns[i]); colsG.push(gSigns[i]);
+
+                // Data mapped exactly on top of the critical point barrier
+                colsX.push(crits[i].val.toString());
+                colsTicks.push("\\vr{1.6}");
+                colsF.push(crits[i].type === 'f' ? "0" : "\\vr{1.6}");
+                colsG.push(crits[i].type === 'g' ? "0" : "\\vr{1.6}");
+            }
+
+            // Spacing interval for final signs AFTER the last critical point
+            colsX.push(""); colsTicks.push("");
+            colsF.push(fSigns[N]); colsG.push(gSigns[N]);
+
+            // Infinity column mapping
+            colsX.push("+\\infty"); colsTicks.push("");
+            colsF.push(""); colsG.push("");
+
+            let alignStr = "c|l" + "c".repeat(2 * N + 1) + "r";
+            const macroSetup = "\\newcommand{\\vr}[1]{\\rule{0.4pt}{#1ex}} \\def\\arraystretch{0.6} ";
+
+            let tableStr = macroSetup + 
+                `\\begin{array}{${alignStr}}\n` +
+                `${colsX.join(" & ")} \\\\\n\\hline\n` +
+                `${colsTicks.join(" & ")} \\\\\n` +
+                `${colsF.join(" & ")} \\\\\n` +
+                `${colsTicks.join(" & ")} \\\\\n\\hline\n` +
+                `${colsTicks.join(" & ")} \\\\\n` +
+                `${colsG.join(" & ")} \\\\\n` +
+                `${colsTicks.join(" & ")} \\\\\n` +
+                `\\end{array}`;
+
+            solLines.push(`\\text{Construct a combined sign table for both functions:}`);
+            solLines.push(tableStr);
+
+            // 8. Analyze conditions systematically to find intersection sets
+            const checkOp = (val, opIdx) => {
+                if (opIdx === 0) return val > 0;
+                if (opIdx === 1) return val < 0;
+                if (opIdx === 2) return val >= 0;
+                if (opIdx === 3) return val <= 0;
+            };
+
+            // Evaluate truth on the 9 discrete table segments (5 intervals, 4 points)
+            let valid = [];
+            for (let k = 0; k < 9; k++) {
+                let x = (k % 2 === 0) ? mids[k / 2] : crits[Math.floor(k / 2)].val;
+                
+                let vF = evalP(x, fCoeffs);
+                let vG = evalP(x, gCoeffs);
+                
+                // Force absolute zeroes at critical points to avoid JS float precision errors
+                if (k % 2 !== 0) {
+                    if (crits[Math.floor(k / 2)].type === 'f') vF = 0;
+                    if (crits[Math.floor(k / 2)].type === 'g') vG = 0;
+                }
+                
+                valid[k] = checkOp(vF, op1Idx) && checkOp(vG, op2Idx);
+            }
+
+            // 9. Extract and unify valid contiguous regions
+            let intervals = [];
+            let k = 0;
+            while (k < 9) {
+                if (valid[k]) {
+                    let startIdx = k;
+                    while (k < 9 && valid[k]) k++;
+                    let endIdx = k - 1;
+                    
+                    let startBracket = "", endBracket = "";
+                    let startVal = "", endVal = "";
+                    
+                    if (startIdx % 2 === 0) { 
+                        startBracket = "(";
+                        startVal = startIdx === 0 ? "-\\infty" : crits[startIdx / 2 - 1].val;
+                    } else { 
+                        startBracket = "[";
+                        startVal = crits[Math.floor(startIdx / 2)].val;
+                    }
+                    
+                    if (endIdx % 2 === 0) { 
+                        endBracket = ")";
+                        endVal = endIdx === 8 ? "+\\infty" : crits[endIdx / 2].val;
+                    } else { 
+                        endBracket = "]";
+                        endVal = crits[Math.floor(endIdx / 2)].val;
+                    }
+                    
+                    if (startIdx === endIdx && startIdx % 2 !== 0) {
+                        intervals.push(`\\{${startVal}\\}`); // Single isolated point
+                    } else {
+                        intervals.push(`${startBracket}${startVal}, ${endVal}${endBracket}`);
+                    }
+                } else {
+                    k++;
+                }
+            }
+
+            let ansStr = intervals.length > 0 ? `x \\in ${intervals.join(" \\cup ")}` : `\\emptyset`;
+            solLines.push(`\\text{Extract the intervals where BOTH inequalities are satisfied:}`);
+            solLines.push(`\\text{Final Intersection Set: } ${ansStr}`);
+
+            return {
+                expr: `\\begin{aligned} &\\text{Solve the system of inequalities: } \\\\ &\\quad ${exprStr}\\end{aligned}`,
+                ans: `= ${ansStr}`,
+                sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
+            };
+        },
+        // 
+        (a, b, c, d) => {
+            let valA = a !== 0 ? a : 2;
+            let valB = b !== 0 ? b : -3;
+            let mid = valA + valB;
+            let last = valA * valB;
+            
+            let signA = valA > 0 ? `+ ${valA}` : `- ${Math.abs(valA)}`;
+            let signB = valB > 0 ? `+ ${valB}` : `- ${Math.abs(valB)}`;
+            
+            let midStr = mid === 0 ? "" : mid === 1 ? " + x" : mid === -1 ? " - x" : mid > 0 ? ` + ${mid}x` : ` - ${Math.abs(mid)}x`;
+            let lastStr = last > 0 ? ` + ${last}` : ` - ${Math.abs(last)}`;
+            let ansStr = `x^2${midStr}${lastStr}`;
+            
+            return {
+                expr: `\\begin{aligned}&\\text{Solve equation: } \\\\ & \\quad (x ${signA})(x ${signB}) \\end{aligned}`,
+                ans: `= ${ansStr}`,
+                sol: `\\begin{aligned}
+                    &\\text{Expand via the FOIL method:} \\\\
+                    &= x \\cdot x + x \\cdot (${valB}) + (${valA}) \\cdot x + (${valA}) \\cdot (${valB}) \\\\
+                    &= x^2 ${valB > 0 ? '+ ' : '- '}${Math.abs(valB)}x ${valA > 0 ? '+ ' : '- '}${Math.abs(valA)}x ${last > 0 ? '+ ' : '- '}${Math.abs(last)} \\\\
+                    &= ${ansStr}
+                \\end{aligned}`
             };
         }
     ],
