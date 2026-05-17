@@ -60,7 +60,7 @@ const algebra = {
             let rawLast = last > 0 ? `+ ${last}` : `- ${Math.abs(last)}`;
 
             return {
-                expr: exprStr,
+                expr: `\\text{Expand and simplify: }${ exprStr}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Expand via the FOIL method:} \\\\
@@ -137,7 +137,7 @@ const algebra = {
             const vWrapped = denB === 1 ? `${vStr}` : `\\left(${vStr}\\right)`;
 
             return {
-                expr: exprStr,
+                expr: `\\text{Expand and simplify: }${ exprStr}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Expand using difference of squares } (u - v)(u + v) = u^2 - v^2: \\\\
@@ -244,7 +244,7 @@ const algebra = {
             const intermediateStep = `${step1X2} ${step1MidSign} ${step1Mid} + ${step1Last}`;
 
             return {
-                expr: exprStr,
+                expr: `\\text{Expand and simplify: }${ exprStr}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Expand using the perfect square formula } (u \\pm v)^2 = u^2 \\pm 2uv + v^2: \\\\
@@ -365,7 +365,7 @@ const algebra = {
             const intermediateStep = `${term1}${op1}${term2}${op2}${term3}${op3}${term4}`;
 
             return {
-                expr: exprStr,
+                expr: `\\text{Expand and simplify: }${ exprStr}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Expand using } (u \\pm v)^3 = u^3 \\pm 3u^2v + 3uv^2 \\pm v^3: \\\\
@@ -1311,7 +1311,7 @@ const algebra = {
             solLines.push(`\\text{Final Roots: } ${ansStr}`);
 
             return {
-                expr: exprStr,
+                expr: `\\text{Solve equation: }${ exprStr}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
             };
