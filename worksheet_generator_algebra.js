@@ -60,7 +60,7 @@ const algebra = {
             let rawLast = last > 0 ? `+ ${last}` : `- ${Math.abs(last)}`;
 
             return {
-                expr: `\\text{Expand and simplify: }${ exprStr}`,
+                expr: `\\begin{aligned}&\\text{Expand and Simplify: } \\\\ & \\quad ${exprStr} \\end{aligned}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Expand via the FOIL method:} \\\\
@@ -137,7 +137,7 @@ const algebra = {
             const vWrapped = denB === 1 ? `${vStr}` : `\\left(${vStr}\\right)`;
 
             return {
-                expr: `\\text{Expand and simplify: }${ exprStr}`,
+                expr: `\\begin{aligned}&\\text{Expand and Simplify: } \\\\ & \\quad ${exprStr} \\end{aligned}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Expand using difference of squares } (u - v)(u + v) = u^2 - v^2: \\\\
@@ -244,7 +244,7 @@ const algebra = {
             const intermediateStep = `${step1X2} ${step1MidSign} ${step1Mid} + ${step1Last}`;
 
             return {
-                expr: `\\text{Expand and simplify: }${ exprStr}`,
+                expr: `\\begin{aligned}&\\text{Expand and Simplify: } \\\\ & \\quad ${exprStr} \\end{aligned}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Expand using the perfect square formula } (u \\pm v)^2 = u^2 \\pm 2uv + v^2: \\\\
@@ -365,7 +365,7 @@ const algebra = {
             const intermediateStep = `${term1}${op1}${term2}${op2}${term3}${op3}${term4}`;
 
             return {
-                expr: `\\text{Expand and simplify: }${ exprStr}`,
+                expr: `\\begin{aligned}&\\text{Expand and Simplify: } \\\\ & \\quad ${exprStr} \\end{aligned}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Expand using } (u \\pm v)^3 = u^3 \\pm 3u^2v + 3uv^2 \\pm v^3: \\\\
@@ -463,7 +463,7 @@ const algebra = {
                 : "(u - v)(u^2 + uv + v^2) = u^3 - v^3";
 
             return {
-                expr: `\\text{Expand and simplify: }${exprStr}`,
+                expr: `\\begin{aligned}&\\text{Expand and Simplify: } \\\\ & \\quad ${exprStr} \\end{aligned}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Expand using ${formulaName} } ${formula}: \\\\
@@ -571,7 +571,7 @@ const algebra = {
             let intermediateStep = `${term1} + ${term2} + ${term3} + ${term4} + ${term5} + ${term6}`;
 
             return {
-                expr: `\\text{Expand and simplify: }${exprStr}`,
+                expr: `\\begin{aligned}&\\text{Expand and Simplify: } \\\\ & \\quad ${exprStr} \\end{aligned}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Expand using the trinomial square formula } (u + v + w)^2 = u^2 + v^2 + w^2 + 2uv + 2uw + 2vw: \\\\
@@ -580,7 +580,7 @@ const algebra = {
                 \\end{aligned}`
             };
         },
-        //# Family: Expanding u^2 ± 2uv + v^2, u^2 - v^2, u^3 ± v^3
+        //# Family: Factorize u^2 ± 2uv + v^2=(u±v)^2, u^2 - v^2=(u+v)(u-v), u^3 ± v^3=(u±v)(u^2∓uv+v^2)
         (a, b, c, d) => {
             // 1. Ensure core raw integer variables are non-zero absolute magnitudes
             const valA = Math.abs(a !== 0 ? a : 2);
@@ -694,7 +694,7 @@ const algebra = {
             }
 
             return {
-                expr: `\\text{Factorise expression: }${exprStr}`,
+                expr: `\\begin{aligned}&\\text{Factorize expression: } \\\\ & \\quad ${exprStr} \\end{aligned}`,
                 ans: `= ${ansStr}`,
                 sol: solStr
             };
@@ -788,7 +788,7 @@ const algebra = {
             let insideParentheses = `${formatTerm(remP, "x", true)}${formatTerm(remQ, "", false)}`;
 
             return {
-                expr: `\\text{Factorise expression: }${exprStr}`,
+                expr: `\\begin{aligned}&\\text{Factorize expression: } \\\\ & \\quad ${exprStr} \\end{aligned}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Factor by splitting the middle term (AC method):} \\\\
@@ -812,7 +812,7 @@ const algebra = {
             let oppSignB = constB > 0 ? `- ${constB}` : `+ ${Math.abs(constB)}`;
             
             return {
-                expr: `\\text{Solve equation: }${termA} ${signB} = ${rhs}`,
+                expr: `\\begin{aligned}&\\text{Solve for x: } \\\\ & \\quad ${termA} ${signB} = ${rhs} \\end{aligned}`,
                 ans: `x = ${valX}`,
                 sol: `\\begin{aligned}
                     &${termA} ${signB} = ${rhs} \\\\
@@ -1005,7 +1005,7 @@ const algebra = {
             }
 
             return {
-                expr: `\\text{Solve equation: }${exprStr}`,
+                expr: `\\begin{aligned}&\\text{Solve equation: } \\\\ & \\quad ${exprStr} \\end{aligned}`,
                 ans: `= ${ansStr}`,
                 sol: solStr
             };
@@ -1078,7 +1078,7 @@ const algebra = {
             solLines.push(`x = ${root1}, \\quad x = ${root2}`);
 
             return {
-                expr: `\\text{Solve equation: }${exprStr}`,
+                expr: `\\begin{aligned}&\\text{Solve equation: } \\\\ & \\quad ${exprStr} \\end{aligned}`,
                 ans: `= x = ${root1}, \\quad x = ${root2}`,
                 sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
             };
@@ -1177,7 +1177,7 @@ const algebra = {
             solLines.push(`\\text{Final Solution: } x ${finalOp} ${finalAns}`);
 
             return {
-                expr: `\\text{Solve inequality: }${exprStr}`,
+                expr: `\\begin{aligned}&\\text{Solve inequality: } \\\\ & \\quad ${exprStr} \\end{aligned}`,
                 ans: `= x ${finalOp} ${finalAns}`,
                 sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
             };
@@ -1311,7 +1311,7 @@ const algebra = {
             solLines.push(`\\text{Final Roots: } ${ansStr}`);
 
             return {
-                expr: `\\text{Solve equation: }${ exprStr}`,
+                expr: `\\begin{aligned}&\\text{Solve equation: }\\\\ & ${  exprStr}\\end{aligned}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
             };
