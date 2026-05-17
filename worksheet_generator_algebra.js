@@ -463,7 +463,7 @@ const algebra = {
                 : "(u - v)(u^2 + uv + v^2) = u^3 - v^3";
 
             return {
-                expr: exprStr,
+                expr: `\\text{Expand and simplify: }${exprStr}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Expand using ${formulaName} } ${formula}: \\\\
@@ -571,7 +571,7 @@ const algebra = {
             let intermediateStep = `${term1} + ${term2} + ${term3} + ${term4} + ${term5} + ${term6}`;
 
             return {
-                expr: exprStr,
+                expr: `\\text{Expand and simplify: }${exprStr}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Expand using the trinomial square formula } (u + v + w)^2 = u^2 + v^2 + w^2 + 2uv + 2uw + 2vw: \\\\
@@ -694,7 +694,7 @@ const algebra = {
             }
 
             return {
-                expr: exprStr,
+                expr: `\\text{Factorise expression: }${exprStr}`,
                 ans: `= ${ansStr}`,
                 sol: solStr
             };
@@ -788,7 +788,7 @@ const algebra = {
             let insideParentheses = `${formatTerm(remP, "x", true)}${formatTerm(remQ, "", false)}`;
 
             return {
-                expr: exprStr,
+                expr: `\\text{Factorise expression: }${exprStr}`,
                 ans: `= ${ansStr}`,
                 sol: `\\begin{aligned}
                     &\\text{Factor by splitting the middle term (AC method):} \\\\
@@ -812,7 +812,7 @@ const algebra = {
             let oppSignB = constB > 0 ? `- ${constB}` : `+ ${Math.abs(constB)}`;
             
             return {
-                expr: `${termA} ${signB} = ${rhs}`,
+                expr: `\\text{Solve equation: }${termA} ${signB} = ${rhs}`,
                 ans: `x = ${valX}`,
                 sol: `\\begin{aligned}
                     &${termA} ${signB} = ${rhs} \\\\
@@ -1005,7 +1005,7 @@ const algebra = {
             }
 
             return {
-                expr: exprStr,
+                expr: `\\text{Solve equation: }${exprStr}`,
                 ans: `= ${ansStr}`,
                 sol: solStr
             };
@@ -1078,7 +1078,7 @@ const algebra = {
             solLines.push(`x = ${root1}, \\quad x = ${root2}`);
 
             return {
-                expr: exprStr,
+                expr: `\\text{Solve equation: }${exprStr}`,
                 ans: `= x = ${root1}, \\quad x = ${root2}`,
                 sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
             };
@@ -1177,7 +1177,7 @@ const algebra = {
             solLines.push(`\\text{Final Solution: } x ${finalOp} ${finalAns}`);
 
             return {
-                expr: exprStr,
+                expr: `\\text{Solve inequality: }${exprStr}`,
                 ans: `= x ${finalOp} ${finalAns}`,
                 sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
             };
