@@ -78,3 +78,4 @@ const integral = {
         }
     ]
 };
+window.integral = integral;
