@@ -1235,7 +1235,7 @@ const algebra = {
                 if (f.den === 1) {
                     termStr = absNum === 1 ? variable : `${absNum}${variable}`;
                 } else {
-                    termStr = absNum === 1 ? `\\frac{${variable}}{${f.den}}` : `\\frac{${absNum}${variable}}{${f.den}}`;
+                    termStr = `\\frac{${absNum}}{${f.den}}${variable}`;
                 }
                 return signStr + termStr;
             };
@@ -1310,7 +1310,10 @@ const algebra = {
             solLines.push(`${formatIntTerm(sumB, 'y', true)} = ${sumC}`);
 
             let SolY = makeFrac(sumC, sumB);
-            solLines.push(`y = ${formatFracPure(SolY)}`);
+            // FIX: Only output 'y = ...' if y was not already fully isolated in the line above
+            if (sumB !== 1) {
+                solLines.push(`y = ${formatFracPure(SolY)}`);
+            }
 
             // 7. Back-Substitution Step
             solLines.push(`\\text{Substitute } y = ${formatFracPure(SolY)} \\text{ into equation (3):}`);
@@ -1321,7 +1324,10 @@ const algebra = {
             solLines.push(`${formatIntTerm(A_int, 'x', true)} ${sign} ${absBY} = ${C_int}`);
 
             let rhsFrac = subFrac(makeFrac(C_int, 1), B_times_Y);
-            solLines.push(`${formatIntTerm(A_int, 'x', true)} = ${formatFracPure(rhsFrac)}`);
+            // FIX: Only output the isolated term step if the coefficient isn't already 1
+            if (A_int !== 1) {
+                solLines.push(`${formatIntTerm(A_int, 'x', true)} = ${formatFracPure(rhsFrac)}`);
+            }
 
             let SolX = divFrac(rhsFrac, makeFrac(A_int, 1));
             solLines.push(`x = ${formatFracPure(SolX)}`);
@@ -1332,6 +1338,214 @@ const algebra = {
                 expr: `\\begin{aligned} &\\text{Solve system of equations:}\\\\ &\\quad ${exprStr}\\end{aligned}`,
                 ans: `x = ${formatFracPure(SolX)}, \\quad y = ${formatFracPure(SolY)}`,
                 sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
+            };
+        },
+        //# Family: Solving Systems of Linear Inequalities in Two Variables (ax + b > c, dx + e > f)
+        (a, b, c, d) => {
+            // 1. Core fraction arithmetic helper functions
+            const gcd = (m, n) => n === 0 ? Math.abs(m) : gcd(n, m % n);
+            const lcm = (m, n) => (Math.abs(m) * Math.abs(n)) / gcd(m, n);
+
+            const makeFrac = (n, d = 1) => {
+                if (d < 0) { n = -n; d = -d; }
+                let g = gcd(n, d);
+                return { num: n / g, den: d / g };
+            };
+
+            const addFrac = (f1, f2) => makeFrac(f1.num * f2.den + f2.num * f1.den, f1.den * f2.den);
+            const subFrac = (f1, f2) => makeFrac(f1.num * f2.den - f2.num * f1.den, f1.den * f2.den);
+            const divFrac = (f1, f2) => makeFrac(f1.num * f2.den, f1.den * f2.num);
+            const compFrac = (f1, f2) => (f1.num * f2.den) - (f2.num * f1.den); 
+
+            // 2. Dynamic generation of coefficients (A, B, C) and (P, Q, R) from 4 seeds
+            const getParam = (val, offset) => {
+                let num = (Math.abs(val + offset) % 13) - 6; 
+                if (num === 0) num = (offset % 2 === 0) ? 2 : -2; 
+                
+                let dens = [1, 1, 1, 2, 3, 4]; 
+                let den = dens[Math.abs(val * offset) % dens.length];
+                return makeFrac(num, den);
+            };
+
+            let fracA = getParam(a, 1); 
+            let fracB = getParam(b, 2); 
+            let fracC = getParam(c, 3); 
+            
+            let fracP = getParam(d, 4); 
+            let fracQ = getParam(a + b, 5); 
+            let fracR = getParam(c + d, 6); 
+
+            // Operator selection and direction flipping helper
+            const ops = [">", "<", "\\le", "\\ge"];
+            const flipOp = (op) => {
+                if (op === ">") return "<";
+                if (op === "<") return ">";
+                if (op === "\\le") return "\\ge";
+                if (op === "\\ge") return "\\le";
+                return op;
+            };
+
+            let op1 = ops[Math.abs(a * c) % 4];
+            let op2 = ops[Math.abs(b * d) % 4];
+
+            // 3. LaTeX presentation formatting string builders
+            const formatFracTerm = (f, variable, isFirst) => {
+                if (f.num === 0) return "";
+                let isNeg = f.num < 0;
+                let absNum = Math.abs(f.num);
+                let signStr = isFirst ? (isNeg ? "-" : "") : (isNeg ? "- " : "+ ");
+                
+                let termStr = "";
+                if (f.den === 1) {
+                    termStr = absNum === 1 ? variable : `${absNum}${variable}`;
+                } else {
+                    termStr = `\\frac{${absNum}}{${f.den}}${variable}`;
+                }
+                return signStr + termStr;
+            };
+
+            const formatFracPure = (f) => {
+                if (f.num === 0) return "0";
+                if (f.den === 1) return f.num.toString();
+                return f.num < 0 ? `-\\frac{${Math.abs(f.num)}}{${f.den}}` : `\\frac{${f.num}}{${f.den}}`;
+            };
+
+            const formatInEqualityStr = (fA, fB, op, fC) => {
+                let left = formatFracTerm(fA, 'x', true);
+                if (fB.num !== 0) {
+                    left += ` ${fB.num > 0 ? '+ ' : ''}${formatFracPure(fB)}`;
+                }
+                return `${left} ${op} ${formatFracPure(fC)}`;
+            };
+
+            // 4. Step-by-Step Solving Logic
+            let eq1Str = formatInEqualityStr(fracA, fracB, op1, fracC);
+            let eq2Str = formatInEqualityStr(fracP, fracQ, op2, fracR);
+            let exprStr = `\\begin{cases} ${eq1Str} \\\\ ${eq2Str} \\end{cases}`;
+
+            let solLines = [`\\text{Given the system of inequalities:}`];
+            solLines.push(`\\begin{cases} ${eq1Str} & \\text{(1)} \\\\ ${eq2Str} & \\text{(2)} \\end{cases}`);
+
+            // --- Solve Inequality (1) ---
+            solLines.push(`\\text{Step 1: Solve inequality (1):}`);
+            let rhs1 = subFrac(fracC, fracB);
+            solLines.push(`${formatFracTerm(fracA, 'x', true)} ${op1} ${formatFracPure(fracC)} ${fracB.num >= 0 ? '-' : '+'} ${formatFracPure(makeFrac(Math.abs(fracB.num), fracB.den))}`);
+            solLines.push(`${formatFracTerm(fracA, 'x', true)} ${op1} ${formatFracPure(rhs1)}`);
+
+            let solVal1 = divFrac(rhs1, fracA);
+            let finalOp1 = fracA.num < 0 ? flipOp(op1) : op1;
+            
+            // Handle fraction vs integer coefficient text cleanly
+            if (fracA.den !== 1) {
+                let reciprocal = makeFrac(fracA.den, fracA.num);
+                if (fracA.num < 0) {
+                    solLines.push(`\\text{Multiply both sides by the reciprocal, } ${formatFracPure(reciprocal)}, \\text{ and flip the inequality sign:}`);
+                } else {
+                    solLines.push(`\\text{Multiply both sides by the reciprocal, } ${formatFracPure(reciprocal)}:`);
+                }
+            } else {
+                if (fracA.num === -1) {
+                    solLines.push(`\\text{Multiply both sides by -1 and flip the inequality sign:}`);
+                } else if (fracA.num < 0) {
+                    solLines.push(`\\text{Divide both sides by } ${Math.abs(fracA.num)} \\text{ and flip the inequality sign:}`);
+                } else if (fracA.num !== 1) {
+                    solLines.push(`\\text{Divide both sides by } ${fracA.num}:`);
+                }
+            }
+            solLines.push(`x ${finalOp1} ${formatFracPure(solVal1)}`);
+
+            // --- Solve Inequality (2) ---
+            solLines.push(`\\text{Step 2: Solve inequality (2):}`);
+            let rhs2 = subFrac(fracR, fracQ);
+            solLines.push(`${formatFracTerm(fracP, 'x', true)} ${op2} ${formatFracPure(fracR)} ${fracQ.num >= 0 ? '-' : '+'} ${formatFracPure(makeFrac(Math.abs(fracQ.num), fracQ.den))}`);
+            solLines.push(`${formatFracTerm(fracP, 'x', true)} ${op2} ${formatFracPure(rhs2)}`);
+
+            let solVal2 = divFrac(rhs2, fracP);
+            let finalOp2 = fracP.num < 0 ? flipOp(op2) : op2;
+
+            // Handle fraction vs integer coefficient text cleanly
+            if (fracP.den !== 1) {
+                let reciprocal = makeFrac(fracP.den, fracP.num);
+                if (fracP.num < 0) {
+                    solLines.push(`\\text{Multiply both sides by the reciprocal, } ${formatFracPure(reciprocal)}, \\text{ and flip the inequality sign:}`);
+                } else {
+                    solLines.push(`\\text{Multiply both sides by the reciprocal, } ${formatFracPure(reciprocal)}:`);
+                }
+            } else {
+                if (fracP.num === -1) {
+                    solLines.push(`\\text{Multiply both sides by -1 and flip the inequality sign:}`);
+                } else if (fracP.num < 0) {
+                    solLines.push(`\\text{Divide both sides by } ${Math.abs(fracP.num)} \\text{ and flip the inequality sign:}`);
+                } else if (fracP.num !== 1) {
+                    solLines.push(`\\text{Divide both sides by } ${fracP.num}:`);
+                }
+            }
+            solLines.push(`x ${finalOp2} ${formatFracPure(solVal2)}`);
+
+            // --- Step 3: Intersection / Final Solution Set Combination ---
+            solLines.push(`\\text{Step 3: Combine the solutions to find the intersection:}`);
+            solLines.push(`\\text{We seek values of } x \\text{ satisfying both } x ${finalOp1} ${formatFracPure(solVal1)} \\text{ and } x ${finalOp2} ${formatFracPure(solVal2)}.`);
+
+            const getBounds = (op, val) => {
+                const isLower = (op === ">" || op === "\\ge");
+                const isInclusive = (op === "\\ge" || op === "\\le");
+                return { isLower, isInclusive, val, op };
+            };
+
+            const b1 = getBounds(finalOp1, solVal1);
+            const b2 = getBounds(finalOp2, solVal2);
+
+            let finalAnsStr = "";
+            let finalExplanation = "";
+
+            if (b1.isLower === b2.isLower) {
+                const isLower = b1.isLower;
+                const cmp = compFrac(b1.val, b2.val);
+                let stricter;
+
+                if (cmp > 0) {
+                    stricter = isLower ? b1 : b2;
+                } else if (cmp < 0) {
+                    stricter = isLower ? b2 : b1;
+                } else {
+                    stricter = (!b1.isInclusive) ? b1 : b2;
+                }
+
+                finalAnsStr = `x ${stricter.op} ${formatFracPure(stricter.val)}`;
+                finalExplanation = `\\text{Since both inequalities restrict } x \\text{ in the same direction, we extract the stricter threshold: } ${finalAnsStr}`;
+            } else {
+                const lower = b1.isLower ? b1 : b2;
+                const upper = b1.isLower ? b2 : b1;
+                const cmp = compFrac(lower.val, upper.val);
+
+                if (cmp < 0) {
+                    const opL = lower.isInclusive ? "\\le" : "<";
+                    const opU = upper.isInclusive ? "\\le" : "<";
+                    finalAnsStr = `${formatFracPure(lower.val)} ${opL} x ${opU} ${formatFracPure(upper.val)}`;
+                    finalExplanation = `\\text{The solution sets overlap perfectly, forming the compound interval: } ${finalAnsStr}`;
+                } else if (cmp === 0) {
+                    if (lower.isInclusive && upper.isInclusive) {
+                        finalAnsStr = `x = ${formatFracPure(lower.val)}`;
+                        finalExplanation = `\\text{The systems converge precisely at an isolated shared point: } ${finalAnsStr}`;
+                    } else {
+                        finalAnsStr = "\\text{No solution}";
+                        finalExplanation = `\\text{The solution domains meet at } ${formatFracPure(lower.val)}, \\text{ but because that element is excluded by at least one condition, no real solution exists.}`;
+                    }
+                } else {
+                    finalAnsStr = "\\text{No solution}";
+                    finalExplanation = `\\text{Because } ${formatFracPure(lower.val)} > ${formatFracPure(upper.val)}, \\text{ the restrictions conflict across all domains. Hence, there is no solution.}`;
+                }
+            }
+
+            solLines.push(finalExplanation);
+
+            // Filter out any consecutive duplicate math rows to keep output streamlined and clean
+            const cleanSolLines = solLines.filter((line, index) => index === 0 || line !== solLines[index - 1]);
+
+            return {
+                expr: `\\begin{aligned} &\\text{Solve system of inequalities:}\\\\ &\\quad ${exprStr}\\end{aligned}`,
+                ans: finalAnsStr,
+                sol: `\\begin{aligned}\n&` + cleanSolLines.join(` \\\\\n&`) + `\n\\end{aligned}`
             };
         }
     ],
@@ -2701,8 +2915,49 @@ const algebra = {
                 ans: finalAnsStr,
                 sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
             };
+        },
+        // Family: Logarithmic Equations
+        (a, b, c, d) => {
+            const bases = [2, 3, 4, 5];
+            let base = bases[Math.abs(a) % 4];
+            let exp = Math.abs(c) % 3 + 1; 
+            let coeff = Math.abs(b) > 0 ? Math.abs(b) : 2;
+            
+            let powerVal = Math.pow(base, exp);
+            let common = Utils.gcd ? Utils.gcd(powerVal, coeff) : 1;
+            let num = powerVal / common;
+            let den = coeff / common;
+            let ansStr = den === 1 ? `${num}` : `\\frac{${num}}{${den}}`;
+            
+            return {
+                expr: `\\log_{${base}}(${coeff}x) = ${exp}`,
+                ans: `x = ${ansStr}`,
+                sol: `\\begin{aligned}
+                    &\\text{Convert to exponential form:} \\\\
+                    &${coeff}x = ${base}^{${exp}} \\\\
+                    &${coeff}x = ${powerVal} \\\\
+                    &x = \\frac{${powerVal}}{${coeff}}${common > 1 ? ` = ${ansStr}` : ''}
+                \\end{aligned}`
+            };
+        },
+        // Family: Exponential Base Balancing
+        (a, b, c, d) => {
+            let shift = Math.abs(c) > 0 ? Math.abs(c) : 3;
+            let ansX = 2 * shift;
+            return {
+                expr: `2^{x} = 4^{x - ${shift}}`,
+                ans: `x = ${ansX}`,
+                sol: `\\begin{aligned}
+                    &\\text{Rewrite using common base } 2 \\text{ (since } 4 = 2^2): \\\\
+                    &2^x = (2^2)^{x - ${shift}} \\\\
+                    &2^x = 2^{2(x - ${shift})} \\\\
+                    &\\text{Equate exponents:} \\\\
+                    &x = 2(x - ${shift}) \\\\
+                    &x = 2x - ${2 * shift} \\\\
+                    &x = ${ansX}
+                \\end{aligned}`
+            };
         }
-        
     ]
 };
 window.algebra = algebra;
