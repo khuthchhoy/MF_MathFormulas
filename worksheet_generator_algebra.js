@@ -2432,6 +2432,276 @@ const algebra = {
         }
     ],
     hard: [
+        //# Family: Solving Higher Degree Polynomials (degree 3 or 4 and Bicareer Equations) 
+        (a, b, c, d) => {
+            // 1. Core mathematical helpers
+            const gcd = (m, n) => n === 0 ? Math.abs(m) : gcd(n, m % n);
+            
+            // Helper to find the GCD of an entire array of coefficients
+            const arrayGcd = (arr) => arr.reduce((acc, val) => gcd(acc, Math.abs(val)), 0);
+
+            const makeFrac = (n, den = 1) => {
+                if (den < 0) { n = -n; den = -den; }
+                let g = gcd(n, den);
+                return { num: n / g, den: den / g };
+            };
+            
+            const simplifyRadical = (n) => {
+                let out = 1; let inside = n;
+                for (let i = 2; i * i <= inside; i++) {
+                    while (inside % (i * i) === 0) { out *= i; inside /= (i * i); }
+                }
+                return { out, in: inside };
+            };
+
+            const multPoly = (p1, p2) => {
+                let res = new Array(p1.length + p2.length - 1).fill(0);
+                for (let i = 0; i < p1.length; i++) {
+                    for (let j = 0; j < p2.length; j++) { res[i + j] += p1[i] * p2[j]; }
+                }
+                return res;
+            };
+
+            const divideLinear = (poly, divisor, n) => {
+                let res = [];
+                let current = 0;
+                for (let i = 0; i < poly.length - 1; i++) {
+                    let coeff = Math.round((poly[i] + current) / divisor);
+                    res.push(coeff);
+                    current = coeff * n;
+                }
+                return res;
+            };
+
+            const buildTerm = (isNeg, isFirst, power, variable, coeffStr) => {
+                let str = "";
+                if (isFirst) {
+                    if (isNeg) str += "-";
+                } else {
+                    str += isNeg ? " - " : " + ";
+                }
+
+                let varPart = power > 1 ? `${variable}^${power}` : (power === 1 ? variable : "");
+                
+                if (coeffStr !== "1" || power === 0 || coeffStr.includes("\\frac")) {
+                    str += coeffStr;
+                }
+                return str + varPart;
+            };
+
+            const formatPolyFrac = (coeffsFrac, variable = "x") => {
+                let str = "";
+                let deg = coeffsFrac.length - 1;
+                let firstRendered = false;
+                
+                for (let i = 0; i <= deg; i++) {
+                    let f = coeffsFrac[i];
+                    if (f.num === 0) continue;
+                    
+                    let absNum = Math.abs(f.num);
+                    let coeffStr = f.den === 1 ? absNum.toString() : `\\frac{${absNum}}{${f.den}}`;
+                    
+                    str += buildTerm(f.num < 0, !firstRendered, deg - i, variable, coeffStr);
+                    firstRendered = true;
+                }
+                return firstRendered ? str : "0";
+            };
+
+            const formatPolyInt = (coeffs, variable = "x") => {
+                let str = "";
+                let deg = coeffs.length - 1;
+                let firstRendered = false;
+                
+                for (let i = 0; i <= deg; i++) {
+                    if (coeffs[i] === 0) continue;
+                    str += buildTerm(coeffs[i] < 0, !firstRendered, deg - i, variable, Math.abs(coeffs[i]).toString());
+                    firstRendered = true;
+                }
+                return firstRendered ? str : "0";
+            };
+
+            const formatBiquadRoot = (u) => {
+                let isReal = u > 0;
+                let rad = simplifyRadical(Math.abs(u));
+                let coeff = rad.out === 1 ? "" : rad.out;
+                let imag = isReal ? "" : "i";
+                
+                if (rad.in === 1) return `\\pm ${coeff || (isReal ? 1 : "")}${imag}`;
+                return `\\pm ${coeff}${imag}\\sqrt{${rad.in}}`;
+            };
+
+            const formatLinearFactor = (n, d) => `(${d === 1 ? "x" : `${d}x`} ${n > 0 ? "-" : "+"} ${Math.abs(n)})`;
+
+            // 2. Control Loops and Setup
+            let mode = Math.abs(a) % 3;
+            let isFractional = (Math.abs(a + b) % 2 === 0); 
+            
+            let shift = 0;
+            let maxIters = 1000; 
+            let finalPolyInt, fracPoly, L, currentSign;
+            let d1, n1, d2, n2, p, q, u1, u2;
+
+            while (maxIters-- > 0) {
+                if (mode === 0 || mode === 1) {
+                    d1 = (Math.abs(b + shift) % 2) + 1; 
+                    n1 = (Math.abs(c + shift) % 5) - 2; 
+                    if (n1 === 0) n1 = 1; 
+
+                    // FIX 1: Force d1 and n1 to be coprime immediately upon generation
+                    let g1 = gcd(Math.abs(n1), d1);
+                    d1 /= g1;
+                    n1 /= g1;
+
+                    d2 = 1;
+                    n2 = (Math.abs(a + b + shift) % 5) - 2;
+                    if (n2 === 0) n2 = 2;
+                    if (n1 * d2 === n2 * d1) n2 = -n1; 
+
+                    p = (Math.abs(d + shift) % 5) - 2; 
+                    q = (Math.abs(a + c + shift) % 4) + 1; 
+                    if (p * p - 4 * q >= 0) {
+                        q = Math.floor((p * p) / 4) + 2; 
+                    }
+
+                    let poly_comp = [1, p, q];
+                    finalPolyInt = (mode === 1) 
+                        ? multPoly(multPoly([d1, -n1], [d2, -n2]), poly_comp)
+                        : multPoly([d1, -n1], poly_comp);
+                } else {
+                    let u1IsPos = (Math.abs(b + shift) % 2 === 0);
+                    let u2IsPos = (Math.abs(c + shift) % 2 === 1); 
+                    
+                    u1 = ((Math.abs(b + shift) % 4) + 1) * (u1IsPos ? 1 : -1);
+                    u2 = ((Math.abs(c + shift) % 4) + 1) * (u2IsPos ? 1 : -1);
+                    if (u1 === u2) u2 = -u2;
+
+                    p = -(u1 + u2);
+                    q = u1 * u2;
+                    finalPolyInt = [1, 0, p, 0, q];
+                }
+
+                // FIX 2: Safeguard reduction of the entire polynomial array to clear out shared constants
+                let gAll = arrayGcd(finalPolyInt);
+                if (gAll > 1) {
+                    finalPolyInt = finalPolyInt.map(c => c / gAll);
+                }
+
+                L = isFractional ? [12, 24, 30, 42, 60][Math.abs(a + b + shift) % 5] : 1;
+                currentSign = ((c + d + shift) % 2 === 0) ? -1 : 1;
+                fracPoly = finalPolyInt.map(coeff => makeFrac(coeff * currentSign, L));
+
+                let uniqueDens = new Set(fracPoly.filter(f => f.num !== 0).map(f => f.den));
+                let targetUniques = isFractional ? (mode === 1 ? 3 : 2) : 1;
+
+                if (uniqueDens.size >= targetUniques && fracPoly[0].num !== 0) break;
+                shift++;
+            }
+
+            // 3. Step-by-Step Document Assembly
+            let eq_str = `${formatPolyFrac(fracPoly)} = 0`;
+            let solLines = [];
+            let exprLabel = mode === 0 ? "\\text{Solve the degree 3 equation:}" : 
+                            mode === 1 ? "\\text{Solve the degree 4 equation:}" : 
+                            "\\text{Solve the biquadratic equation:}";
+
+            if (isFractional) {
+                solLines.push(`\\text{Given the polynomial equation with distinct fractional denominators:}`);
+                solLines.push(`${eq_str}`);
+                solLines.push(`\\text{Step 1: Eliminate all fractional denominators by multiplying through by the LCM } (${L}):`);
+                solLines.push(`${formatPolyInt(finalPolyInt.map(c => c * currentSign))} = 0`);
+
+                if (currentSign === -1) {
+                    solLines.push(`\\text{Normalize the equation by multiplying by } -1:`);
+                    solLines.push(`${formatPolyInt(finalPolyInt)} = 0`);
+                }
+            } else {
+                solLines.push(`\\text{Given the polynomial equation with integer coefficients:}`);
+                solLines.push(`${eq_str}`);
+                if (currentSign === -1) {
+                    solLines.push(`\\text{Step 1: Normalize the equation by multiplying by } -1:`);
+                    solLines.push(`${formatPolyInt(finalPolyInt)} = 0`);
+                }
+            }
+
+            let currentStep = (isFractional || currentSign === -1) ? 2 : 1;
+            let finalAnsStr = "";
+
+            if (mode === 0 || mode === 1) {
+                let root1_str = d1 === 1 ? `${n1}` : `\\frac{${n1}}{${d1}}`;
+                let root2_str = `${n2}`;
+
+                let D_inside = 4 * q - p * p;
+                let rad = simplifyRadical(D_inside);
+                
+                const formatComplexRoot = (pVal, radOut, radIn) => { 
+                    let g = gcd(Math.abs(-pVal), gcd(radOut, 2));
+                    let A = -pVal / g; 
+                    let B = radOut / g; 
+                    let denom = 2 / g;
+                    
+                    let imagPart = B === 1 ? "i" : `${B}i`;
+                    if (radIn !== 1) imagPart += `\\sqrt{${radIn}}`;
+                    
+                    let topPart = A === 0 ? `\\pm ${imagPart}` : `${A} \\pm ${imagPart}`;
+                    return denom === 1 ? topPart : `\\frac{${topPart}}{${denom}}`;
+                };
+
+                let complexRootStr = formatComplexRoot(p, rad.out, rad.in);
+                let factor1 = formatLinearFactor(n1, d1);
+
+                solLines.push(`\\text{Step ${currentStep++}: Find a rational root using the Rational Root Theorem.}`);
+                solLines.push(`\\text{Testing factors reveals a valid root at } x = ${root1_str} \\implies \\text{factor } ${factor1}.`);
+                
+                let intermediateCubic = divideLinear(finalPolyInt, d1, n1);
+                solLines.push(`\\text{Step ${currentStep++}: Perform polynomial division to factor out } ${factor1}. \\text{ This perfectly reduces to:}`);
+                solLines.push(`${factor1}\\left(${formatPolyInt(intermediateCubic)}\\right) = 0`);
+
+                if (mode === 1) {
+                    let factor2 = formatLinearFactor(n2, d2);
+                    solLines.push(`\\text{Step ${currentStep++}: Apply the Rational Root Theorem to the remaining cubic factor.}`);
+                    solLines.push(`\\text{Testing factors reveals another root at } x = ${root2_str} \\implies \\text{factor } ${factor2}.`);
+                    
+                    let intermediateQuadratic = divideLinear(intermediateCubic, d2, n2);
+                    solLines.push(`\\text{Step ${currentStep++}: Divide the cubic factor by } ${factor2} \\text{ to leave the final quadratic expression:}`);
+                    solLines.push(`${factor1}${factor2}\\left(${formatPolyInt(intermediateQuadratic)}\\right) = 0`);
+                }
+
+                solLines.push(`\\text{Step ${currentStep}: Solve the remaining irreducible quadratic component using the quadratic formula:}`);
+                solLines.push(`${formatPolyInt([1, p, q])} = 0`);
+                solLines.push(`x = \\frac{-${p < 0 ? `(${p})` : p} \\pm \\sqrt{${p}^2 - 4(1)(${q})}}{2(1)} = ${complexRootStr}`);
+
+                finalAnsStr = mode === 1 
+                    ? `x \\in \\left\\{ ${root1_str}, ${root2_str}, ${complexRootStr} \\right\\}` 
+                    : `x \\in \\left\\{ ${root1_str}, ${complexRootStr} \\right\\}`;
+
+            } else {
+                let biquadRoot1 = formatBiquadRoot(u1);
+                let biquadRoot2 = formatBiquadRoot(u2);
+
+                solLines.push(`\\text{Step ${currentStep++}: Since the equation contains only even powers, substitute } u = x^2 \\text{ to yield a standard quadratic form:}`);
+                solLines.push(`${formatPolyInt([1, p, q], "u")} = 0`);
+
+                solLines.push(`\\text{Step ${currentStep++}: Factor or use the quadratic formula to solve for variable } u:`);
+                
+                const formatU = (val) => val < 0 ? `(u + ${Math.abs(val)})` : `(u - ${val})`;
+                solLines.push(`\\text{Factoring yields: } ${formatU(u1)}${formatU(u2)} = 0 \\implies u = ${u1} \\quad \\text{and} \\quad u = ${u2}`);
+
+                solLines.push(`\\text{Step ${currentStep}: Substitute back } x^2 = u \\text{ to solve for } x:`);
+                solLines.push(`\\text{From } u = ${u1} \\implies x^2 = ${u1} \\implies x = ${biquadRoot1}`);
+                solLines.push(`\\text{From } u = ${u2} \\implies x^2 = ${u2} \\implies x = ${biquadRoot2}`);
+
+                finalAnsStr = `x \\in \\left\\{ ${biquadRoot1}, ${biquadRoot2} \\right\\}`;
+            }
+
+            solLines.push(`\\text{Final Solution Set:}`);
+            solLines.push(finalAnsStr);
+
+            return {
+                expr: `\\begin{aligned} &${exprLabel} \\\\ & \\quad ${eq_str} \\end{aligned}`,
+                ans: finalAnsStr,
+                sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
+            };
+        }
         
     ]
 };
