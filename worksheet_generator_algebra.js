@@ -2643,6 +2643,608 @@ const algebra = {
                 ans: `(x, y) = ${finalAns}`,
                 sol: `\\begin{aligned}\n&` + solLines.join(` \\\\\n&`) + `\n\\end{aligned}`
             };
+        },
+        //# Family: Solving Linear Absolute Value Equations/Inequalities (|Ax + B| = C, |Ax + B| < C, etc.)
+        (a, b, c, opStr) => {
+            let stringOutsideD = "0";
+
+            // ==========================================
+            // 1. Core fraction arithmetic helper functions
+            // ==========================================
+            const gcd = (m, n) => n === 0 ? Math.abs(m) : gcd(n, m % n);
+            const makeFrac = (n, d = 1) => {
+                if (d === 0) throw new Error("Denominator cannot be zero");
+                if (d < 0) { n = -n; d = -d; }
+                const g = gcd(n, d);
+                return { num: n / g, den: d / g };
+            };
+            const subFrac = (f1, f2) => makeFrac(f1.num * f2.den - f2.num * f1.den, f1.den * f2.den);
+            const divFrac = (f1, f2) => makeFrac(f1.num * f2.den, f1.den * f2.num);
+            const compFrac = (f1, f2) => (f1.num * f2.den) - (f2.num * f1.den);
+
+            const floatToFrac = (val) => {
+                if (Number.isInteger(val)) return makeFrac(val, 1);
+                const eps = 1.0e-6;
+                let absVal = Math.abs(val);
+                for (let d = 1; d <= 2000; d++) {
+                    let n = Math.round(absVal * d);
+                    if (Math.abs(absVal - n / d) < eps) {
+                        return makeFrac(val < 0 ? -n : n, d);
+                    }
+                }
+                return makeFrac(Math.round(val * 10000), 10000);
+            };
+
+            const parseInput = (val, defaultNum = 1, defaultDen = 1) => {
+                if (!val && val !== 0) return makeFrac(defaultNum, defaultDen);
+                if (typeof val === 'object' && 'num' in val) return makeFrac(val.num, val.den || 1);
+                if (typeof val === 'string') {
+                    val = val.replace(/\s+/g, '');
+                    if (val.includes('frac')) {
+                        const isNeg = val.startsWith('-');
+                        const match = val.match(/\\(?:d|t)?frac\s*\{\s*(-?\d+)\s*\}\s*\{\s*(-?\d+)\s*\}/);
+                        if (match) {
+                            let n = parseInt(match[1], 10);
+                            let d = parseInt(match[2], 10);
+                            if (isNeg) n = -n;
+                            if (!isNaN(n) && !isNaN(d) && d !== 0) return makeFrac(n, d);
+                        }
+                    }
+                    if (val.includes('/')) {
+                        const parts = val.split('/');
+                        const n = parseInt(parts[0], 10);
+                        const d = parseInt(parts[1], 10);
+                        if (!isNaN(n) && !isNaN(d) && d !== 0) return makeFrac(n, d);
+                    }
+                    const n = Number(val);
+                    if (!isNaN(n)) return floatToFrac(n);
+                }
+                if (typeof val === 'number' && !isNaN(val)) return floatToFrac(val);
+                return makeFrac(defaultNum, defaultDen);
+            };
+
+            const parsePoly = (val) => {
+                if (!val && val !== 0) return { x: makeFrac(0), c: makeFrac(0) };
+                if (typeof val === 'number') return { x: makeFrac(0), c: floatToFrac(val) };
+                let str = String(val).replace(/\s+/g, '');
+                let fX = makeFrac(0), fC = makeFrac(0);
+                
+                let xIdx = str.indexOf('x');
+                if (xIdx !== -1) {
+                    let remainder = str.substring(xIdx + 1);
+                    let coeffStr = str.substring(0, xIdx);
+                    
+                    if (coeffStr === '' || coeffStr === '+') fX = makeFrac(1);
+                    else if (coeffStr === '-') fX = makeFrac(-1);
+                    else fX = parseInput(coeffStr);
+                    
+                    if (remainder) fC = parseInput(remainder);
+                } else {
+                    fC = parseInput(str);
+                }
+                return { x: fX, c: fC };
+            };
+
+            const checkOp = (val) => {
+                if (typeof val !== 'string') return false;
+                const s = val.replace(/\s+/g, '').toLowerCase();
+                return s.includes("<") || s.includes(">") || s.includes("=") || 
+                    s.includes("le") || s.includes("ge") || s.includes("lt") || 
+                    s.includes("gt") || s.includes("≤") || s.includes("≥") ||
+                    s.includes("≠") || s.includes("!=");
+            };
+
+            // ==========================================
+            // 2. AUTO-ENGINE INTERCEPTOR
+            // ==========================================
+            if (typeof a === 'number' && typeof b === 'number' && typeof c === 'number' && typeof opStr === 'number') {
+                const randSign = () => Math.random() < 0.5 ? -1 : 1;
+                const makeFracStr = (val) => {
+                    if (Math.random() < 0.65) {
+                        const dens = [2, 3, 4, 5, 7];
+                        return `${randSign() * val}/${dens[Math.floor(Math.random() * dens.length)]}`;
+                    }
+                    return randSign() * val;
+                };
+
+                const ops = ["=", "\\le", "\\ge", "<", ">"];
+                opStr = ops[Math.floor(Math.random() * ops.length)];
+
+                if (Math.random() < 0.4) {
+                    let A_val = Math.floor(Math.random() * 4) + 2; 
+                    a = String(A_val);
+                    let B_val = Math.floor(Math.random() * 10) - 5;
+                    b = String(B_val);
+                    
+                    let C_val = Math.floor(Math.random() * (A_val - 1)) + 1;
+                    if (Math.random() < 0.5) C_val = -C_val;
+                    
+                    let minD = Math.floor((C_val * B_val) / A_val) + 1;
+                    let D_val = minD + Math.floor(Math.random() * 6) + 1;
+                    
+                    c = `${C_val === 1 ? '' : C_val === -1 ? '-' : C_val}x ${D_val >= 0 ? '+' : ''}${D_val}`;
+                    stringOutsideD = "0";
+                } else {
+                    a = makeFracStr(Math.floor(Math.random() * 5) + 1);
+                    b = makeFracStr(Math.floor(Math.random() * 8) + 1);
+                    
+                    let targetC = Math.floor(Math.random() * 8) + 1; 
+                    if (Math.random() < 0.65) {
+                        let outD = Math.floor(Math.random() * 10) - 5;
+                        stringOutsideD = String(outD);
+                        c = String(targetC + outD);
+                    } else {
+                        c = String(targetC);
+                        stringOutsideD = "0";
+                    }
+                }
+            }
+
+            // ==========================================
+            // 3. Full Equation String Pre-processor
+            // ==========================================
+            if (typeof a === 'string' && (a.includes('|') || a.includes('\\mid') || a.includes('\\left|'))) {
+                let str = a.trim();
+                str = str.replace(/\\left\s*\|/g, '|').replace(/\\right\s*\|/g, '|').replace(/\\mid/g, '|');
+                const firstPipe = str.indexOf('|');
+                const lastPipe = str.lastIndexOf('|');
+                
+                if (firstPipe !== -1 && lastPipe !== -1 && firstPipe < lastPipe) {
+                    let inside = str.substring(firstPipe + 1, lastPipe).trim();
+                    const remainder = str.substring(lastPipe + 1).trim();
+                    
+                    const matchD = remainder.match(/^(.*?)\s*(\\le|\\ge|<=|>=|<|>|===|==|=|≤|≥|\\neq|!=)\s*(.*)$/);
+                    if (matchD) {
+                        stringOutsideD = matchD[1].trim() || "0";
+                        opStr = matchD[2];
+                        c = matchD[3].trim();
+                    }
+                    
+                    inside = inside.replace(/\\(?:d|t)?frac\s*\{\s*([^{}]*?)x([^{}]*?)\s*\}\s*\{([^{}]*)\}/g, (match, p1, p2, p3) => {
+                        let num = (p1 + p2).trim();
+                        if (num === "" || num === "+") num = "1";
+                        if (num === "-") num = "-1";
+                        return `\\frac{${num}}{${p3}}x`;
+                    });
+
+                    const xIndex = inside.indexOf('x');
+                    if (xIndex !== -1) {
+                        let aPart = inside.substring(0, xIndex).trim();
+                        let bPart = inside.substring(xIndex + 1).trim();
+                        
+                        if (bPart.startsWith('/')) {
+                            const slashMatch = bPart.match(/^\/\s*(-?\d+)/);
+                            if (slashMatch) {
+                                aPart = aPart + slashMatch[0].replace(/\s+/g, '');
+                                bPart = bPart.substring(slashMatch[0].length).trim();
+                            }
+                        }
+                        
+                        if (aPart === "" || aPart === "+") aPart = "1";
+                        if (aPart === "-") aPart = "-1";
+                        if (aPart.startsWith('-/')) aPart = "-1" + aPart.substring(1);
+                        if (aPart.startsWith('+/')) aPart = "1" + aPart.substring(1);
+                        if (aPart.startsWith('/')) aPart = "1" + aPart;
+                        if (bPart.startsWith('+')) bPart = bPart.substring(1).trim();
+                        if (bPart === "") bPart = "0";
+                        
+                        a = aPart;
+                        b = bPart;
+                    } else {
+                        a = "0";
+                        b = inside;
+                    }
+                }
+            }
+
+            let detectedOp = null;
+            let numericArgs = [];
+            const inputArgs = [a, b, c, opStr].filter(v => v !== undefined && v !== null && v !== '');
+
+            for (let arg of inputArgs) {
+                if (checkOp(arg) && !detectedOp) detectedOp = arg;
+                else numericArgs.push(arg);
+            }
+
+            if (!detectedOp) {
+                const ops = ["=", "\\le", "\\ge", "<", ">"];
+                detectedOp = ops[Math.floor(Math.random() * ops.length)];
+            }
+
+            let op = String(detectedOp).trim().toLowerCase();
+            if (op.includes("<=") || op.includes("≤") || op.includes("le")) op = "\\le";
+            else if (op.includes(">=") || op.includes("≥") || op.includes("ge")) op = "\\ge";
+            else if (op.includes("!=") || op.includes("≠") || op.includes("\\neq")) op = "\\neq";
+            else if (op.includes("<") || op.includes("lt")) op = "<";
+            else if (op.includes(">") || op.includes("gt")) op = ">";
+            else op = "="; 
+
+            let fracA = parseInput(numericArgs[0], 0, 1);
+            const fracB = parseInput(numericArgs[1], 0, 1);
+            const polyC = parsePoly(numericArgs[2] || 1);
+            const polyD = parsePoly(stringOutsideD);
+
+            const flipOp = (o) => {
+                const flips = { ">": "<", "<": ">", "\\le": "\\ge", "\\ge": "\\le" };
+                return flips[o] || o;
+            };
+
+            const formatFracPure = (f) => {
+                if (f.num === 0) return "0";
+                if (f.den === 1) return f.num.toString();
+                return f.num < 0 ? `-\\frac{${Math.abs(f.num)}}{${f.den}}` : `\\frac{${f.num}}{${f.den}}`;
+            };
+
+            const formatLin = (fX, fC) => {
+                if (fX.num === 0 && fC.num === 0) return "0";
+                if (fX.num === 0) return formatFracPure(fC);
+                
+                let xTerm = "";
+                let absNum = Math.abs(fX.num);
+                let signX = fX.num < 0 ? "-" : "";
+                if (fX.den === 1) {
+                    xTerm = absNum === 1 ? `${signX}x` : `${signX}${absNum}x`;
+                } else {
+                    xTerm = `${signX}\\frac{${absNum}}{${fX.den}}x`;
+                }
+                
+                if (fC.num === 0) return xTerm;
+                let absC = makeFrac(Math.abs(fC.num), fC.den);
+                return fC.num > 0 ? `${xTerm} + ${formatFracPure(absC)}` : `${xTerm} - ${formatFracPure(absC)}`;
+            };
+
+            const solveLinearStep = (fA, fTarget, currentOp) => {
+                const lines = [];
+                const finalVal = divFrac(fTarget, fA);
+                const needsFlip = (fA.num < 0 && currentOp !== "=" && currentOp !== "\\neq");
+                const finalOp = needsFlip ? flipOp(currentOp) : currentOp;
+
+                if (fA.den !== 1) {
+                    const reciprocal = makeFrac(fA.den, fA.num);
+                    const flipText = needsFlip ? "\\text{, flip the inequality sign}" : "";
+                    lines.push(`\\text{Multiply both sides by } ${formatFracPure(reciprocal)}${flipText}\\text{:}`);
+                } else {
+                    const flipText = needsFlip ? " \\text{ and flip the inequality sign}" : "";
+                    if (fA.num === -1) lines.push(`\\text{Multiply both sides by -1}${flipText}\\text{:}`);
+                    else if (fA.num < 0) lines.push(`\\text{Divide both sides by } ${fA.num}${flipText}\\text{:}`);
+                    else if (fA.num !== 1) lines.push(`\\text{Divide both sides by } ${fA.num}\\text{:}`);
+                }
+                lines.push(`x ${finalOp} ${formatFracPure(finalVal)}`);
+                return { lines, finalVal, finalOp };
+            };
+
+            const solveIneqStep = (fAx, fBc, fCx, fDc, currentOp) => {
+                const lines = [];
+                const xCoeff = subFrac(fAx, fCx);
+                const constVal = subFrac(fDc, fBc);
+                
+                lines.push(`${formatLin(fAx, fBc)} ${currentOp} ${formatLin(fCx, fDc)}`);
+                
+                if (fCx.num !== 0 || fBc.num !== 0) {
+                    let leftTerm = formatLin(xCoeff, makeFrac(0));
+                    if (leftTerm === "") leftTerm = "0";
+                    lines.push(`${leftTerm} ${currentOp} ${formatFracPure(constVal)}`);
+                }
+                
+                const finalVal = divFrac(constVal, xCoeff);
+                const needsFlip = (xCoeff.num < 0 && currentOp !== "=" && currentOp !== "\\neq");
+                const finalOp = needsFlip ? flipOp(currentOp) : currentOp;
+                
+                if (xCoeff.num !== 1 && xCoeff.num !== 0) {
+                    let flipText = needsFlip ? " \\text{ (flip sign)}" : "";
+                    lines.push(`x ${finalOp} ${formatFracPure(finalVal)}${flipText}`);
+                }
+                return { lines, finalVal, finalOp };
+            };
+
+            // ==========================================
+            // 4. NEW: INTERVAL FORMATTING HELPER
+            // ==========================================
+            const formatInterval = (type, frac1, op1, frac2, op2) => {
+                let val1 = formatFracPure(frac1);
+                let val2 = frac2 ? formatFracPure(frac2) : "";
+                
+                if (type === "SINGLE") {
+                    if (op1 === "\\le") return `x \\in (-\\infty, ${val1}]`;
+                    if (op1 === "<") return `x \\in (-\\infty, ${val1})`;
+                    if (op1 === "\\ge") return `x \\in [${val1}, \\infty)`;
+                    if (op1 === ">") return `x \\in (${val1}, \\infty)`;
+                    return `x ${op1} ${val1}`; 
+                }
+                if (type === "AND") {
+                    const cmp = compFrac(frac1, frac2);
+                    if (cmp > 0) return "\\text{No solution}"; // Bounds cross (empty set)
+                    if (cmp === 0) return `x = ${val1}`;       // e.g. [5, 5] collapse to x = 5
+                    
+                    let isClosedL = op1 === "\\ge" || op1 === "≥" || op1 === ">=";
+                    let isClosedR = op2 === "\\le" || op2 === "≤" || op2 === "<=";
+                    return `x \\in ${isClosedL ? "[" : "("}${val1}, ${val2}${isClosedR ? "]" : ")"}`;
+                }
+                if (type === "OR") {
+                    const cmp = compFrac(frac1, frac2);
+                    if (cmp > 0) return "x \\in \\mathbb{R}";  // Bounds overlap (all reals)
+                    if (cmp === 0) {
+                        let isClosedR = op1 === "\\le" || op1 === "≤" || op1 === "<=";
+                        let isClosedL = op2 === "\\ge" || op2 === "≥" || op2 === ">=";
+                        if (isClosedR || isClosedL) return "x \\in \\mathbb{R}";
+                        else return `x \\neq ${val1}`;
+                    }
+                    let isClosedR = op1 === "\\le" || op1 === "≤" || op1 === "<=";
+                    let isClosedL = op2 === "\\ge" || op2 === "≥" || op2 === ">=";
+                    return `x \\in (-\\infty, ${val1}${isClosedR ? "]" : ")"} \\cup ${isClosedL ? "[" : "("}${val2}, \\infty)`;
+                }
+                return "";
+            };
+
+            // ==========================================
+            // 5. Render Initial & Isolate 
+            // ==========================================
+            let innerExpr = formatLin(fracA, fracB);
+            let exprStr = `\\left| ${innerExpr} \\right|`;
+            
+            if (polyD.x.num !== 0 || polyD.c.num !== 0) {
+                let dStr = formatLin(polyD.x, polyD.c);
+                exprStr += dStr.startsWith('-') ? ` - ${dStr.substring(1)}` : ` + ${dStr}`;
+            }
+            exprStr += ` ${op} ${formatLin(polyC.x, polyC.c)}`;
+
+            const solLines = [`\\text{Given the absolute value expression: } ${exprStr}`];
+            
+            let isoPolyRHS = { x: polyC.x, c: polyC.c };
+            if (polyD.x.num !== 0 || polyD.c.num !== 0) {
+                solLines.push(`\\text{First, isolate the absolute value by moving terms to the right side:}`);
+                isoPolyRHS = { x: subFrac(polyC.x, polyD.x), c: subFrac(polyC.c, polyD.c) };
+                solLines.push(`\\left| ${innerExpr} \\right| ${op} ${formatLin(isoPolyRHS.x, isoPolyRHS.c)}`);
+            }
+
+            let finalAnsStr = "";
+
+            // ==========================================
+            // 6A. Handle A = 0
+            // ==========================================
+            if (fracA.num === 0) {
+                let absB_val = Math.abs(fracB.num / fracB.den);
+                let absB_frac = makeFrac(Math.abs(fracB.num), fracB.den);
+                
+                solLines.push(`\\text{Since } A = 0 \\text{, the left side is a constant: } \\left| ${formatFracPure(fracB)} \\right| = ${formatFracPure(absB_frac)}`);
+                
+                if (isoPolyRHS.x.num === 0) {
+                    let right_val = isoPolyRHS.c.num / isoPolyRHS.c.den;
+                    solLines.push(`\\text{We evaluate the logical statement: } ${formatFracPure(absB_frac)} ${op} ${formatFracPure(isoPolyRHS.c)}`);
+                    
+                    let isTrue = false;
+                    if (op === "=") isTrue = (absB_val === right_val);
+                    else if (op === "\\neq") isTrue = (absB_val !== right_val);
+                    else if (op === "<") isTrue = (absB_val < right_val);
+                    else if (op === "\\le") isTrue = (absB_val <= right_val);
+                    else if (op === ">") isTrue = (absB_val > right_val);
+                    else if (op === "\\ge") isTrue = (absB_val >= right_val);
+                    
+                    if (isTrue) {
+                        solLines.push(`\\text{This statement is true for all real numbers.}`);
+                        finalAnsStr = "x \\in \\mathbb{R}";
+                    } else {
+                        solLines.push(`\\text{This statement is false.}`);
+                        finalAnsStr = "\\text{No solution}";
+                    }
+                } else {
+                    solLines.push(`\\text{Now solve the linear inequality: } ${formatFracPure(absB_frac)} ${op} ${formatLin(isoPolyRHS.x, isoPolyRHS.c)}`);
+                    const res = solveIneqStep(makeFrac(0), absB_frac, isoPolyRHS.x, isoPolyRHS.c, op);
+                    solLines.push(...res.lines);
+                    finalAnsStr = formatInterval("SINGLE", res.finalVal, res.finalOp);
+                }
+            } 
+            // ==========================================
+            // 6B. STANDARD CONSTANT SOLVER
+            // ==========================================
+            else if (isoPolyRHS.x.num === 0) {
+                let isolatedC = isoPolyRHS.c;
+                const cCmp = compFrac(isolatedC, makeFrac(0));
+
+                if (op === "\\neq") {
+                    if (cCmp < 0) {
+                        solLines.push(`\\text{Since the absolute value is always non-negative, it can never equal a negative number.}`);
+                        finalAnsStr = "x \\in \\mathbb{R}";
+                    } else if (cCmp === 0) {
+                        solLines.push(`\\text{The absolute value is zero only when the expression inside is zero.}`);
+                        solLines.push(`${innerExpr} \\neq 0`);
+                        const target = makeFrac(-fracB.num, fracB.den);
+                        solLines.push(`${formatLin(fracA, makeFrac(0))} \\neq ${formatFracPure(target)}`);
+                        const res = solveLinearStep(fracA, target, "\\neq");
+                        solLines.push(...res.lines);
+                        finalAnsStr = `x \\neq ${formatFracPure(res.finalVal)}`;
+                    } else { 
+                        solLines.push(`\\text{The absolute value is not equal to } ${formatFracPure(isolatedC)}`);
+                        solLines.push(`\\text{so the inside must be different from both } ${formatFracPure(isolatedC)} \\text{ and } ${formatFracPure(makeFrac(-isolatedC.num, isolatedC.den))}`);
+                        
+                        solLines.push(`\\text{First excluded value:}`);
+                        const target1 = subFrac(isolatedC, fracB);
+                        const res1 = solveLinearStep(fracA, target1, "=");
+                        solLines.push(...res1.lines);
+                        
+                        solLines.push(`\\text{Second excluded value:}`);
+                        const negC = makeFrac(-isolatedC.num, isolatedC.den);
+                        const target2 = subFrac(negC, fracB);
+                        const res2 = solveLinearStep(fracA, target2, "=");
+                        solLines.push(...res2.lines);
+                        
+                        const v1 = res1.finalVal, v2 = res2.finalVal;
+                        if (compFrac(v1, v2) === 0) {
+                            finalAnsStr = `x \\neq ${formatFracPure(v1)}`;
+                        } else {
+                            const [first, second] = compFrac(v1, v2) < 0 ? [v1, v2] : [v2, v1];
+                            finalAnsStr = `x \\neq ${formatFracPure(first)} \\quad\\text{and}\\quad x \\neq ${formatFracPure(second)}`;
+                        }
+                    }
+                }
+                else if (cCmp < 0) {
+                    if (op === "=" || op === "<" || op === "\\le") {
+                        solLines.push(`\\text{Since absolute values are non-negative, it cannot be less than or equal to a negative value.}`);
+                        finalAnsStr = "\\text{No solution}";
+                    } else {
+                        solLines.push(`\\text{Since absolute values are non-negative, it is always greater than a negative value.}`);
+                        finalAnsStr = "x \\in \\mathbb{R}";
+                    }
+                }
+                else if (cCmp === 0) {
+                    if (op === "=" || op === "\\le") {
+                        solLines.push(`\\text{An absolute value expression equals } 0 \\text{ if and only if its argument equals } 0:`);
+                        solLines.push(`${innerExpr} = 0`);
+                        const target = makeFrac(-fracB.num, fracB.den);
+                        const res = solveLinearStep(fracA, target, "=");
+                        solLines.push(...res.lines);
+                        finalAnsStr = `x = ${formatFracPure(res.finalVal)}`;
+                    } else if (op === "<") {
+                        solLines.push(`\\text{An absolute value expression can never be strictly less than } 0.`);
+                        finalAnsStr = "\\text{No solution}";
+                    } else if (op === "\\ge") {
+                        solLines.push(`\\text{An absolute value expression is always } \\ge 0 \\text{ for all real values.}`);
+                        finalAnsStr = "x \\in \\mathbb{R}";
+                    } else if (op === ">") {
+                        solLines.push(`\\text{The expression holds true everywhere except where the absolute value equals } 0:`);
+                        solLines.push(`${innerExpr} \\neq 0`);
+                        const target = makeFrac(-fracB.num, fracB.den);
+                        const res = solveLinearStep(fracA, target, "\\neq");
+                        solLines.push(...res.lines);
+                        finalAnsStr = `x \\neq ${formatFracPure(res.finalVal)}`;
+                    }
+                }
+                else { 
+                    const negC = makeFrac(-isolatedC.num, isolatedC.den);
+
+                    if (op === "=") {
+                        solLines.push(`\\text{Split the absolute value equation into two separate cases:}`);
+                        solLines.push(`${innerExpr} = ${formatFracPure(isolatedC)} \\quad\\text{or}\\quad ${innerExpr} = ${formatFracPure(negC)}`);
+
+                        solLines.push(`\\text{Case 1:}`);
+                        const target1 = subFrac(isolatedC, fracB);
+                        const res1 = solveLinearStep(fracA, target1, "=");
+                        solLines.push(...res1.lines);
+
+                        solLines.push(`\\text{Case 2:}`);
+                        const target2 = subFrac(negC, fracB);
+                        const res2 = solveLinearStep(fracA, target2, "=");
+                        solLines.push(...res2.lines);
+
+                        finalAnsStr = `x = ${formatFracPure(res1.finalVal)} \\quad\\text{or}\\quad x = ${formatFracPure(res2.finalVal)}`;
+                    }
+                    else if (op === "<" || op === "\\le") {
+                        solLines.push(`\\text{Rewrite the absolute value inequality as a compound inequality:}`);
+                        solLines.push(`${formatFracPure(negC)} ${op} ${innerExpr} ${op} ${formatFracPure(isolatedC)}`);
+
+                        const targetL = subFrac(negC, fracB);
+                        const targetR = subFrac(isolatedC, fracB);
+                        solLines.push(`${formatFracPure(targetL)} ${op} ${formatLin(fracA, makeFrac(0))} ${op} ${formatFracPure(targetR)}`);
+
+                        const finalValL = divFrac(targetL, fracA);
+                        const finalValR = divFrac(targetR, fracA);
+
+                        if (fracA.num < 0) {
+                            const flippedOp = flipOp(op);
+                            solLines.push(`\\text{Divide/multiply to isolate x, reversing the inequality signs:}`);
+                            solLines.push(`${formatFracPure(finalValL)} ${flippedOp} x ${flippedOp} ${formatFracPure(finalValR)}`);
+                            let lowerOp = flippedOp === "\\ge" ? "\\ge" : ">";
+                            let upperOp = flippedOp === "\\ge" ? "\\le" : "<";
+                            finalAnsStr = formatInterval("AND", finalValR, lowerOp, finalValL, upperOp);
+                        } else {
+                            solLines.push(`\\text{Divide/multiply to isolate x:}`);
+                            solLines.push(`${formatFracPure(finalValL)} ${op} x ${op} ${formatFracPure(finalValR)}`);
+                            let lowerOp = op === "\\le" ? "\\ge" : ">";
+                            let upperOp = op === "\\le" ? "\\le" : "<";
+                            finalAnsStr = formatInterval("AND", finalValL, lowerOp, finalValR, upperOp);
+                        }
+                    }
+                    else if (op === ">" || op === "\\ge") {
+                        const opLeft = op === ">" ? "<" : "\\le";
+                        solLines.push(`\\text{Split into two separate inequalities:}`);
+                        solLines.push(`${innerExpr} ${opLeft} ${formatFracPure(negC)} \\quad\\text{or}\\quad ${innerExpr} ${op} ${formatFracPure(isolatedC)}`);
+
+                        solLines.push(`\\text{Solve the first inequality:}`);
+                        const targetL = subFrac(negC, fracB);
+                        const resL = solveLinearStep(fracA, targetL, opLeft);
+                        solLines.push(...resL.lines);
+
+                        solLines.push(`\\text{Solve the second inequality:}`);
+                        const targetR = subFrac(isolatedC, fracB);
+                        const resR = solveLinearStep(fracA, targetR, op);
+                        solLines.push(...resR.lines);
+
+                        if (compFrac(resL.finalVal, resR.finalVal) < 0) {
+                            finalAnsStr = formatInterval("OR", resL.finalVal, resL.finalOp, resR.finalVal, resR.finalOp);
+                        } else {
+                            finalAnsStr = formatInterval("OR", resR.finalVal, resR.finalOp, resL.finalVal, resL.finalOp);
+                        }
+                    }
+                }
+            } 
+            // ==========================================
+            // 6C. POLYNOMIAL RHS SOLVER (Cx + D)
+            // ==========================================
+            else {
+                const negCx = makeFrac(-isoPolyRHS.x.num, isoPolyRHS.x.den);
+                const negCc = makeFrac(-isoPolyRHS.c.num, isoPolyRHS.c.den);
+
+                if (op === "=" || op === "\\neq") {
+                    solLines.push(`\\text{Split into two cases. Note: valid solutions must satisfy } ${formatLin(isoPolyRHS.x, isoPolyRHS.c)} \\ge 0`);
+                    
+                    solLines.push(`\\text{Case 1:}`);
+                    const res1 = solveIneqStep(fracA, fracB, isoPolyRHS.x, isoPolyRHS.c, op);
+                    solLines.push(...res1.lines);
+                    
+                    solLines.push(`\\text{Case 2:}`);
+                    const res2 = solveIneqStep(fracA, fracB, negCx, negCc, op);
+                    solLines.push(...res2.lines);
+                    
+                    finalAnsStr = `x ${op} ${formatFracPure(res1.finalVal)} \\quad\\text{or}\\quad x ${op} ${formatFracPure(res2.finalVal)}`;
+                    solLines.push(`\\text{(Make sure to plug these back into the right side to check for extraneous solutions!)}`);
+                }
+                else if (op === "<" || op === "\\le") {
+                    solLines.push(`\\text{Rewrite as a compound inequality:}`);
+                    solLines.push(`${formatLin(negCx, negCc)} ${op} ${innerExpr} \\text{ and } ${innerExpr} ${op} ${formatLin(isoPolyRHS.x, isoPolyRHS.c)}`);
+                    solLines.push(`\\text{Solve the two inequalities separately:}`);
+                    
+                    solLines.push(`\\text{Part 1:}`);
+                    const res1 = solveIneqStep(negCx, negCc, fracA, fracB, op);
+                    solLines.push(...res1.lines);
+                    
+                    solLines.push(`\\text{Part 2:}`);
+                    const res2 = solveIneqStep(fracA, fracB, isoPolyRHS.x, isoPolyRHS.c, op);
+                    solLines.push(...res2.lines);
+                    
+                    let isRes1Lower = res1.finalOp === "\\ge" || res1.finalOp === ">";
+                    let lowerRes = isRes1Lower ? res1 : res2;
+                    let upperRes = isRes1Lower ? res2 : res1;
+                    
+                    finalAnsStr = formatInterval("AND", lowerRes.finalVal, lowerRes.finalOp, upperRes.finalVal, upperRes.finalOp);
+                }
+                else if (op === ">" || op === "\\ge") {
+                    const opLeft = op === ">" ? "<" : "\\le";
+                    solLines.push(`\\text{Split into two separate inequalities:}`);
+                    
+                    solLines.push(`\\text{Case 1:}`);
+                    const res1 = solveIneqStep(fracA, fracB, negCx, negCc, opLeft);
+                    solLines.push(...res1.lines);
+                    
+                    solLines.push(`\\text{Case 2:}`);
+                    const res2 = solveIneqStep(fracA, fracB, isoPolyRHS.x, isoPolyRHS.c, op);
+                    solLines.push(...res2.lines);
+                    
+                    let isRes1UpperBounded = res1.finalOp === "\\le" || res1.finalOp === "<";
+                    let leftSideRes = isRes1UpperBounded ? res1 : res2; 
+                    let rightSideRes = isRes1UpperBounded ? res2 : res1;
+                    
+                    finalAnsStr = formatInterval("OR", leftSideRes.finalVal, leftSideRes.finalOp, rightSideRes.finalVal, rightSideRes.finalOp);
+                }
+            }
+
+            solLines.push(`\\text{Final Answer: } ${finalAnsStr}`);
+            const cleanSolLines = solLines.filter((line, index) => index === 0 || line !== solLines[index - 1]);
+
+            return {
+                expr: `\\begin{aligned} &\\text{Solve:} \\\\[0.8em] &\\quad ${exprStr} \\end{aligned}`,
+                ans: finalAnsStr,
+                sol: `\\begin{aligned}\n& ` + cleanSolLines.join(` \\\\[0.8em]\n& `) + `\n\\end{aligned}`
+            };
         }
     ],
     hard: [
