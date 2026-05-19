@@ -3245,6 +3245,397 @@ const algebra = {
                 ans: finalAnsStr,
                 sol: `\\begin{aligned}\n& ` + cleanSolLines.join(` \\\\[0.8em]\n& `) + `\n\\end{aligned}`
             };
+        },
+        //# Family: Solving Radical Equations (\sqrt{f(x)} = g(x), \sqrt{f(x)} = \sqrt{g(x)}, \sqrt{f(x)} \pm \sqrt{g(x)} = h(x), etc.)
+        (fInput, gInput, typeInput, hInput) => {
+            // typeInput options: "constant", "linear", "quadratic", "radical", 
+            //                     "double_radical_zero", "double_radical_const", "triple_radical"
+            let gType = typeInput || "linear";
+            let signBetweenRads = fInput && String(fInput).includes('-') ? -1 : 1; 
+            const solLines = [];
+
+            // ==========================================
+            // 1. Core fraction arithmetic helper functions
+            // ==========================================
+            const gcd = (m, n) => n === 0 ? Math.abs(m) : gcd(n, m % n);
+            const makeFrac = (n, d = 1) => {
+                if (d === 0) throw new Error("Denominator cannot be zero");
+                if (d < 0) { n = -n; d = -d; }
+                const g = gcd(n, d);
+                return { num: n / g, den: d / g };
+            };
+            const addFrac = (f1, f2) => makeFrac(f1.num * f2.den + f2.num * f1.den, f1.den * f2.den);
+            const subFrac = (f1, f2) => makeFrac(f1.num * f2.den - f2.num * f1.den, f1.den * f2.den);
+            const multFrac = (f1, f2) => makeFrac(f1.num * f2.num, f1.den * f2.den);
+            const divFrac = (f1, f2) => makeFrac(f1.num * f2.den, f1.den * f2.num);
+            const compFrac = (f1, f2) => (f1.num * f2.den) - (f2.num * f1.den);
+
+            const floatToFrac = (val) => {
+                if (Number.isInteger(val)) return makeFrac(val, 1);
+                const eps = 1.0e-6;
+                let absVal = Math.abs(val);
+                for (let d = 1; d <= 2000; d++) {
+                    let n = Math.round(absVal * d);
+                    if (Math.abs(absVal - n / d) < eps) {
+                        return makeFrac(val < 0 ? -n : n, d);
+                    }
+                }
+                return makeFrac(Math.round(val * 10000), 10000);
+            };
+
+            const parseInput = (val, defaultNum = 1, defaultDen = 1) => {
+                if (!val && val !== 0) return makeFrac(defaultNum, defaultDen);
+                if (typeof val === 'object' && 'num' in val) return makeFrac(val.num, val.den || 1);
+                if (typeof val === 'string') {
+                    val = val.replace(/\s+/g, '');
+                    if (val.includes('frac')) {
+                        const isNeg = val.startsWith('-');
+                        const match = val.match(/\\(?:d|t)?frac\s*\{\s*(-?\d+)\s*\}\s*\{\s*(-?\d+)\s*\}/);
+                        if (match) {
+                            let n = parseInt(match[1], 10);
+                            let d = parseInt(match[2], 10);
+                            if (isNeg) n = -n;
+                            if (!isNaN(n) && !isNaN(d) && d !== 0) return makeFrac(n, d);
+                        }
+                    }
+                    if (val.includes('/')) {
+                        const parts = val.split('/');
+                        const n = parseInt(parts[0], 10);
+                        const d = parseInt(parts[1], 10);
+                        if (!isNaN(n) && !isNaN(d) && d !== 0) return makeFrac(n, d);
+                    }
+                    const n = Number(val);
+                    if (!isNaN(n)) return floatToFrac(n);
+                }
+                if (typeof val === 'number' && !isNaN(val)) return floatToFrac(val);
+                return makeFrac(defaultNum, defaultDen);
+            };
+
+            const parsePoly = (strOrArr) => {
+                if (Array.isArray(strOrArr)) {
+                    return strOrArr.map(v => typeof v === 'object' ? v : makeFrac(v));
+                }
+                let poly = [makeFrac(0), makeFrac(0), makeFrac(0), makeFrac(0), makeFrac(0)]; 
+                if (!strOrArr && strOrArr !== 0) return poly;
+                if (typeof strOrArr === 'number') return [floatToFrac(strOrArr)];
+                
+                let str = String(strOrArr).replace(/\s+/g, '').replace(/-/g, '+-');
+                let terms = str.split('+').filter(t => t !== '');
+
+                for (let term of terms) {
+                    if (term.includes('x^2')) {
+                        let coeffStr = term.replace('x^2', '');
+                        if (coeffStr === '') coeffStr = '1';
+                        if (coeffStr === '-') coeffStr = '-1';
+                        poly[2] = parseInput(coeffStr);
+                    } else if (term.includes('x')) {
+                        let coeffStr = term.replace('x', '');
+                        if (coeffStr === '') coeffStr = '1';
+                        if (coeffStr === '-') coeffStr = '-1';
+                        poly[1] = parseInput(coeffStr);
+                    } else {
+                        poly[0] = addFrac(poly[0], parseInput(term));
+                    }
+                }
+                return poly;
+            };
+
+            const polyAdd = (p1, p2) => {
+                const res = [];
+                const maxLen = Math.max(p1.length, p2.length);
+                for (let i = 0; i < maxLen; i++) {
+                    res.push(addFrac(p1[i] || makeFrac(0), p2[i] || makeFrac(0)));
+                }
+                return res;
+            };
+
+            const polySub = (p1, p2) => {
+                const res = [];
+                const maxLen = Math.max(p1.length, p2.length);
+                for (let i = 0; i < maxLen; i++) {
+                    res.push(subFrac(p1[i] || makeFrac(0), p2[i] || makeFrac(0)));
+                }
+                return res;
+            };
+
+            const polyMult = (p1, p2) => {
+                const res = Array(p1.length + p2.length - 1).fill(null).map(() => makeFrac(0));
+                for (let i = 0; i < p1.length; i++) {
+                    for (let j = 0; j < p2.length; j++) {
+                        res[i + j] = addFrac(res[i + j], multFrac(p1[i], p2[j]));
+                    }
+                }
+                return res;
+            };
+
+            const formatFracPure = (f) => {
+                if (f.num === 0) return "0";
+                if (f.den === 1) return f.num.toString();
+                return f.num < 0 ? `-\\frac{${Math.abs(f.num)}}{${f.den}}` : `\\frac{${f.num}}{${f.den}}`;
+            };
+
+            const formatPoly = (p) => {
+                let terms = [];
+                for (let i = p.length - 1; i >= 0; i--) {
+                    if (p[i].num === 0) continue;
+                    let absFracStr = formatFracPure(makeFrac(Math.abs(p[i].num), p[i].den));
+                    let sign = p[i].num > 0 ? " + " : " - ";
+                    if (terms.length === 0 && p[i].num > 0) sign = "";
+                    if (terms.length === 0 && p[i].num < 0) sign = "-";
+
+                    let xTerm = i === 1 ? "x" : i > 1 ? `x^${i}` : "";
+                    let coeff = (absFracStr === "1" && i > 0) ? "" : absFracStr;
+
+                    terms.push(`${sign}${coeff}${xTerm}`);
+                }
+                return terms.length === 0 ? "0" : terms.join("");
+            };
+
+            // ==========================================
+            // 2. AUTO-ENGINE INTERCEPTOR
+            // ==========================================
+            if (typeof fInput === 'number' && typeof gInput === 'number') {
+                const types = ["constant", "linear", "quadratic", "radical", "double_radical_zero", "double_radical_const", "triple_radical"];
+                gType = types[Math.floor(Math.random() * types.length)];
+                let targetX = Math.floor(Math.random() * 4) + 1;
+                
+                if (gType === "constant") {
+                    fInput = `x + 3`; gInput = `2`;
+                } else if (gType === "linear") {
+                    fInput = `2x + ${targetX * targetX - 2 * targetX}`; gInput = `x`;
+                } else if (gType === "quadratic") {
+                    fInput = `x + 2`; gInput = `x^2 - 2`;
+                } else if (gType === "radical") {
+                    fInput = `3x + 1`; gInput = `x + 5`;
+                } else if (gType === "double_radical_zero") {
+                    fInput = "2x + 5"; gInput = "x + 9";
+                } else if (gType === "double_radical_const") {
+                    fInput = "x + 7"; gInput = "x + 2"; hInput = "5";
+                } else if (gType === "triple_radical") {
+                    fInput = "3x + 1"; gInput = "x + 1"; hInput = "x + 4";
+                }
+            }
+
+            // ==========================================
+            // 3. Complete Explicit Type Processing Engine
+            // ==========================================
+            let polyF = parsePoly(fInput);
+            let polyG = parsePoly(gInput);
+            let polyH = hInput ? parsePoly(hInput) : [makeFrac(0)];
+
+            let exprStr = "";
+            let finalEqPoly = [];
+
+            // --- CASE 1: CONSTANT / LINEAR / QUADRATIC ---
+            if (gType === "constant" || gType === "linear" || gType === "quadratic") {
+                exprStr = `\\sqrt{${formatPoly(polyF)}} = ${formatPoly(polyG)}`;
+                solLines.push(`\\text{Given the radical expression: } ${exprStr}`);
+                
+                if (gType === "constant" && compFrac(polyG[0], makeFrac(0)) < 0) {
+                    solLines.push(`\\text{Since the principal square root is non-negative, it cannot equal } ${formatFracPure(polyG[0])}.`);
+                    return {
+                        expr: `\\begin{aligned} &\\text{Solve:} \\\\[0.8em] &\\quad ${exprStr} \\end{aligned}`,
+                        ans: "\\text{No solution}",
+                        sol: `\\begin{aligned}\n& ` + solLines.join(` \\\\[0.8em]\n& `) + `\n\\end{aligned}`
+                    };
+                }
+                if (gType !== "constant") {
+                    solLines.push(`\\text{Set condition for valid domain constraints: } ${formatPoly(polyG)} \\ge 0`);
+                }
+                solLines.push(`\\text{Square both sides to eliminate the radical component:}`);
+                solLines.push(`${formatPoly(polyF)} = \\left(${formatPoly(polyG)}\\right)^2`);
+                let rhsPolyForSquaring = polyMult(polyG, polyG);
+                solLines.push(`${formatPoly(polyF)} = ${formatPoly(rhsPolyForSquaring)}`);
+                finalEqPoly = polySub(polyF, rhsPolyForSquaring);
+            } 
+            // --- CASE 2: RADICAL (\sqrt{f(x)} = \sqrt{g(x)}) ---
+            else if (gType === "radical") {
+                exprStr = `\\sqrt{${formatPoly(polyF)}} = \\sqrt{${formatPoly(polyG)}}`;
+                solLines.push(`\\text{Given the radical expression: } ${exprStr}`);
+                solLines.push(`\\text{Square both sides to eliminate the radical components:}`);
+                solLines.push(`${formatPoly(polyF)} = ${formatPoly(polyG)}`);
+                finalEqPoly = polySub(polyF, polyG);
+            } 
+            // --- CASE 3: DOUBLE RADICAL ZERO (\sqrt{} - \sqrt{} = 0) ---
+            else if (gType === "double_radical_zero") {
+                exprStr = `\\sqrt{${formatPoly(polyF)}} - \\sqrt{${formatPoly(polyG)}} = 0`;
+                solLines.push(`\\text{Given the radical expression: } ${exprStr}`);
+                solLines.push(`\\text{Isolate one radical on the right side:}`);
+                solLines.push(`\\sqrt{${formatPoly(polyF)}} = \\sqrt{${formatPoly(polyG)}}`);
+                solLines.push(`\\text{Square both sides to clear the radicals:}`);
+                solLines.push(`${formatPoly(polyF)} = ${formatPoly(polyG)}`);
+                finalEqPoly = polySub(polyF, polyG);
+            } 
+            // --- CASE 4: DOUBLE RADICAL CONSTANT (\sqrt{} \pm \sqrt{} = e) ---
+            else if (gType === "double_radical_const") {
+                let opSign = signBetweenRads === -1 ? "-" : "+";
+                exprStr = `\\sqrt{${formatPoly(polyF)}} ${opSign} \\sqrt{${formatPoly(polyG)}} = ${formatPoly(polyH)}`;
+                solLines.push(`\\text{Given the radical expression: } ${exprStr}`);
+                solLines.push(`\\text{Isolate one radical component on the left side:}`);
+                
+                let rSignStr = signBetweenRads === -1 ? "+" : "-";
+                solLines.push(`\\sqrt{${formatPoly(polyF)}} = ${formatPoly(polyH)} ${rSignStr} \\sqrt{${formatPoly(polyG)}}`);
+                solLines.push(`\\text{Square both sides of the equation:}`);
+                solLines.push(`${formatPoly(polyF)} = \\left(${formatPoly(polyH)} ${rSignStr} \\sqrt{${formatPoly(polyG)}}\\right)^2`);
+
+                let polyHSquared = polyMult(polyH, polyH);
+                solLines.push(`${formatPoly(polyF)} = ${formatPoly(polyHSquared)} ${rSignStr} 2\\left(${formatPoly(polyH)}\\right)\\sqrt{${formatPoly(polyG)}} + ${formatPoly(polyG)}`);
+                
+                let isolatedRHS = polySub(polyAdd(polyHSquared, polyG), polyF);
+                let radCoeff = polyMult([makeFrac(2 * signBetweenRads)], polyH);
+                
+                solLines.push(`\\text{Group rational terms and isolate the remaining radical component:}`);
+                solLines.push(`${formatPoly(radCoeff)}\\sqrt{${formatPoly(polyG)}} = ${formatPoly(isolatedRHS)}`);
+                solLines.push(`\\text{Square both sides once more to clear the final radical:}`);
+                
+                let radCoeffSquared = polyMult(radCoeff, radCoeff);
+                let lhsFinal = polyMult(radCoeffSquared, polyG);
+                let rhsFinal = polyMult(isolatedRHS, isolatedRHS);
+                
+                solLines.push(`\\left(${formatPoly(radCoeff)}\\right)^2 \\left(${formatPoly(polyG)}\\right) = \\left(${formatPoly(isolatedRHS)}\\right)^2`);
+                solLines.push(`${formatPoly(lhsFinal)} = ${formatPoly(rhsFinal)}`);
+                finalEqPoly = polySub(lhsFinal, rhsFinal);
+            } 
+            // --- CASE 5: TRIPLE RADICAL ---
+            else if (gType === "triple_radical") {
+                exprStr = `\\sqrt{${formatPoly(polyF)}} - \\sqrt{${formatPoly(polyG)}} = \\sqrt{${formatPoly(polyH)}}`;
+                solLines.push(`\\text{Given the radical expression: } ${exprStr}`);
+                solLines.push(`\\text{Rearrange terms to render all radical coefficients positive:}`);
+                solLines.push(`\\sqrt{${formatPoly(polyF)}} = \\sqrt{${formatPoly(polyH)}} + \\sqrt{${formatPoly(polyG)}}`);
+                solLines.push(`\\text{Square both sides to initiate elimination:}`);
+                solLines.push(`${formatPoly(polyF)} = \\left(\\sqrt{${formatPoly(polyH)}} + \\sqrt{${formatPoly(polyG)}}\\right)^2`);
+                solLines.push(`${formatPoly(polyF)} = ${formatPoly(polyH)} + 2\\sqrt{\\left(${formatPoly(polyH)}\\right)\\left(${formatPoly(polyG)}\\right)} + ${formatPoly(polyG)}`);
+                
+                let isolatedRHS = polySub(polySub(polyF, polyH), polyG);
+                let polyHGProd = polyMult(polyH, polyG);
+                
+                solLines.push(`\\text{Isolate the combined cross-multiplied radical term:}`);
+                solLines.push(`2\\sqrt{${formatPoly(polyHGProd)}} = ${formatPoly(isolatedRHS)}`);
+                solLines.push(`\\text{Square both sides a second time to clear the remaining root structure:}`);
+                
+                let lhsFinal = polyMult([makeFrac(4)], polyHGProd);
+                let rhsFinal = polyMult(isolatedRHS, isolatedRHS);
+                
+                solLines.push(`4\\left(${formatPoly(polyHGProd)}\\right) = \\left(${formatPoly(isolatedRHS)}\\right)^2`);
+                solLines.push(`${formatPoly(lhsFinal)} = ${formatPoly(rhsFinal)}`);
+                finalEqPoly = polySub(lhsFinal, rhsFinal);
+            }
+
+            solLines.push(`\\text{Group all terms onto one side to evaluate structural roots:}`);
+            solLines.push(`${formatPoly(finalEqPoly)} = 0`);
+
+            // ==========================================
+            // 4. Algebraic Solver (Linear or Quadratic)
+            // ==========================================
+            let candidates = [];
+            while (finalEqPoly.length > 0 && finalEqPoly[finalEqPoly.length - 1].num === 0) {
+                finalEqPoly.pop();
+            }
+            let degree = finalEqPoly.length - 1;
+
+            if (degree === 1) {
+                let c0 = finalEqPoly[0];
+                let c1 = finalEqPoly[1];
+                let root = divFrac(makeFrac(-c0.num, c0.den), c1);
+                candidates.push(root);
+                solLines.push(`\\text{Isolate linear systems: } x = ${formatFracPure(root)}`);
+            } 
+            else if (degree === 2) {
+                let c0 = finalEqPoly[0];
+                let c1 = finalEqPoly[1];
+                let c2 = finalEqPoly[2];
+
+                solLines.push(`\\text{Apply the quadratic formula where } a = ${formatFracPure(c2)}, b = ${formatFracPure(c1)}, c = ${formatFracPure(c0)}:`);
+                let bSq = multFrac(c1, c1);
+                let fourAC = multFrac(makeFrac(4), multFrac(c2, c0));
+                let disc = subFrac(bSq, fourAC);
+
+                solLines.push(`\\Delta = b^2 - 4ac = ${formatFracPure(disc)}`);
+                let discFloat = disc.num / disc.den;
+
+                if (discFloat < 0) {
+                    solLines.push(`\\text{Since } \\Delta < 0 \\text{, there are no real coordinates found.}`);
+                } else if (discFloat === 0) {
+                    let root = divFrac(makeFrac(-c1.num, c1.den), multFrac(makeFrac(2), c2));
+                    candidates.push(root);
+                    solLines.push(`\\text{Double root simplification: } x = ${formatFracPure(root)}`);
+                } else {
+                    let sqrtDisc = Math.sqrt(discFloat);
+                    if (Number.isInteger(sqrtDisc)) {
+                        let discFracRoot = makeFrac(sqrtDisc, 1);
+                        let r1 = divFrac(subFrac(makeFrac(-c1.num, c1.den), discFracRoot), multFrac(makeFrac(2), c2));
+                        let r2 = divFrac(addFrac(makeFrac(-c1.num, c1.den), discFracRoot), multFrac(makeFrac(2), c2));
+                        candidates.push(r1, r2);
+                        solLines.push(`\\text{Roots evaluated: } x = ${formatFracPure(r1)} \\quad\\text{or}\\quad x = ${formatFracPure(r2)}`);
+                    } else {
+                        let r1_val = (-c1.num/c1.den - sqrtDisc) / (2 * c2.num/c2.den);
+                        let r2_val = (-c1.num/c1.den + sqrtDisc) / (2 * c2.num/c2.den);
+                        candidates.push({num: r1_val, den: 1, isFloat: true}, {num: r2_val, den: 1, isFloat: true});
+                        solLines.push(`\\text{Roots evaluated: } x \\approx ${r1_val.toFixed(3)} \\quad\\text{or}\\quad x \\approx ${r2_val.toFixed(3)}`);
+                    }
+                }
+            } else {
+                solLines.push(`\\text{Equation degree [${degree}] requires higher-order numerical factorization techniques.}`);
+            }
+
+            // ==========================================
+            // 5. Extraneous Verification Step
+            // ==========================================
+            let validRoots = [];
+            if (candidates.length > 0) {
+                solLines.push(`\\text{Verify candidates to isolate extraneous solutions:}`);
+                
+                for (let cand of candidates) {
+                    let val = cand.isFloat ? cand.num : cand.num / cand.den;
+                    let candStr = cand.isFloat ? val.toFixed(3) : formatFracPure(cand);
+
+                    const evalP = (p) => {
+                        let sum = 0;
+                        for (let i = 0; i < p.length; i++) { sum += (p[i].num / p[i].den) * Math.pow(val, i); }
+                        return sum;
+                    };
+
+                    let fVal = evalP(polyF);
+                    let gVal = evalP(polyG);
+                    let hVal = evalP(polyH);
+
+                    let lhsCheck = 0;
+                    let rhsCheck = 0;
+
+                    if (gType === "constant" || gType === "linear" || gType === "quadratic") {
+                        lhsCheck = fVal >= 0 ? Math.sqrt(fVal) : -1;
+                        rhsCheck = gVal;
+                    } else if (gType === "radical" || gType === "double_radical_zero") {
+                        lhsCheck = fVal >= 0 ? Math.sqrt(fVal) : -1;
+                        rhsCheck = gVal >= 0 ? Math.sqrt(gVal) : -2;
+                    } else if (gType === "double_radical_const") {
+                        lhsCheck = (fVal >= 0 ? Math.sqrt(fVal) : -1) + signBetweenRads * (gVal >= 0 ? Math.sqrt(gVal) : -5);
+                        rhsCheck = hVal;
+                    } else if (gType === "triple_radical") {
+                        lhsCheck = (fVal >= 0 ? Math.sqrt(fVal) : -1) - (gVal >= 0 ? Math.sqrt(gVal) : -5);
+                        rhsCheck = hVal >= 0 ? Math.sqrt(hVal) : -10;
+                    }
+                    
+                    if (fVal >= 0 && (gType === "constant" || gType === "linear" || gType === "quadratic" || gVal >= 0) && (gType !== "triple_radical" || hVal >= 0) && Math.abs(lhsCheck - rhsCheck) < 1e-5) {
+                        validRoots.push(candStr);
+                        solLines.push(`\\bullet\\, x = ${candStr} \\implies \\text{Valid}`);
+                    } else {
+                        solLines.push(`\\bullet\\, x = ${candStr} \\implies \\text{Extraneous}`);
+                    }
+                }
+            }
+
+            validRoots = [...new Set(validRoots)];
+            let finalAnsStr = validRoots.length === 0 ? "\\text{No solution}" : validRoots.map(r => `x = ${r}`).join(` \\quad\\text{or}\\quad `);
+            solLines.push(`\\text{Final Answer: } ${finalAnsStr}`);
+
+            const cleanSolLines = solLines.filter((line, index) => index === 0 || line !== solLines[index - 1]);
+
+            return {
+                expr: `\\begin{aligned} &\\text{Solve:} \\\\[0.8em] &\\quad ${exprStr} \\end{aligned}`,
+                ans: finalAnsStr,
+                sol: `\\begin{aligned}\n& ` + cleanSolLines.join(` \\\\[0.8em]\n& `) + `\n\\end{aligned}`
+            };
         }
     ],
     hard: [
