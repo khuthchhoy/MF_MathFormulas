@@ -91,7 +91,6 @@ class WorksheetEngine {
 // =========================================
 // 4. Save setting and loadSetting
 // =========================================
-/*
 function saveSettingsForCalculus() {
     const settings = {
         subjects: App.getSelectedSubjects(),
@@ -100,10 +99,11 @@ function saveSettingsForCalculus() {
         columns: document.getElementById('num-columns').value,
         showAnswers: document.getElementById('show-answers').checked,
         showSolutions: document.getElementById('show-solutions').checked,
-        // ADDED: Save the currently generated problems
-        savedData: Engine.currentData 
+        savedData: Engine.currentData // <--- Ensure this is included
     };
+    
     localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
+    
     if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
         window.webkit.messageHandlers.saveSettingsForCalculus.postMessage(JSON.stringify(settings));
     }
@@ -114,7 +114,7 @@ function loadSettings(jsonString) {
     if (saved) {
         const s = JSON.parse(saved);
         
-        // Handle array of subjects
+        // 1. Apply UI States
         if (s.subjects && Array.isArray(s.subjects)) {
             document.querySelectorAll('#subject-list input[type="checkbox"]').forEach(cb => {
                 cb.checked = s.subjects.includes(cb.value);
@@ -126,10 +126,8 @@ function loadSettings(jsonString) {
             document.getElementById('num-columns').value = s.columns;
             document.documentElement.style.setProperty('--grid-cols', s.columns);
         }
-        
-        // Use strict check to prevent false overrides
-        if (s.showAnswers !== undefined) document.getElementById('show-answers').checked = s.showAnswers;
-        if (s.showSolutions !== undefined) document.getElementById('show-solutions').checked = s.showSolutions;
+        document.getElementById('show-answers').checked = s.showAnswers !== undefined ? s.showAnswers : false;
+        document.getElementById('show-solutions').checked = s.showSolutions !== undefined ? s.showSolutions : false;
         
         if (s.difficulty) {
             document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
@@ -137,19 +135,19 @@ function loadSettings(jsonString) {
             if (activeBtn) activeBtn.classList.add('active');
         }
 
-        // ADDED: Load previous problems if they exist, otherwise generate new ones
+        // 2. Logic Change: Only render saved data if it exists. Otherwise, generate new.
         if (s.savedData && s.savedData.length > 0) {
             Engine.currentData = s.savedData;
             App.renderWorksheet(); 
         } else {
-            App.generateNewData(); 
+            App.generateNewData();
         }
     } else {
-        // Fallback for brand new users
+        // No saved settings found, start fresh
         App.generateNewData();
     }
 }
-*/
+/*
 function saveSettingsForCalculus() {
     const settings = {
         subjects: App.getSelectedSubjects(), // Saving as an array
@@ -193,7 +191,7 @@ function loadSettings(jsonString) {
     }
     App.generateNewData();
 }
-
+*/
 // ==========================================
 // 5. UI & STATE CONTROLLER
 // ==========================================
@@ -202,7 +200,7 @@ const Engine = new WorksheetEngine(ProblemRegistry);
 const App = {
     init: () => {
         App.populateSubjects();
-        //loadSettings(); 
+        loadSettings(); 
     },
     
     populateSubjects: () => {
