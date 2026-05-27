@@ -91,6 +91,7 @@ class WorksheetEngine {
 // =========================================
 // 4. Save setting and loadSetting
 // =========================================
+/*
 function saveSettingsForCalculus() {
     const settings = {
         subjects: App.getSelectedSubjects(),
@@ -148,7 +149,7 @@ function loadSettings(jsonString) {
         App.generateNewData();
     }
 }
-/*
+*/
 function saveSettingsForCalculus() {
     const settings = {
         subjects: App.getSelectedSubjects(), // Saving as an array
@@ -192,7 +193,7 @@ function loadSettings(jsonString) {
     }
     App.generateNewData();
 }
-*/
+
 // ==========================================
 // 5. UI & STATE CONTROLLER
 // ==========================================
@@ -201,7 +202,7 @@ const Engine = new WorksheetEngine(ProblemRegistry);
 const App = {
     init: () => {
         App.populateSubjects();
-        loadSettings(); 
+        //loadSettings(); 
     },
     
     populateSubjects: () => {
