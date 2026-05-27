@@ -201,15 +201,7 @@ const Engine = new WorksheetEngine(ProblemRegistry);
 const App = {
     init: () => {
         App.populateSubjects();
-        // Check if we are running inside the iOS Native App
-        if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
-            // Do NOTHING here. 
-            // We wait for Swift to call `loadSettings(savedJsonString)` 
-            // once the webview finishes loading.
-        } else {
-            // Standard web browser fallback
-            loadSettings(); 
-        }
+        //loadSettings(); 
     },
     
     populateSubjects: () => {
