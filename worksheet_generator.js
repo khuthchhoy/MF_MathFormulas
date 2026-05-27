@@ -91,6 +91,7 @@ class WorksheetEngine {
 // =========================================
 // 4. Save setting and loadSetting
 // =========================================
+/*
 function saveSettingsForCalculus() {
     const settings = {
         subjects: App.getSelectedSubjects(),
@@ -150,7 +151,7 @@ function loadSettings(jsonString) {
     // 3. Fallback: If no saved data, generate new data
     App.generateNewData();
 }
-/*
+*/
 function saveSettingsForCalculus() {
     const settings = {
         subjects: App.getSelectedSubjects(), // Saving as an array
@@ -158,7 +159,8 @@ function saveSettingsForCalculus() {
         numProblems: document.getElementById('num-problems').value,
         columns: document.getElementById('num-columns').value,
         showAnswers: document.getElementById('show-answers').checked,
-        showSolutions: document.getElementById('show-solutions').checked
+        showSolutions: document.getElementById('show-solutions').checked,
+        savedData: Engine.currentData // Save the actual math problems
     };
     localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
     if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
@@ -194,7 +196,7 @@ function loadSettings(jsonString) {
     }
     App.generateNewData();
 }
-*/
+
 // ==========================================
 // 5. UI & STATE CONTROLLER
 // ==========================================
