@@ -159,8 +159,7 @@ function saveSettingsForCalculus() {
         numProblems: document.getElementById('num-problems').value,
         columns: document.getElementById('num-columns').value,
         showAnswers: document.getElementById('show-answers').checked,
-        showSolutions: document.getElementById('show-solutions').checked,
-        savedData: Engine.currentData // Save the actual math problems
+        showSolutions: document.getElementById('show-solutions').checked
     };
     localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
     if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
