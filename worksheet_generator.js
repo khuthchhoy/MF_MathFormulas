@@ -201,12 +201,15 @@ const Engine = new WorksheetEngine(ProblemRegistry);
 const App = {
     init: () => {
         App.populateSubjects();
-        loadSettings(); // Uncomment when ready to use localStorage
-        
-        // If loadSettings is commented out, we still need to trigger the first generation
-        // if(!localStorage.getItem('worksheetSettingsForCalculus')) {
-        //     App.generateNewData();
-        // }
+        // Check if we are running inside the iOS Native App
+        if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
+            // Do NOTHING here. 
+            // We wait for Swift to call `loadSettings(savedJsonString)` 
+            // once the webview finishes loading.
+        } else {
+            // Standard web browser fallback
+            loadSettings(); 
+        }
     },
     
     populateSubjects: () => {
