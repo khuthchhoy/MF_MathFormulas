@@ -99,11 +99,12 @@ function saveSettingsForCalculus() {
         columns: document.getElementById('num-columns').value,
         showAnswers: document.getElementById('show-answers').checked,
         showSolutions: document.getElementById('show-solutions').checked,
-        savedData: Engine.currentData // <--- Ensure this is included
+        savedData: Engine.currentData // Save the actual math problems
     };
     
     localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
     
+    // Bridge to iOS
     if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
         window.webkit.messageHandlers.saveSettingsForCalculus.postMessage(JSON.stringify(settings));
     }
@@ -111,41 +112,43 @@ function saveSettingsForCalculus() {
 
 function loadSettings(jsonString) {
     const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
+    
     if (saved) {
-        const s = JSON.parse(saved);
-        
-        // 1. Apply UI States
-        if (s.subjects && Array.isArray(s.subjects)) {
-            document.querySelectorAll('#subject-list input[type="checkbox"]').forEach(cb => {
-                cb.checked = s.subjects.includes(cb.value);
-            });
-        }
-        
-        if (s.numProblems) document.getElementById('num-problems').value = s.numProblems;
-        if (s.columns) {
-            document.getElementById('num-columns').value = s.columns;
-            document.documentElement.style.setProperty('--grid-cols', s.columns);
-        }
-        document.getElementById('show-answers').checked = s.showAnswers !== undefined ? s.showAnswers : false;
-        document.getElementById('show-solutions').checked = s.showSolutions !== undefined ? s.showSolutions : false;
-        
-        if (s.difficulty) {
-            document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.querySelector(`.segment[data-diff="${s.difficulty}"]`);
-            if (activeBtn) activeBtn.classList.add('active');
-        }
+        try {
+            const s = JSON.parse(saved);
+            
+            // 1. Update UI Inputs (Checkboxes, Selects, Inputs)
+            if (s.subjects && Array.isArray(s.subjects)) {
+                document.querySelectorAll('#subject-list input[type="checkbox"]').forEach(cb => {
+                    cb.checked = s.subjects.includes(cb.value);
+                });
+            }
+            if (s.numProblems) document.getElementById('num-problems').value = s.numProblems;
+            if (s.columns) {
+                document.getElementById('num-columns').value = s.columns;
+                document.documentElement.style.setProperty('--grid-cols', s.columns);
+            }
+            if (s.showAnswers !== undefined) document.getElementById('show-answers').checked = s.showAnswers;
+            if (s.showSolutions !== undefined) document.getElementById('show-solutions').checked = s.showSolutions;
+            if (s.difficulty) {
+                document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
+                const activeBtn = document.querySelector(`.segment[data-diff="${s.difficulty}"]`);
+                if (activeBtn) activeBtn.classList.add('active');
+            }
 
-        // 2. Logic Change: Only render saved data if it exists. Otherwise, generate new.
-        if (s.savedData && s.savedData.length > 0) {
-            Engine.currentData = s.savedData;
-            App.renderWorksheet(); 
-        } else {
-            App.generateNewData();
+            // 2. Restore Old Problems (The "Magic" Step)
+            if (s.savedData && s.savedData.length > 0) {
+                Engine.currentData = s.savedData; // Inject old data
+                App.renderWorksheet();            // Render it WITHOUT calling generateNewData()
+                return;                           // STOP HERE
+            }
+        } catch (e) {
+            console.error("Failed to load saved settings", e);
         }
-    } else {
-        // No saved settings found, start fresh
-        App.generateNewData();
     }
+    
+    // 3. Fallback: If no saved data, generate new data
+    App.generateNewData();
 }
 /*
 function saveSettingsForCalculus() {
@@ -200,7 +203,7 @@ const Engine = new WorksheetEngine(ProblemRegistry);
 const App = {
     init: () => {
         App.populateSubjects();
-        // loadSettings(); 
+        loadSettings(); 
     },
     
     populateSubjects: () => {
