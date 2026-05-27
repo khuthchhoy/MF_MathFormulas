@@ -201,7 +201,7 @@ const Engine = new WorksheetEngine(ProblemRegistry);
 const App = {
     init: () => {
         App.populateSubjects();
-        //loadSettings(); 
+        loadSettings(); 
     },
     
     populateSubjects: () => {
