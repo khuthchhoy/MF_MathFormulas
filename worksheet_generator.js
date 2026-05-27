@@ -201,7 +201,7 @@ const Engine = new WorksheetEngine(ProblemRegistry);
 const App = {
     init: () => {
         App.populateSubjects();
-        //loadSettings(); // Uncomment when ready to use localStorage
+        loadSettings(); // Uncomment when ready to use localStorage
         
         // If loadSettings is commented out, we still need to trigger the first generation
         // if(!localStorage.getItem('worksheetSettingsForCalculus')) {
