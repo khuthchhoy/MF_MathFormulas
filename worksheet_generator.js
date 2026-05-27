@@ -93,6 +93,64 @@ class WorksheetEngine {
 // =========================================
 function saveSettingsForCalculus() {
     const settings = {
+        subjects: App.getSelectedSubjects(),
+        difficulty: document.querySelector('.segment.active').dataset.diff,
+        numProblems: document.getElementById('num-problems').value,
+        columns: document.getElementById('num-columns').value,
+        showAnswers: document.getElementById('show-answers').checked,
+        showSolutions: document.getElementById('show-solutions').checked,
+        // ADDED: Save the currently generated problems
+        savedData: Engine.currentData 
+    };
+    localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
+    if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
+        window.webkit.messageHandlers.saveSettingsForCalculus.postMessage(JSON.stringify(settings));
+    }
+}
+
+function loadSettings(jsonString) {
+    const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
+    if (saved) {
+        const s = JSON.parse(saved);
+        
+        // Handle array of subjects
+        if (s.subjects && Array.isArray(s.subjects)) {
+            document.querySelectorAll('#subject-list input[type="checkbox"]').forEach(cb => {
+                cb.checked = s.subjects.includes(cb.value);
+            });
+        }
+        
+        if (s.numProblems) document.getElementById('num-problems').value = s.numProblems;
+        if (s.columns) {
+            document.getElementById('num-columns').value = s.columns;
+            document.documentElement.style.setProperty('--grid-cols', s.columns);
+        }
+        
+        // Use strict check to prevent false overrides
+        if (s.showAnswers !== undefined) document.getElementById('show-answers').checked = s.showAnswers;
+        if (s.showSolutions !== undefined) document.getElementById('show-solutions').checked = s.showSolutions;
+        
+        if (s.difficulty) {
+            document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.querySelector(`.segment[data-diff="${s.difficulty}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        // ADDED: Load previous problems if they exist, otherwise generate new ones
+        if (s.savedData && s.savedData.length > 0) {
+            Engine.currentData = s.savedData;
+            App.renderWorksheet(); 
+        } else {
+            App.generateNewData(); 
+        }
+    } else {
+        // Fallback for brand new users
+        App.generateNewData();
+    }
+}
+/*
+function saveSettingsForCalculus() {
+    const settings = {
         subjects: App.getSelectedSubjects(), // Saving as an array
         difficulty: document.querySelector('.segment.active').dataset.diff,
         numProblems: document.getElementById('num-problems').value,
@@ -134,7 +192,7 @@ function loadSettings(jsonString) {
     }
     App.generateNewData();
 }
-
+*/
 // ==========================================
 // 5. UI & STATE CONTROLLER
 // ==========================================
