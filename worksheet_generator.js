@@ -140,7 +140,8 @@ function saveSettingsForCalculus() {
         numProblems: document.getElementById('num-problems').value,
         columns: document.getElementById('num-columns').value,
         showAnswers: document.getElementById('show-answers').checked,
-        showSolutions: document.getElementById('show-solutions').checked
+        showSolutions: document.getElementById('show-solutions').checked,
+        savedData: (Engine.currentData && Engine.currentData.length > 0) ? Engine.currentData : []// this line error
     };
     localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
     if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
