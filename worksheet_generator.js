@@ -91,26 +91,6 @@ class WorksheetEngine {
 // =========================================
 // 4. Save setting and loadSetting
 // =========================================
-/*
-function saveSettingsForCalculus() {
-    const settings = {
-        subjects: App.getSelectedSubjects(),
-        difficulty: document.querySelector('.segment.active').dataset.diff,
-        numProblems: document.getElementById('num-problems').value,
-        columns: document.getElementById('num-columns').value,
-        showAnswers: document.getElementById('show-answers').checked,
-        showSolutions: document.getElementById('show-solutions').checked,
-        savedData: Engine.currentData // Save the actual math problems
-    };
-    
-    localStorage.setItem('worksheetSettingsForCalculus', JSON.stringify(settings));
-    
-    // Bridge to iOS
-    if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
-        window.webkit.messageHandlers.saveSettingsForCalculus.postMessage(JSON.stringify(settings));
-    }
-}
-
 function loadSettings(jsonString) {
     const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
     
@@ -118,7 +98,7 @@ function loadSettings(jsonString) {
         try {
             const s = JSON.parse(saved);
             
-            // 1. Update UI Inputs (Checkboxes, Selects, Inputs)
+            // 1. Handle UI Elements
             if (s.subjects && Array.isArray(s.subjects)) {
                 document.querySelectorAll('#subject-list input[type="checkbox"]').forEach(cb => {
                     cb.checked = s.subjects.includes(cb.value);
@@ -131,27 +111,28 @@ function loadSettings(jsonString) {
             }
             if (s.showAnswers !== undefined) document.getElementById('show-answers').checked = s.showAnswers;
             if (s.showSolutions !== undefined) document.getElementById('show-solutions').checked = s.showSolutions;
+            
             if (s.difficulty) {
                 document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
                 const activeBtn = document.querySelector(`.segment[data-diff="${s.difficulty}"]`);
                 if (activeBtn) activeBtn.classList.add('active');
             }
 
-            // 2. Restore Old Problems (The "Magic" Step)
+            // 2. Safely Load Problems
             if (s.savedData && s.savedData.length > 0) {
-                Engine.currentData = s.savedData; // Inject old data
-                App.renderWorksheet();            // Render it WITHOUT calling generateNewData()
-                return;                           // STOP HERE
+                Engine.currentData = s.savedData;
+                App.renderWorksheet();
+                return; // CRITICAL: Stop here so it doesn't generate new problems
             }
         } catch (e) {
-            console.error("Failed to load saved settings", e);
+            console.error("Parse error:", e);
         }
     }
     
-    // 3. Fallback: If no saved data, generate new data
+    // Fallback if no valid problems exist
     App.generateNewData();
 }
-*/
+
 function saveSettingsForCalculus() {
     const settings = {
         subjects: App.getSelectedSubjects(), // Saving as an array
@@ -167,6 +148,7 @@ function saveSettingsForCalculus() {
     }
 }
 
+/*
 function loadSettings(jsonString) {
     const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
     if (saved) {
@@ -195,6 +177,7 @@ function loadSettings(jsonString) {
     }
     App.generateNewData();
 }
+*/
 
 // ==========================================
 // 5. UI & STATE CONTROLLER
@@ -204,7 +187,13 @@ const Engine = new WorksheetEngine(ProblemRegistry);
 const App = {
     init: () => {
         App.populateSubjects();
-       // loadSettings(); 
+        
+        if (window.webkit && window.webkit.messageHandlers.saveSettingsForCalculus) {
+            console.log("Waiting for iOS to inject settings...");
+        } else {
+            // Running in a normal browser, safe to load immediately
+            loadSettings(); 
+        }
     },
     
     populateSubjects: () => {
