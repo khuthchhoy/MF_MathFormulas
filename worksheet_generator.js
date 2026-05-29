@@ -22,7 +22,7 @@ class WorksheetEngine {
         const problems = [];
         const seenExprs = new Set();
         
-        // 1. Variety Logic: Try to pick at least one from each selected subject first
+        // Variety Logic: Try to pick at least one from each selected subject first
         if (subjects.length > 1) {
             for (const topic of subjects) {
                 if (problems.length >= numProblems) break;
@@ -53,7 +53,7 @@ class WorksheetEngine {
             }
         }
         
-        // 2. Fill Remaining Slots: Pool remaining selected subjects
+        // Fill Remaining Slots: Pool remaining selected subjects
         let availableGenerators = [];
         subjects.forEach(topic => {
             availableGenerators.push(...this.getGenerators(topic, difficulty));
@@ -89,7 +89,7 @@ class WorksheetEngine {
 }
 
 // =========================================
-// 4. Save setting and loadSetting
+// Save setting and loadSetting
 // =========================================
 function loadSettings(jsonString) {
     const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
@@ -149,39 +149,9 @@ function saveSettingsForCalculus() {
     }
 }
 
-/*
-function loadSettings(jsonString) {
-    const saved = jsonString || localStorage.getItem('worksheetSettingsForCalculus');
-    if (saved) {
-        const s = JSON.parse(saved);
-        
-        // Handle array of subjects
-        if (s.subjects && Array.isArray(s.subjects)) {
-            document.querySelectorAll('#subject-list input[type="checkbox"]').forEach(cb => {
-                cb.checked = s.subjects.includes(cb.value);
-            });
-        }
-        
-        if (s.numProblems) document.getElementById('num-problems').value = s.numProblems;
-        if (s.columns) {
-            document.getElementById('num-columns').value = s.columns;
-            document.documentElement.style.setProperty('--grid-cols', s.columns);
-        }
-        document.getElementById('show-answers').checked = s.showAnswers || false;
-        document.getElementById('show-solutions').checked = s.showSolutions || false;
-        
-        if (s.difficulty) {
-            document.querySelectorAll('.segment').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.querySelector(`.segment[data-diff="${s.difficulty}"]`);
-            if (activeBtn) activeBtn.classList.add('active');
-        }
-    }
-    App.generateNewData();
-}
-*/
 
 // ==========================================
-// 5. UI & STATE CONTROLLER
+// UI & STATE CONTROLLER
 // ==========================================
 const Engine = new WorksheetEngine(ProblemRegistry);
 
@@ -231,7 +201,6 @@ const App = {
     setDifficulty: (level) => {
         document.querySelectorAll('.segment').forEach(seg => seg.classList.remove('active'));
         document.getElementById('seg-' + level).classList.add('active');
-        triggerHaptic();
         App.generateNewData();
     },
     
