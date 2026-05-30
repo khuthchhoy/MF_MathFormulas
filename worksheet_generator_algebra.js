@@ -1547,6 +1547,384 @@ const algebra = {
                 ans: finalAnsStr,
                 sol: `\\begin{aligned}\n&` + cleanSolLines.join(` \\\\\n&`) + `\n\\end{aligned}`
             };
+        },
+        //# Family: Lines & Slopes
+        (param1, param2, param3, typeStr) => {
+            // ==========================================
+            // 1. Core fraction arithmetic & math helper functions
+            // ==========================================
+            const gcd = (m, n) => {
+                m = Math.abs(m);
+                n = Math.abs(n);
+                return n === 0 ? m : gcd(n, m % n);
+            };
+
+            const lcm = (a, b) => {
+                a = Math.abs(a);
+                b = Math.abs(b);
+                return (a === 0 || b === 0) ? 0 : (a * b) / gcd(a, b);
+            };
+            
+            const makeFrac = (n, d = 1) => {
+                if (d === 0) return { num: 0, den: 1 }; 
+                if (d < 0) { n = -n; d = -d; }
+                const g = gcd(n, d);
+                return { num: n / g, den: d / g };
+            };
+            
+            const addFrac = (f1, f2) => makeFrac(f1.num * f2.den + f2.num * f1.den, f1.den * f2.den);
+            const subFrac = (f1, f2) => makeFrac(f1.num * f2.den - f2.num * f1.den, f1.den * f2.den);
+            const mulFrac = (f1, f2) => makeFrac(f1.num * f2.num, f1.den * f2.den);
+            const divFrac = (f1, f2) => makeFrac(f1.num * f2.den, f1.den * f2.num);
+
+            const floatToFrac = (val) => {
+                if (Number.isInteger(val)) return makeFrac(val, 1);
+                const eps = 1.0e-6;
+                let absVal = Math.abs(val);
+                for (let d = 1; d <= 2000; d++) {
+                    let n = Math.round(absVal * d);
+                    if (Math.abs(absVal - n / d) < eps) {
+                        return makeFrac(val < 0 ? -n : n, d);
+                    }
+                }
+                return makeFrac(Math.round(val * 10000), 10000);
+            };
+
+            const parseInput = (val, defaultNum = 1, defaultDen = 1) => {
+                if (!val && val !== 0) return makeFrac(defaultNum, defaultDen);
+                if (typeof val === 'object' && 'num' in val) return makeFrac(val.num, val.den || 1);
+                if (typeof val === 'string') {
+                    val = val.replace(/\s+/g, '');
+                    if (val.includes('frac')) {
+                        const isNeg = val.startsWith('-');
+                        const match = val.match(/\\(?:d|t)?frac\s*\{\s*(-?\d+)\s*\}\s*\{\s*(-?\d+)\s*\}/);
+                        if (match) {
+                            let n = parseInt(match[1], 10);
+                            let d = parseInt(match[2], 10);
+                            if (isNeg) n = -n;
+                            if (!isNaN(n) && !isNaN(d) && d !== 0) return makeFrac(n, d);
+                        }
+                    }
+                    if (val.includes('/')) {
+                        const parts = val.split('/');
+                        const n = parseInt(parts[0], 10);
+                        const d = parseInt(parts[1], 10);
+                        if (!isNaN(n) && !isNaN(d) && d !== 0) return makeFrac(n, d);
+                    }
+                    const n = Number(val);
+                    if (!isNaN(n)) return floatToFrac(n);
+                }
+                if (typeof val === 'number' && !isNaN(val)) return floatToFrac(val);
+                return makeFrac(defaultNum, defaultDen);
+            };
+
+            const parsePoint = (str) => {
+                if (typeof str !== 'string') return { x: makeFrac(0), y: makeFrac(0) };
+                const clean = str.replace(/\\left\(|\\right\)|[()]/g, '');
+                const parts = clean.split(',');
+                return {
+                    x: parseInput(parts[0] ? parts[0].trim() : "0"),
+                    y: parseInput(parts[1] ? parts[1].trim() : "0")
+                };
+            };
+
+            const parseLineCoeffs = (str) => {
+                if (typeof str !== 'string') return { a: makeFrac(0), b: makeFrac(0), c: makeFrac(0) };
+                let s = str.replace(/\s+/g, '');
+                
+                if (s.includes('y=')) {
+                    let right = s.split('y=')[1];
+                    let xIdx = right.indexOf('x');
+                    let m = makeFrac(0), b = makeFrac(0);
+                    if (xIdx !== -1) {
+                        let mStr = right.substring(0, xIdx);
+                        if (mStr === "" || mStr === "+") m = makeFrac(1);
+                        else if (mStr === "-") m = makeFrac(-1);
+                        else m = parseInput(mStr);
+                        b = parseInput(right.substring(xIdx + 1) || "0");
+                    } else {
+                        b = parseInput(right);
+                    }
+                    return { a: makeFrac(-m.num, m.den), b: makeFrac(1), c: b };
+                }
+
+                let xIdx = s.indexOf('x');
+                let yIdx = s.indexOf('y');
+                let eqIdx = s.indexOf('=');
+                
+                let a = makeFrac(0), b = makeFrac(0), c = makeFrac(0);
+                if (eqIdx !== -1) c = parseInput(s.substring(eqIdx + 1));
+                
+                if (xIdx !== -1 && xIdx < eqIdx) {
+                    let aStr = s.substring(0, xIdx);
+                    if (aStr === "" || aStr === "+") a = makeFrac(1);
+                    else if (aStr === "-") a = makeFrac(-1);
+                    else a = parseInput(aStr);
+                }
+                if (yIdx !== -1 && yIdx < eqIdx) {
+                    let start = xIdx !== -1 ? xIdx + 1 : 0;
+                    let bStr = s.substring(start, yIdx);
+                    if (bStr === "" || bStr === "+") b = makeFrac(1);
+                    else if (bStr === "-") b = makeFrac(-1);
+                    else b = parseInput(bStr);
+                }
+                return { a, b, c };
+            };
+
+            const formatFracPure = (f) => {
+                if (f.num === 0) return "0";
+                if (f.den === 1) return f.num.toString();
+                return f.num < 0 ? `-\\frac{${Math.abs(f.num)}}{${f.den}}` : `\\frac{${f.num}}{${f.den}}`;
+            };
+
+            const formatSub = (f) => (f.num === 0) ? "- 0" : (f.num < 0 ? `+ ${formatFracPure({num: -f.num, den: f.den})}` : `- ${formatFracPure(f)}`);
+            const formatAdd = (f) => (f.num === 0) ? "+ 0" : (f.num < 0 ? `- ${formatFracPure({num: -f.num, den: f.den})}` : `+ ${formatFracPure(f)}`);
+
+            // Creates pristine exam-level equations (Clears denominators to form Ax + By = C)
+            const toStandardForm = (mA, mB, mC) => {
+                const denLcm = lcm(mA.den, lcm(mB.den, mC.den));
+                let a = mA.num * (denLcm / mA.den);
+                let b = mB.num * (denLcm / mB.den);
+                let c = mC.num * (denLcm / mC.den);
+                
+                // Mathematical best practice: 'A' should generally be positive
+                if (a < 0 || (a === 0 && b < 0)) {
+                    a = -a; b = -b; c = -c;
+                }
+                
+                const gAll = gcd(a, gcd(b, c));
+                if (gAll > 0) {
+                    a /= gAll; b /= gAll; c /= gAll;
+                }
+                
+                return { a, b, c };
+            };
+
+            const formatStandardEq = (a, b, c) => {
+                let str = "";
+                if (a !== 0) {
+                    let absA = Math.abs(a);
+                    str += (a < 0 ? "-" : "") + (absA === 1 ? "" : absA) + "x";
+                }
+                if (b !== 0) {
+                    let absB = Math.abs(b);
+                    let sign = str === "" ? (b < 0 ? "-" : "") : (b < 0 ? " - " : " + ");
+                    str += sign + (absB === 1 ? "" : absB) + "y";
+                }
+                if (str === "") str = "0";
+                return `${str} = ${c}`;
+            };
+
+            const formatLineEqForSetup = (mA, mB, mC) => {
+                let str = "";
+                if (mA.num !== 0) {
+                    let absA = Math.abs(mA.num);
+                    let sign = mA.num < 0 ? "-" : "";
+                    str += mA.den === 1 ? `${sign}${absA === 1 ? "" : absA}x` : `${sign}\\frac{${absA}}{${mA.den}}x`;
+                }
+                if (mB.num !== 0) {
+                    let absB = Math.abs(mB.num);
+                    let sign = str === "" ? (mB.num < 0 ? "-" : "") : (mB.num < 0 ? " - " : " + ");
+                    str += mB.den === 1 ? `${sign}${absB === 1 ? "" : absB}y` : `${sign}\\frac{${absB}}{${mB.den}}y`;
+                }
+                if (str === "") str = "0";
+                return `${str} = ${formatFracPure(mC)}`;
+            };
+
+            // ==========================================
+            // 2. AUTO-ENGINE INTERCEPTOR (EXAM TUNED)
+            // ==========================================
+            let taskType = typeof typeStr === 'string' ? typeStr : "";
+            if (typeof param1 === 'number' && typeof param2 === 'number' && typeof param3 === 'number') {
+                const types = ["slope_point", "two_lines", "point_perpendicular", "point_parallel", "two_points", "perpendicular_bisector"];
+                taskType = types[Math.floor(Math.random() * types.length)];
+
+                // Tighter coordinates make for cleaner test questions
+                const randCoord = () => Math.floor(Math.random() * 15) - 7;
+                const randCoeff = () => Math.floor(Math.random() * 6) + 1;
+
+                const generateRandomLine = () => {
+                    if (Math.random() > 0.5) return `${randCoeff()}x + ${randCoeff()}y = ${randCoord() * 2}`;
+                    let mNum = randCoord(), mDen = randCoeff(), bNum = randCoord();
+                    return `y = \\frac{${mNum}}{${mDen}}x ${bNum < 0 ? "-" : "+"} ${Math.abs(bNum)}`;
+                };
+
+                if (taskType === "slope_point") {
+                    param1 = `${randCoord()}/${randCoeff() + 1}`;
+                    param2 = `(${randCoord()}, ${randCoord()})`;
+                } else if (taskType === "two_lines") {
+                    param1 = generateRandomLine();
+                    param2 = generateRandomLine();
+                } else if (taskType === "point_perpendicular" || taskType === "point_parallel") {
+                    param1 = `(${randCoord()}, ${randCoord()})`;
+                    param2 = generateRandomLine();
+                } else if (taskType === "two_points" || taskType === "perpendicular_bisector") {
+                    param1 = `(${randCoord()}, ${randCoord()})`;
+                    let x2, y2;
+                    do { x2 = randCoord(); y2 = randCoord(); } while (x2 === parseInt(param1.split(',')[0].replace(/\D/g, ''))); 
+                    param2 = `(${x2}, ${y2})`;
+                }
+                param3 = "";
+            }
+
+            // ==========================================
+            // 3. CORE PROCESSING ENGINES
+            // ==========================================
+            let setupLines = [];
+            let finalAnsStr = "";
+            const solLines = [];
+
+            // Formats any mathematical setup directly into an integer-based Standard Form Exam output
+            const applyPointSlope = (m, pt) => {
+                if (m === null) {
+                    const std = toStandardForm(makeFrac(1), makeFrac(0), pt.x);
+                    return formatStandardEq(std.a, std.b, std.c);
+                }
+                solLines.push(`y ${formatSub(pt.y)} = ${formatFracPure(m)}\\left(x ${formatSub(pt.x)}\\right)`);
+                
+                const mx1 = mulFrac(m, pt.x);
+                const yIntercept = addFrac(subFrac(makeFrac(0), mx1), pt.y);
+                
+                solLines.push(`y = ${formatFracPure(m)}x ${formatSub(mx1)} ${formatAdd(pt.y)}`);
+                
+                const std = toStandardForm(makeFrac(-m.num, m.den), makeFrac(1), yIntercept);
+                return formatStandardEq(std.a, std.b, std.c);
+            };
+
+            switch (taskType) {
+                case "slope_point": {
+                    const slope = parseInput(param1);
+                    const pt = parsePoint(param2);
+                    setupLines.push(`\\text{Find line given: Slope } m = ${formatFracPure(slope)}, \\text{ Point } (${formatFracPure(pt.x)}, ${formatFracPure(pt.y)})`);
+                    solLines.push(`\\text{Point-Slope Form: } y - y_1 = m(x - x_1)`);
+                    finalAnsStr = applyPointSlope(slope, pt);
+                    break;
+                }
+                
+                case "two_points": {
+                    const p1 = parsePoint(param1);
+                    const p2 = parsePoint(param2);
+                    setupLines.push(`\\text{Find line passing through } (${formatFracPure(p1.x)}, ${formatFracPure(p1.y)}) \\text{ and } (${formatFracPure(p2.x)}, ${formatFracPure(p2.y)})`);
+                    
+                    const num = subFrac(p2.y, p1.y);
+                    const den = subFrac(p2.x, p1.x);
+                    
+                    if (den.num === 0) {
+                        solLines.push(`\\text{Points form a vertical line.}`);
+                        finalAnsStr = applyPointSlope(null, p1);
+                    } else {
+                        const m = divFrac(num, den);
+                        solLines.push(`m = \\frac{y_2 - y_1}{x_2 - x_1} = \\frac{${formatFracPure(num)}}{${formatFracPure(den)}} = ${formatFracPure(m)}`);
+                        solLines.push(`\\text{Using Point-Slope Form with } (${formatFracPure(p1.x)}, ${formatFracPure(p1.y)}):`);
+                        finalAnsStr = applyPointSlope(m, p1);
+                    }
+                    break;
+                }
+
+                case "perpendicular_bisector": {
+                    const p1 = parsePoint(param1);
+                    const p2 = parsePoint(param2);
+                    setupLines.push(`\\text{Find perpendicular bisector of segment between } (${formatFracPure(p1.x)}, ${formatFracPure(p1.y)}) \\text{ and } (${formatFracPure(p2.x)}, ${formatFracPure(p2.y)})`);
+                    
+                    const midX = divFrac(addFrac(p1.x, p2.x), makeFrac(2));
+                    const midY = divFrac(addFrac(p1.y, p2.y), makeFrac(2));
+                    solLines.push(`\\text{1. Find Midpoint } M = \\left(\\frac{x_1+x_2}{2}, \\frac{y_1+y_2}{2}\\right)`);
+                    solLines.push(`M = \\left(${formatFracPure(midX)}, ${formatFracPure(midY)}\\right)`);
+
+                    const num = subFrac(p2.y, p1.y);
+                    const den = subFrac(p2.x, p1.x);
+                    
+                    if (den.num === 0) {
+                        solLines.push(`\\text{Segment is vertical, bisector is horizontal.}`);
+                        finalAnsStr = applyPointSlope(makeFrac(0), {x: midX, y: midY});
+                    } else if (num.num === 0) {
+                        solLines.push(`\\text{Segment is horizontal, bisector is vertical.}`);
+                        finalAnsStr = applyPointSlope(null, {x: midX, y: midY});
+                    } else {
+                        const m = divFrac(num, den);
+                        const perpM = divFrac(makeFrac(-1), m);
+                        solLines.push(`\\text{2. Segment slope } m = ${formatFracPure(m)} \\implies \\text{Perpendicular slope } m_{\\perp} = ${formatFracPure(perpM)}`);
+                        solLines.push(`\\text{3. Apply Point-Slope Form:}`);
+                        finalAnsStr = applyPointSlope(perpM, {x: midX, y: midY});
+                    }
+                    break;
+                }
+                
+                case "point_perpendicular":
+                case "point_parallel": {
+                    const pt = parsePoint(param1);
+                    const refL = parseLineCoeffs(param2);
+                    const isPerp = taskType === "point_perpendicular";
+                    
+                    setupLines.push(`\\text{Find line through } (${formatFracPure(pt.x)}, ${formatFracPure(pt.y)}) \\text{ ${isPerp ? "perpendicular" : "parallel"} to: } ${formatLineEqForSetup(refL.a, refL.b, refL.c)}`);
+                    
+                    if (refL.b.num === 0) {
+                        solLines.push(`\\text{Reference line is vertical.}`);
+                        finalAnsStr = applyPointSlope(isPerp ? makeFrac(0) : null, pt);
+                    } else {
+                        const refM = divFrac(makeFrac(-refL.a.num, refL.a.den), refL.b);
+                        solLines.push(`m_{\\text{ref}} = ${formatFracPure(refM)}`);
+                        
+                        let targetM;
+                        if (isPerp) {
+                            if (refM.num === 0) targetM = null;
+                            else targetM = divFrac(makeFrac(-1), refM);
+                            solLines.push(targetM === null ? `\\text{Perpendicular slope is undefined (vertical line).}` : `\\text{Perpendicular slope } m = ${formatFracPure(targetM)}`);
+                        } else {
+                            targetM = refM;
+                            solLines.push(`\\text{Parallel slope } m = ${formatFracPure(targetM)}`);
+                        }
+                        finalAnsStr = applyPointSlope(targetM, pt);
+                    }
+                    break;
+                }
+
+                case "two_lines": {
+                    const L1 = parseLineCoeffs(param1);
+                    const L2 = parseLineCoeffs(param2);
+                    setupLines.push(`\\text{Find line through Origin } (0,0) \\text{ and intersection of:}`);
+                    setupLines.push(`L_1: ${formatLineEqForSetup(L1.a, L1.b, L1.c)} \\quad L_2: ${formatLineEqForSetup(L2.a, L2.b, L2.c)}`);
+
+                    const D = subFrac(mulFrac(L1.a, L2.b), mulFrac(L2.a, L1.b));
+                    if (D.num === 0) {
+                        solLines.push(`\\text{Lines are parallel/coincident.}`);
+                        finalAnsStr = "\\text{Undefined}";
+                    } else {
+                        const Dx = subFrac(mulFrac(L1.c, L2.b), mulFrac(L2.c, L1.b));
+                        const Dy = subFrac(mulFrac(L1.a, L2.c), mulFrac(L2.a, L1.c));
+                        const ptX = divFrac(Dx, D);
+                        const ptY = divFrac(Dy, D);
+                        
+                        solLines.push(`\\text{Intersection Point: } P\\left(${formatFracPure(ptX)}, ${formatFracPure(ptY)}\\right)`);
+                        if (ptX.num === 0 && ptY.num === 0) {
+                            solLines.push(`\\text{Intersection is at origin.}`);
+                            finalAnsStr = "x - y = 0";
+                        } else if (ptX.num === 0) {
+                            finalAnsStr = "x = 0";
+                        } else {
+                            const originSlope = divFrac(ptY, ptX);
+                            solLines.push(`m = \\frac{y_1}{x_1} = ${formatFracPure(originSlope)}`);
+                            const std = toStandardForm(makeFrac(-originSlope.num, originSlope.den), makeFrac(1), makeFrac(0));
+                            finalAnsStr = formatStandardEq(std.a, std.b, std.c);
+                        }
+                    }
+                    break;
+                }
+                default: return { expr: "\\text{Invalid setup}", ans: "", sol: "" };
+            }
+
+            if (finalAnsStr !== "\\text{Undefined}") {
+                solLines.push(`\\text{Standard Form Equation: } ${finalAnsStr}`);
+            }
+            
+            const cleanSolLines = solLines.filter((line, index) => index === 0 || line !== solLines[index - 1]);
+
+            // Used \\[1.2em] below to prevent vertical fractional overlapping in the aligned setup!
+            return {
+                expr: `\\begin{aligned}\n& ` + setupLines.join(` \\\\[1.2em]\n& `) + `\n\\end{aligned}`,
+                ans: finalAnsStr,
+                sol: `\\begin{aligned}\n& ` + cleanSolLines.join(` \\\\[1.2em]\n& `) + `\n\\end{aligned}`
+            };
         }
     ],
     med: [
