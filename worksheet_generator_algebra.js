@@ -1677,9 +1677,6 @@ const algebra = {
                 return f.num < 0 ? `-\\frac{${Math.abs(f.num)}}{${f.den}}` : `\\frac{${f.num}}{${f.den}}`;
             };
 
-            const formatSub = (f) => (f.num === 0) ? "- 0" : (f.num < 0 ? `+ ${formatFracPure({num: -f.num, den: f.den})}` : `- ${formatFracPure(f)}`);
-            const formatAdd = (f) => (f.num === 0) ? "+ 0" : (f.num < 0 ? `- ${formatFracPure({num: -f.num, den: f.den})}` : `+ ${formatFracPure(f)}`);
-
             // Creates pristine exam-level equations (Clears denominators to form Ax + By = C)
             const toStandardForm = (mA, mB, mC) => {
                 const denLcm = lcm(mA.den, lcm(mB.den, mC.den));
@@ -1687,7 +1684,6 @@ const algebra = {
                 let b = mB.num * (denLcm / mB.den);
                 let c = mC.num * (denLcm / mC.den);
                 
-                // Mathematical best practice: 'A' should generally be positive
                 if (a < 0 || (a === 0 && b < 0)) {
                     a = -a; b = -b; c = -c;
                 }
@@ -1703,13 +1699,20 @@ const algebra = {
             const formatStandardEq = (a, b, c) => {
                 let str = "";
                 if (a !== 0) {
-                    let absA = Math.abs(a);
-                    str += (a < 0 ? "-" : "") + (absA === 1 ? "" : absA) + "x";
+                    if (a === 1) str += "x";
+                    else if (a === -1) str += "-x";
+                    else str += `${a}x`;
                 }
                 if (b !== 0) {
-                    let absB = Math.abs(b);
-                    let sign = str === "" ? (b < 0 ? "-" : "") : (b < 0 ? " - " : " + ");
-                    str += sign + (absB === 1 ? "" : absB) + "y";
+                    if (str === "") {
+                        if (b === 1) str += "y";
+                        else if (b === -1) str += "-y";
+                        else str += `${b}y`;
+                    } else {
+                        let absB = Math.abs(b);
+                        let sign = b < 0 ? " - " : " + ";
+                        str += sign + (absB === 1 ? "y" : `${absB}y`);
+                    }
                 }
                 if (str === "") str = "0";
                 return `${str} = ${c}`;
@@ -1720,12 +1723,14 @@ const algebra = {
                 if (mA.num !== 0) {
                     let absA = Math.abs(mA.num);
                     let sign = mA.num < 0 ? "-" : "";
-                    str += mA.den === 1 ? `${sign}${absA === 1 ? "" : absA}x` : `${sign}\\frac{${absA}}{${mA.den}}x`;
+                    let coeff = absA === 1 && mA.den === 1 ? "" : (mA.den === 1 ? absA : `\\frac{${absA}}{${mA.den}}`);
+                    str += `${sign}${coeff}x`;
                 }
                 if (mB.num !== 0) {
                     let absB = Math.abs(mB.num);
                     let sign = str === "" ? (mB.num < 0 ? "-" : "") : (mB.num < 0 ? " - " : " + ");
-                    str += mB.den === 1 ? `${sign}${absB === 1 ? "" : absB}y` : `${sign}\\frac{${absB}}{${mB.den}}y`;
+                    let coeff = absB === 1 && mB.den === 1 ? "" : (mB.den === 1 ? absB : `\\frac{${absB}}{${mB.den}}`);
+                    str += `${sign}${coeff}y`;
                 }
                 if (str === "") str = "0";
                 return `${str} = ${formatFracPure(mC)}`;
@@ -1739,7 +1744,6 @@ const algebra = {
                 const types = ["slope_point", "two_lines", "point_perpendicular", "point_parallel", "two_points", "perpendicular_bisector"];
                 taskType = types[Math.floor(Math.random() * types.length)];
 
-                // Tighter coordinates make for cleaner test questions
                 const randCoord = () => Math.floor(Math.random() * 15) - 7;
                 const randCoeff = () => Math.floor(Math.random() * 6) + 1;
 
@@ -1774,19 +1778,39 @@ const algebra = {
             let finalAnsStr = "";
             const solLines = [];
 
-            // Formats any mathematical setup directly into an integer-based Standard Form Exam output
+            // Formats mathematical setup cleanly without printing "- 0" iteratively
             const applyPointSlope = (m, pt) => {
                 if (m === null) {
                     const std = toStandardForm(makeFrac(1), makeFrac(0), pt.x);
                     return formatStandardEq(std.a, std.b, std.c);
                 }
-                solLines.push(`y ${formatSub(pt.y)} = ${formatFracPure(m)}\\left(x ${formatSub(pt.x)}\\right)`);
+                
+                // Step 1: Initial Substitution
+                let subY = pt.y.num === 0 ? "- 0" : (pt.y.num < 0 ? `+ ${formatFracPure({num: -pt.y.num, den: pt.y.den})}` : `- ${formatFracPure(pt.y)}`);
+                let subX = pt.x.num === 0 ? "- 0" : (pt.x.num < 0 ? `+ ${formatFracPure({num: -pt.x.num, den: pt.x.den})}` : `- ${formatFracPure(pt.x)}`);
+                solLines.push(`y ${subY} = ${formatFracPure(m)}\\left(x ${subX}\\right)`);
                 
                 const mx1 = mulFrac(m, pt.x);
-                const yIntercept = addFrac(subFrac(makeFrac(0), mx1), pt.y);
+                const yIntercept = addFrac(makeFrac(-mx1.num, mx1.den), pt.y);
                 
-                solLines.push(`y = ${formatFracPure(m)}x ${formatSub(mx1)} ${formatAdd(pt.y)}`);
+                // Step 2: Distribute Slope (Skipped cleanly if x was 0)
+                let distY = pt.y.num === 0 ? "" : ` ${subY}`;
+                let distMx = mx1.num === 0 ? "" : (mx1.num < 0 ? ` + ${formatFracPure({num: -mx1.num, den: mx1.den})}` : ` - ${formatFracPure(mx1)}`);
+                let distLine = `y${distY} = ${formatFracPure(m)}x${distMx}`;
                 
+                if (solLines[solLines.length - 1] !== distLine && pt.x.num !== 0) {
+                    solLines.push(distLine);
+                }
+
+                // Step 3: Slope-Intercept Form Isolation (Skipped cleanly if no changes needed)
+                let slopeIntB = yIntercept.num === 0 ? "" : (yIntercept.num < 0 ? ` - ${formatFracPure({num: -yIntercept.num, den: yIntercept.den})}` : ` + ${formatFracPure(yIntercept)}`);
+                let slopeIntLine = `y = ${formatFracPure(m)}x${slopeIntB}`;
+                
+                if (solLines[solLines.length - 1] !== slopeIntLine && pt.y.num !== 0) {
+                    solLines.push(slopeIntLine);
+                }
+                
+                // Step 4: Final Exam Form
                 const std = toStandardForm(makeFrac(-m.num, m.den), makeFrac(1), yIntercept);
                 return formatStandardEq(std.a, std.b, std.c);
             };
@@ -1814,7 +1838,20 @@ const algebra = {
                         finalAnsStr = applyPointSlope(null, p1);
                     } else {
                         const m = divFrac(num, den);
-                        solLines.push(`m = \\frac{y_2 - y_1}{x_2 - x_1} = \\frac{${formatFracPure(num)}}{${formatFracPure(den)}} = ${formatFracPure(m)}`);
+                        
+                        let rawNumStr = formatFracPure(num);
+                        let rawDenStr = formatFracPure(den);
+                        let rawFrac = `\\frac{${rawNumStr}}{${den.num < 0 ? '(' + rawDenStr + ')' : rawDenStr}}`;
+                        let mStr = formatFracPure(m);
+
+                        let calcStep = `m = \\frac{y_2 - y_1}{x_2 - x_1} = ${rawFrac}`;
+                        
+                        // CORE FIX: Prevents \frac{8}{9} = \frac{8}{9} redundancy
+                        if (rawFrac !== mStr && `\\frac{${num.num}}{${den.num}}` !== mStr) {
+                            calcStep += ` = ${mStr}`;
+                        }
+                        solLines.push(calcStep);
+                        
                         solLines.push(`\\text{Using Point-Slope Form with } (${formatFracPure(p1.x)}, ${formatFracPure(p1.y)}):`);
                         finalAnsStr = applyPointSlope(m, p1);
                     }
@@ -1829,7 +1866,17 @@ const algebra = {
                     const midX = divFrac(addFrac(p1.x, p2.x), makeFrac(2));
                     const midY = divFrac(addFrac(p1.y, p2.y), makeFrac(2));
                     solLines.push(`\\text{1. Find Midpoint } M = \\left(\\frac{x_1+x_2}{2}, \\frac{y_1+y_2}{2}\\right)`);
-                    solLines.push(`M = \\left(${formatFracPure(midX)}, ${formatFracPure(midY)}\\right)`);
+                    
+                    let sumX = addFrac(p1.x, p2.x);
+                    let sumY = addFrac(p1.y, p2.y);
+                    let mCalcStr = `M = \\left(\\frac{${formatFracPure(sumX)}}{2}, \\frac{${formatFracPure(sumY)}}{2}\\right)`;
+                    let mFinalStr = `\\left(${formatFracPure(midX)}, ${formatFracPure(midY)}\\right)`;
+                    
+                    // CORE FIX: Prevents redundancy on easy integer midpoints
+                    if (`\\left(\\frac{${sumX.num}}{2}, \\frac{${sumY.num}}{2}\\right)` !== mFinalStr) {
+                        mCalcStr += ` = ${mFinalStr}`;
+                    }
+                    solLines.push(mCalcStr);
 
                     const num = subFrac(p2.y, p1.y);
                     const den = subFrac(p2.x, p1.x);
@@ -1917,9 +1964,9 @@ const algebra = {
                 solLines.push(`\\text{Standard Form Equation: } ${finalAnsStr}`);
             }
             
+            // Final deduplication net just to be perfectly safe
             const cleanSolLines = solLines.filter((line, index) => index === 0 || line !== solLines[index - 1]);
 
-            // Used \\[1.2em] below to prevent vertical fractional overlapping in the aligned setup!
             return {
                 expr: `\\begin{aligned}\n& ` + setupLines.join(` \\\\[1.2em]\n& `) + `\n\\end{aligned}`,
                 ans: finalAnsStr,
