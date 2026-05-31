@@ -280,11 +280,11 @@ input:checked + .slider:before { transform: translateX(20px); }
     border-bottom: 1px dashed var(--border-color);
     break-inside: avoid; /* Prevent breaking across pages */
 }
-/*
+
 .math-problem:last-child {
     border-bottom: none;
 }
-*/
+
 .prob-header {
     font-size: 13px;
     color: var(--text-muted);
