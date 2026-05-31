@@ -75,7 +75,7 @@ font-size: 15px;
 .btn-print { background-color: var(--segment-bg); color: var(--primary-blue); }
 
 button {
--webkit-tap-highlight-color: transparent;
+/* -webkit-tap-highlight-color: transparent; */
 user-select: none;
 -webkit-user-select: none;
 }
@@ -87,7 +87,6 @@ outline: none;
 .app-container {
 width: 100%;
 margin: 0 auto;
-/* padding: 16px; */
 }
 
 .section-title {
@@ -151,6 +150,11 @@ color: var(--text-main);
 .segment.active {
 background: var(--card-bg);
 box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+}
+
+.segment, .segment * {
+user-select: none;
+-webkit-user-select: none;
 }
 
 input[type="number"], select {
