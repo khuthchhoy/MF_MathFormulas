@@ -273,6 +273,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     width: 100%;
     min-width: 0;
     padding-bottom: 0px;
+    margin-bottom: 0px;
     border-bottom: 1px dashed var(--border-color);
     break-inside: avoid; /* Prevent breaking across pages */
 }
