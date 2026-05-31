@@ -92,7 +92,83 @@ button:active { opacity: 0.7; }
 .btn-generate { background-color: var(--primary-blue); color: white; }
 .btn-print { background-color: var(--segment-bg); color: var(--primary-blue); }
 
-/* 2. Apply the Styles */
+/* 2. Apply the Styles (Real Glass Upgrade) */
+.clear-glass-btn {
+    /* Core Structure */
+    font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    
+    padding: 12px 20px;
+    border-radius: 100px;
+    color: var(--glass-text);
+    
+    /* THE REAL GLASS BASE */
+    /* Use your variable, but restrict it to the inside of the button */
+    background-color: var(--glass-base);
+    background-clip: padding-box;
+    
+    /* THE REAL GLASS EDGE (Total Internal Reflection) */
+    /* 1.5px transparent border to make room for the light refraction */
+    border: 1.5px solid transparent;
+    /* A bright white gradient strictly applied to the border area */
+    background-image: linear-gradient(
+        180deg, 
+        rgba(255, 255, 255, 0.8) 0%, 
+        rgba(255, 255, 255, 0.05) 100%
+    );
+    background-origin: border-box;
+    
+    /* Pure Clear Blur Engine */
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    
+    /* Adaptive 3D Lighting using your variables */
+    box-shadow: 
+        0 8px 32px var(--glass-shadow),                 
+        inset 0 1px 1px var(--glass-rim-top),           
+        inset 0 -1px 1px var(--glass-rim-bottom);       
+        
+    transition: all 0.2s cubic-bezier(0.25, 1, 0.3, 1);
+    cursor: pointer;
+    outline: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* 3. Interactions */
+.clear-glass-btn:hover {
+    /* Brighter base on hover (using a safe fallback if color-mix isn't desired) */
+    background-color: rgba(255, 255, 255, 0.15);
+    
+    box-shadow: 
+        0 12px 40px var(--glass-shadow),
+        inset 0 1px 2px var(--glass-rim-top),
+        inset 0 -1px 1px var(--glass-rim-bottom);
+}
+
+.clear-glass-btn:active {
+    
+    /* THE FLASH: Flood the background with white on tap */
+    background-color: rgba(255, 255, 255, 0.35); 
+    
+    /* Flare up the edge gradient intensely */
+    background-image: linear-gradient(
+        180deg, 
+        rgba(255, 255, 255, 1) 0%, 
+        rgba(255, 255, 255, 0.3) 100%
+    );
+    
+    /* Shift the shadow to a deep internal white glow */
+    box-shadow: 
+        0 2px 8px var(--glass-shadow),
+        inset 0 0 20px rgba(255, 255, 255, 0.4), /* The internal light bounce */
+        inset 0 2px 4px rgba(255, 255, 255, 0.8);
+}
+
+/* 
 .clear-glass-btn {
     /* Core Structure */
     font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
@@ -145,7 +221,7 @@ button:active { opacity: 0.7; }
     0 2px 8px var(--glass-shadow),
     inset 0 4px 16px rgba(255, 255, 255, 0.3), /* Deep inner glow */
     inset 0 -1px 2px var(--glass-rim-bottom);
-}
+} */
 
 .app-container {
     width: 100%;
