@@ -260,7 +260,10 @@ input:checked + .slider:before { transform: translateX(20px); }
     grid-template-columns: repeat(var(--grid-cols), 1fr);
     gap: 40px 30px;
     background-color: var(--card-bg);
-    padding: 20px 12px;
+    padding-top: 20px;
+    padding-bottom: 0px;
+    padding-left: 12px;
+    padding-right: 12px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     min-height: 200px;
