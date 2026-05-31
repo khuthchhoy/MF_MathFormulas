@@ -285,7 +285,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     font-size: 13px;
     color: var(--text-muted);
     font-weight: 600;
-    /* margin-bottom: 8px; */
+    margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
