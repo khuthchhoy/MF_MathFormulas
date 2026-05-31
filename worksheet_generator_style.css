@@ -118,7 +118,7 @@ button:active { opacity: 0.7; }
         inset 0 1px 1px var(--glass-rim-top),           /* Top rim highlight */
         inset 0 -1px 1px var(--glass-rim-bottom);       /* Bottom rim shadow */
         
-    transition: all 0.3s cubic-bezier(0.25, 1, 0.3, 1);
+    /* transition: all 0.3s cubic-bezier(0.25, 1, 0.3, 1); */
     cursor: pointer;
     outline: none;
     -webkit-tap-highlight-color: transparent;
@@ -126,7 +126,7 @@ button:active { opacity: 0.7; }
 
 /* 3. Interactions */
 .clear-glass-btn:hover {
-    transform: translateY(-2px);
+    /* transform: translateY(-2px); */
     /* Slightly increase opacity on hover for visibility */
     background: color-mix(in srgb, var(--glass-base) 80%, white 20%);
     box-shadow: 
@@ -139,9 +139,9 @@ button:active { opacity: 0.7; }
     /* transform: scale(0.95); */
     /* Dim the button when pushed physically */
     /* background: color-mix(in srgb, var(--glass-base) 80%, black 20%); */
-    box-shadow: 
+    /* box-shadow: 
         0 2px 8px var(--glass-shadow),
-        inset 0 2px 8px var(--glass-rim-bottom); /* Invert the rim to simulate pressing in */
+        inset 0 2px 8px var(--glass-rim-bottom); /* Invert the rim to simulate pressing in */ */
 }
 
 .app-container {
