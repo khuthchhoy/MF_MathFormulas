@@ -138,7 +138,7 @@ button:active { opacity: 0.7; }
 
 .clear-glass-btn:active {
   /* Dramatic BRIGHTENING on tap (simulating a back-light turning on) */
-  background: color-mix(in srgb, var(--glass-base) 60%, white 40%);
+  /* background: color-mix(in srgb, var(--glass-base) 60%, white 40%); */
   
   /* We shift the shadow to an internal white glow to match the brightened glass */
   box-shadow: 
