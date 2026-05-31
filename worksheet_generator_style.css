@@ -272,9 +272,14 @@ input:checked + .slider:before { transform: translateX(20px); }
     align-items: flex-start;
     width: 100%;
     min-width: 0;
-    /* padding-bottom: 12px; */
+    padding-bottom: 12px;
     border-bottom: 1px dashed var(--border-color);
     break-inside: avoid; /* Prevent breaking across pages */
+}
+
+.math-problem:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
 .prob-header {
