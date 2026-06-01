@@ -6,7 +6,7 @@ const ProblemRegistry = {
     // trigonometry: window.trigonometry,
     limit: window.limit,
     // derivative: window.derivative,
-    // integral: window.integral
+    integral: window.integral
     // sequences: window.sequences,
     // series: window.series
 };
