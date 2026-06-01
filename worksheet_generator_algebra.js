@@ -2225,7 +2225,7 @@ const algebra = {
             let ansStr = "";
 
             // Custom table layout style rules
-            const macroSetup = "\\newcommand{\\vr}[1]{\\rule{0.4pt}{#1ex}} \\def\\arraystretch{0.6} ";
+            const macroSetup = "\\newcommand{\\vr}[1]{\\rule{0.4pt}{#1 ex}} \\def\\arraystretch{0.6} ";
 
             if (disc > 0) {
                 // Two distinct real roots branch
