@@ -53,14 +53,17 @@ class WorksheetEngine {
             const needed = subjectCounts[topic];
             if (needed === 0) continue;
             
-            const generators = this.getGenerators(topic, difficulty);
+            let generators = this.getGenerators(topic, difficulty);
             if (generators.length === 0) continue;
             
+            // Randomize the order of problem templates (families)
+            generators = Utils.shuffle([...generators]);
+            
             let consecutiveFailures = 0;
-            let genIndex = 0; // Iterate sequentially to scale complexity naturally
+            let genIndex = 0; // Iterate through the shuffled list
             
             while (topicProblems[topic].length < needed) {
-                // Pick generator sequentially instead of randomly
+                // Pick generator from shuffled list
                 const generator = generators[genIndex % generators.length];
                 let attempts = 0;
                 let found = false;
@@ -70,18 +73,27 @@ class WorksheetEngine {
                           b = Utils.getRnd(minB, maxB), 
                           c = Utils.getRnd(minC, maxC), 
                           d = Utils.getRnd(minD, maxD);
-                    
-                    try {
-                        const result = generator(a, b, c, d);
-                        
-                        if (result && result.expr && !seenExprs.has(result.expr)) {
-                            seenExprs.add(result.expr);
-                            if (result.sol) result.sol = Utils.formatSolution(result.sol);
-                            topicProblems[topic].push(result);
-                            found = true;
-                            break;
-                        }
-                    } catch(e) {
+                                        try {
+                            const result = generator(a, b, c, d, difficulty);
+                            
+                            if (result && result.expr) {
+                                // Apply global formatting cleaner
+                                result.expr = Utils.clean(result.expr);
+                                if (result.ans) result.ans = Utils.clean(result.ans);
+                                if (result.sol) {
+                                    result.sol = Utils.clean(result.sol);
+                                    result.sol = Utils.formatSolution(result.sol);
+                                }
+                                
+                                const canonicalExpr = result.expr.replace(/\s+/g, '');
+                                if (!seenExprs.has(canonicalExpr)) {
+                                    seenExprs.add(canonicalExpr);
+                                    topicProblems[topic].push(result);
+                                    found = true;
+                                    break;
+                                }
+                            }
+                        } catch(e) {
                         console.warn("Generator error:", e);
                     }
                     attempts++;
@@ -127,6 +139,7 @@ class WorksheetEngine {
             });
             
             if (availableGenerators.length > 0) {
+                availableGenerators = Utils.shuffle(availableGenerators);
                 let consecutiveFailures = 0;
                 let genIndex = 0;
                 while (problems.length < numProblems) {
@@ -139,13 +152,23 @@ class WorksheetEngine {
                               c = Utils.getRnd(minC, maxC), 
                               d = Utils.getRnd(minD, maxD);
                         try {
-                            const result = generator(a, b, c, d);
-                            if (result && result.expr && !seenExprs.has(result.expr)) {
-                                seenExprs.add(result.expr);
-                                if (result.sol) result.sol = Utils.formatSolution(result.sol);
-                                problems.push(result);
-                                found = true;
-                                break;
+                            const result = generator(a, b, c, d, difficulty);
+                            if (result && result.expr) {
+                                // Apply global formatting cleaner
+                                result.expr = Utils.clean(result.expr);
+                                if (result.ans) result.ans = Utils.clean(result.ans);
+                                if (result.sol) {
+                                    result.sol = Utils.clean(result.sol);
+                                    result.sol = Utils.formatSolution(result.sol);
+                                }
+                                
+                                const canonicalExpr = result.expr.replace(/\s+/g, '');
+                                if (!seenExprs.has(canonicalExpr)) {
+                                    seenExprs.add(canonicalExpr);
+                                    problems.push(result);
+                                    found = true;
+                                    break;
+                                }
                             }
                         } catch(e) {}
                         attempts++;

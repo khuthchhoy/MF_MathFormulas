@@ -13,7 +13,8 @@ const Utils = {
     gcd: (x, y) => y === 0 ? Math.abs(x) : Utils.gcd(y, x % y),
     
     formatFraction: (num, den) => {
-        if (num === 0 || den === 0) return "0";
+        if (num === 0) return "0";
+        if (den === 0) return "\\text{Undefined}";
         
         const isNegative = (num < 0 && den > 0) || (num > 0 && den < 0);
         const absNum = Math.abs(num);
@@ -62,34 +63,33 @@ const Utils = {
         if (solStr.includes('=')) return `\\begin{aligned} ${solStr} \\end{aligned}`;
         return solStr;
     },
-    // Centralized math expression sanitizer
     clean: (str) => {
         if (!str) return str;
         return str
             // 1. Remove 1 as a coefficient before variables or LaTeX macros (EXCEPT before structural tags like \end, \text, \left, \right)
-            .replace(/(^|[^a-zA-Z0-9\\])1\s*(?=[a-zA-Z]|\\(?!end|text|quad|\\|Rightarrow|implies|left|right))/g, '$1')
+            .replace(/(^|[^a-zA-Z0-9\.\\])1\s*(?=[a-zA-Z]|\\(?!end|text|quad|\\|Rightarrow|implies|left|right|frac|sqrt|cdot))/g, '$1')
             
             // 2. Convert -1 coefficient to just a negative sign (EXCEPT before structural tags)
-            .replace(/(^|[^a-zA-Z0-9\\])-1\s*(?=[a-zA-Z]|\\(?!end|text|quad|\\|Rightarrow|implies|left|right))/g, '$1-')
+            .replace(/(^|[^a-zA-Z0-9\.\\])-1\s*(?=[a-zA-Z]|\\(?!end|text|quad|\\|Rightarrow|implies|left|right|frac|sqrt|cdot))/g, '$1-')
             
-            // 3. Remove clean 0 terms added or subtracted
-            .replace(/\s*[\+\-]\s*0(?=[a-zA-Z]|\\)[^ \+\-\)]*/g, '')
+            // 3. Remove clean 0 terms added or subtracted (like + 0x, + 0\sin)
+            .replace(/[\+\-]\s*0[a-zA-Z]/g, '')
+            .replace(/[\+\-]\s*0\s*\\(?:sin|cos|tan|ln|log|sec|csc|cot|sqrt)/g, '')
+            .replace(/\s*[\+\-]\s*0\s*(?=\\right|\\,|$|\)|\]|\}|\\end|\+|-|=)/g, '')
             
-            // 4. Clean up standalone trailing or leading ±0 inside expression blocks safely
-            .replace(/\s*[\+\-]\s*0\s*(?=\\right|\\,|$|\))/g, '')
-            
-            // 5. Simplify redundant math signs
+            // 4. Simplify redundant math signs
             .replace(/\+\s*-/g, '-')
             .replace(/-\s*-/g, ' + ')
             .replace(/-\s*\+/g, '-')
             .replace(/\+\s*\+/g, ' + ')
             
-            // 6. Strip away unnecessary algebraic power definitions of 1
-            .replace(/\^1_*(?![0-9])/g, '')
+            // 5. Strip away unnecessary algebraic power definitions of 1
+            .replace(/\^1(?![0-9])/g, '')
             .replace(/\^\{1\}/g, '')
             
-            // 7. Fix lingering formatting double spaces or leading plus signs
+            // 6. Fix lingering formatting double spaces or leading plus signs
             .replace(/^\s*\+\s*/, '')
+            .replace(/([=\(\[])\s*\+\s*/g, '$1 ')
             .replace(/\s+/g, ' ')
             .trim();
     }
