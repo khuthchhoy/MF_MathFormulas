@@ -17,12 +17,9 @@ class WorksheetEngine {
         return this.registry[topic][difficulty] || [];
     }
 
-    // Now accepts an Array of subjects
-    generateProblems(subjects, difficulty, numProblems) {
+    _generateForDifficulty(subjects, difficulty, numProblems, seenExprs) {
         const problems = [];
-        const seenExprs = new Set();
-        
-        if (!subjects || subjects.length === 0) return problems;
+        if (!subjects || subjects.length === 0 || numProblems <= 0) return problems;
 
         // Smart difficulty tuning for parameter bounds
         let minA=2, maxA=9, minB=2, maxB=9, minC=1, maxC=5, minD=2, maxD=5;
@@ -32,7 +29,8 @@ class WorksheetEngine {
         } else if (difficulty === 'hard') {
             minA = -5; maxA = 12; minB = -5; maxB = 12;
             minC = -3; maxC = 8; minD = -3; maxD = 8;
-        } else if (difficulty === 'all') {
+        } else {
+            // med or anything else
             minA = -3; maxA = 10; minB = -3; maxB = 10;
             minC = 1; maxC = 6; minD = 2; maxD = 6;
         }
@@ -47,20 +45,23 @@ class WorksheetEngine {
             subjectCounts[topic] = baseCount + (index < remainder ? 1 : 0);
         });
 
+        // Store by topic to interleave later
+        let topicProblems = {};
+
         for (const topic of subjects) {
+            topicProblems[topic] = [];
             const needed = subjectCounts[topic];
             if (needed === 0) continue;
             
             const generators = this.getGenerators(topic, difficulty);
             if (generators.length === 0) continue;
             
-            let generatedForTopic = 0;
             let consecutiveFailures = 0;
+            let genIndex = 0; // Iterate sequentially to scale complexity naturally
             
-            // Generate until we meet the quota OR until we detect we've exhausted all unique combinations
-            while (generatedForTopic < needed) {
-                // Pick a random generator from the topic
-                const generator = generators[Utils.getRnd(0, generators.length - 1)];
+            while (topicProblems[topic].length < needed) {
+                // Pick generator sequentially instead of randomly
+                const generator = generators[genIndex % generators.length];
                 let attempts = 0;
                 let found = false;
                 
@@ -76,8 +77,7 @@ class WorksheetEngine {
                         if (result && result.expr && !seenExprs.has(result.expr)) {
                             seenExprs.add(result.expr);
                             if (result.sol) result.sol = Utils.formatSolution(result.sol);
-                            problems.push(result);
-                            generatedForTopic++;
+                            topicProblems[topic].push(result);
                             found = true;
                             break;
                         }
@@ -89,18 +89,36 @@ class WorksheetEngine {
                 
                 if (!found) {
                     consecutiveFailures++;
-                    // If we fail 50 consecutive times to find ANY unique problem, the topic is likely exhausted
                     if (consecutiveFailures > 50) {
                         console.warn(`Exhausted unique problems for topic: ${topic}`);
                         break; 
                     }
                 } else {
-                    consecutiveFailures = 0; // Reset failure counter on success
+                    consecutiveFailures = 0;
                 }
+                
+                genIndex++; // Progress to the next template
             }
         }
         
-        // Fill Remaining Slots if any topic fell short (e.g., ran out of unique problems)
+        // Interleave problems: Mix the subjects, but strictly preserve the ascending template complexity
+        let maxLen = 0;
+        for (const topic in topicProblems) {
+            if (topicProblems[topic].length > maxLen) maxLen = topicProblems[topic].length;
+        }
+        
+        for (let i = 0; i < maxLen; i++) {
+            let roundProblems = [];
+            for (const topic in topicProblems) {
+                if (i < topicProblems[topic].length) {
+                    roundProblems.push(topicProblems[topic][i]);
+                }
+            }
+            // Shuffle only the topics within the same "complexity depth" layer
+            problems.push(...Utils.shuffle(roundProblems));
+        }
+        
+        // Fill Remaining Slots if any topic ran out
         const remainingNeeded = numProblems - problems.length;
         if (remainingNeeded > 0) {
             let availableGenerators = [];
@@ -110,8 +128,9 @@ class WorksheetEngine {
             
             if (availableGenerators.length > 0) {
                 let consecutiveFailures = 0;
+                let genIndex = 0;
                 while (problems.length < numProblems) {
-                    const generator = availableGenerators[Utils.getRnd(0, availableGenerators.length - 1)];
+                    const generator = availableGenerators[genIndex % availableGenerators.length];
                     let attempts = 0;
                     let found = false;
                     while (attempts < 30) {
@@ -128,28 +147,58 @@ class WorksheetEngine {
                                 found = true;
                                 break;
                             }
-                        } catch(e) {
-                            console.warn("Generator error:", e);
-                        }
+                        } catch(e) {}
                         attempts++;
                     }
                     
                     if (!found) {
                         consecutiveFailures++;
-                        // Global exhaustion check
                         if (consecutiveFailures > 100) {
-                            console.warn("Global generator pool exhausted of unique combinations.");
+                            console.warn("Global generator pool exhausted.");
                             break;
                         }
                     } else {
                         consecutiveFailures = 0;
                     }
+                    genIndex++;
                 }
             }
         }
         
-        // Shuffle the final list so topics are mixed throughout the worksheet
-        this.currentData = Utils.shuffle(problems);
+        // Notice we do NOT shuffle the final 'problems' array here! 
+        // This ensures the ascending complexity order is preserved from top to bottom.
+        return problems;
+    }
+
+    // Now accepts an Array of subjects
+    generateProblems(subjects, difficulty, numProblems) {
+        if (!subjects || subjects.length === 0) {
+            this.currentData = [];
+            return [];
+        }
+
+        const seenExprs = new Set();
+        let finalProblems = [];
+
+        // If 'all' is selected, generate in order of Easy -> Med -> Hard
+        if (difficulty === 'all') {
+            const diffLevels = ['easy', 'med', 'hard'];
+            let baseCount = Math.floor(numProblems / diffLevels.length);
+            let remainder = numProblems % diffLevels.length;
+
+            diffLevels.forEach((diff, index) => {
+                let countForDiff = baseCount + (index < remainder ? 1 : 0);
+                if (countForDiff > 0) {
+                    const diffProblems = this._generateForDifficulty(subjects, diff, countForDiff, seenExprs);
+                    finalProblems.push(...diffProblems); // Append in order!
+                }
+            });
+        } else {
+            // Generate for just the specific selected difficulty
+            finalProblems = this._generateForDifficulty(subjects, difficulty, numProblems, seenExprs);
+        }
+
+        this.currentData = finalProblems;
         return this.currentData;
     }
 }
