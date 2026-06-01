@@ -67,7 +67,7 @@ const Utils = {
         if (!str) return str;
         return str
             // 1. Remove 1 as a coefficient before variables or LaTeX macros (EXCEPT before structural tags like \end, \text, \left, \right)
-            .replace(/(^|[^a-zA-Z0-9\.\\])1\s*(?=[a-zA-Z]|\\(?!end|text|quad|\\|Rightarrow|implies|left|right|frac|sqrt|cdot))/g, '$1')
+            // .replace(/(^|[^a-zA-Z0-9\.\\])1\s*(?=[a-zA-Z]|\\(?!end|text|quad|\\|Rightarrow|implies|left|right|frac|sqrt|cdot))/g, '$1')
             
             // 2. Convert -1 coefficient to just a negative sign (EXCEPT before structural tags)
             .replace(/(^|[^a-zA-Z0-9\.\\])-1\s*(?=[a-zA-Z]|\\(?!end|text|quad|\\|Rightarrow|implies|left|right|frac|sqrt|cdot))/g, '$1-')
