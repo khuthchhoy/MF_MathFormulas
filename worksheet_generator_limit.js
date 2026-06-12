@@ -1,7 +1,7 @@
 
 const limit = {
         easy: [
-            // Family: Linear Direct Substitution ax+b
+            //# Family: Linear Direct Substitution ax+b
             (a, b, c) => {
                 // 1. Format the expression: ax + b
                 const exprStr = Utils.linear(a, b);
@@ -24,7 +24,7 @@ const limit = {
                         \\end{aligned}`
                 };
             },
-            // Family: (ax^2 + bx) / cx of 0/0
+            //# Family: (ax^2 + bx) / cx of 0/0
             (a, b, c) => {
                 // 1. Format the main expressions
                 // Numerator: ax^2 + bx + 0
@@ -59,39 +59,115 @@ const limit = {
                         \\end{aligned}`
                 };
             },
-            // Family: Rational Function at Infinity
-            (a, b, c, d) => {
-                // 1. Format the polynomials cleanly
-                // Numerator: bx^2 + cx + 0
-                const exprNum = Utils.poly2(b, c, 0);
-                // Denominator: dx^2 + 0x - 1
-                const exprDen = Utils.poly2(d, 0, -1);
+            //# Family: Rational Function at Infinity (ax^2 + bx + c) / (px^2 + qx + r)
+            (a, b, c, d, difficulty) => {
+                // 1. Helper to transform the engine's positive parameters into negative, positive, or zero
+                const randomizeCoeff = (val, canBeZero = true) => {
+                    const rand = Math.random();
+                    if (canBeZero && rand < 0.2) return 0; // 20% chance to be exactly 0
+                    if (rand < 0.6) return -val;           // 40% chance to be negative
+                    return val;                            // 40% chance to be positive
+                };
 
-                // 2. Simplify the final fraction
-                const common = Utils.gcd(b, d);
-                let simNum = b / common;
-                let simDen = d / common;
+                // 2. Generate/Transform all 6 coefficients for a true ax^2 + bx + c / px^2 + qx + r
+                // We pass true/false to control whether the leading coefficients can be zero (to avoid an empty denominator or altered degree)
+                let num_a = randomizeCoeff(a, true);  // Numerator x^2 can be zero (allows linear forms)
+                let num_b = randomizeCoeff(b, true);
+                let num_c = randomizeCoeff(c, true);
 
-                // Fix negative signs (move to numerator)
-                if (simDen < 0) {
-                    simNum = -simNum;
-                    simDen = -simDen;
+                let den_p = randomizeCoeff(d, false); // Denominator x^2 shouldn't be zero to maintain px^2 form
+                let den_q = randomizeCoeff(Utils.getRnd(1, 6), true); // internally generated to complete the form
+                let den_r = randomizeCoeff(Utils.getRnd(1, 6), true);
+
+                // Safeguard: Make sure the numerator isn't completely empty
+                if (num_a === 0 && num_b === 0 && num_c === 0) {
+                    num_c = Utils.getRnd(1, 5);
                 }
 
-                const finalAns = simDen === 1 ? `${simNum}` : `\\frac{${simNum}}{${simDen}}`;
-                const rawAns = `\\frac{${b}}{${d}}`;
+                // Determine limit direction dynamically
+                const isPosInf = Utils.getRnd(0, 1) === 1;
+                const limitTarget = isPosInf ? "\\infty" : "-\\infty";
+
+                // 3. Custom Bulletproof Polynomial Formatter
+                const buildPoly = (c2, c1, c0) => {
+                    let terms = [];
+                    
+                    // Handle x^2 Term
+                    if (c2 !== 0) {
+                        if (c2 === 1) terms.push("x^2");
+                        else if (c2 === -1) terms.push("-x^2");
+                        else terms.push(`${c2}x^2`);
+                    }
+                    
+                    // Handle x Term
+                    if (c1 !== 0) {
+                        let sign = c1 > 0 ? (terms.length > 0 ? "+ " : "") : (terms.length > 0 ? "- " : "-");
+                        let absVal = Math.abs(c1);
+                        let co = absVal === 1 ? "" : absVal;
+                        terms.push(`${sign}${co}x`);
+                    }
+                    
+                    // Handle Constant Term
+                    if (c0 !== 0) {
+                        let sign = c0 > 0 ? (terms.length > 0 ? "+ " : "") : (terms.length > 0 ? "- " : "-");
+                        let absVal = Math.abs(c0);
+                        terms.push(`${sign}${absVal}`);
+                    }
+                    
+                    return terms.length > 0 ? terms.join(" ") : "0";
+                };
+
+                // 4. Highest Power Division Formatter (Divides every term cleanly by x^2)
+                const formatFactored = (c2, c1, c0) => {
+                    let terms = [];
+                    
+                    // Division of c2*x^2 / x^2
+                    if (c2 !== 0) {
+                        let sign = c2 > 0 ? (terms.length > 0 ? "+ " : "") : (terms.length > 0 ? "- " : "-");
+                        terms.push(`${sign}${Math.abs(c2)}`);
+                    }
+                    // Division of c1*x / x^2 -> c1 / x
+                    if (c1 !== 0) {
+                        let sign = c1 > 0 ? (terms.length > 0 ? "+ " : "") : (terms.length > 0 ? "- " : "-");
+                        terms.push(`${sign}\\dfrac{${Math.abs(c1)}}{x}`);
+                    }
+                    // Division of c0 / x^2
+                    if (c0 !== 0) {
+                        let sign = c0 > 0 ? (terms.length > 0 ? "+ " : "") : (terms.length > 0 ? "- " : "-");
+                        terms.push(`${sign}\\dfrac{${Math.abs(c0)}}{x^2}`);
+                    }
+                    
+                    return terms.length > 0 ? terms.join(" ") : "0";
+                };
+
+                // Generate strings
+                const exprNum = buildPoly(num_a, num_b, num_c);
+                const exprDen = buildPoly(den_p, den_q, den_r);
+                
+                const numPart = formatFactored(num_a, num_b, num_c);
+                const denPart = formatFactored(den_p, den_q, den_r);
+
+                // 5. Direct Mathematical Evaluation
+                // Since everything is divided by x^2, evaluating limit x -> inf reduces to: num_a / den_p
+                let finalAns = "0";
+                if (num_a !== 0) {
+                    finalAns = Utils.formatFraction(num_a, den_p);
+                }
+
+                // 6. Structure Step-by-Step LaTeX Solutions without running into Utils.clean bugs
+                let solText = `\\begin{aligned}\n` +
+                            `L &= \\lim_{x \\to ${limitTarget}} \\dfrac{${exprNum}}{${exprDen}} \\\\[8pt]\n` +
+                            `&= \\lim_{x \\to ${limitTarget}} \\dfrac{${numPart}}{${denPart}} \\\\[8pt]\n` +
+                            `&= ${finalAns}\n` +
+                            `\\end{aligned}`;
 
                 return {
-                    expr: `\\lim_{x \\to \\infty} \\frac{${exprNum}}{${exprDen}}`,
+                    expr: `\\lim_{x \\to ${limitTarget}} \\dfrac{${exprNum}}{${exprDen}}`,
                     ans: `= ${finalAns}`,
-                    sol: `\\begin{aligned} 
-                        L &= \\lim_{x \\to \\infty} \\frac{\\frac{${exprNum}}{x^2}}{\\frac{${exprDen}}{x^2}} \\\\ 
-                        &= \\lim_{x \\to \\infty} \\frac{${b} + \\frac{${c}}{x}}{${d} - \\frac{1}{x^2}} \\\\ 
-                        &= \\frac{${b} + 0}{${d} - 0} = ${rawAns}${finalAns !== rawAns ? ` = ${finalAns}` : ""}
-                        \\end{aligned}`
+                    sol: solText
                 };
             },
-            // Family: Simplified x^2 - c^2 (Difference of Squares)
+            //# Family: Quadratic Rational Cancellation (x^2 - c^2) / (x - c) -> 0/0
             (c) => {
                 // 1. Format the expressions
                 // Numerator: 1x^2 + 0x - c^2
@@ -121,7 +197,7 @@ const limit = {
                         \\end{aligned}`
                 };
             },
-            // Family: Quadratic Rational Cancellation (x^2+bx+c)/(x^2+px+q) -> 0/0
+            //# Family: Quadratic Rational Cancellation (x^2+bx+c)/(x^2+px+q) -> 0/0
             (a, m, n) => {
                 // 1. Generate beautifully formatted polynomials using Utils.poly2
                 // Expanded form of (x - a)(x + m) is x^2 + (m - a)x - am
@@ -182,7 +258,7 @@ const limit = {
                         \\end{aligned}`
                 };
             },
-            // Family: Quadratic-Linear Rational Cancellation (mx^2 + nx + p)/(ax+b) -> (0/0)
+            //# Family: Quadratic-Linear Rational Cancellation (mx^2 + nx + p)/(ax+b) -> (0/0)
             (a, m, k) => {
                 // Coefficients for mx^2 + nx + p
                 const n = m * (k - a);
@@ -220,7 +296,7 @@ const limit = {
                         \\end{aligned}`
                 };
             },
-            // Family: Basic Trigonometric Evaluation
+            //# Family: Basic Trigonometric Evaluation sin/cos at special angles
             () => {
                 // 1. Define "Nice" Unit Circle Points (Fixed the 0 point)
                 const points = [
@@ -249,6 +325,7 @@ const limit = {
                         \\end{aligned}`
                 };
             },
+            //# Family: Standard Trig Limit sin(ax)/bx as x -> 0
             () => {
                 const a = Utils.getRnd(1, 9);
                 const b = Utils.getRnd(1, 9);
@@ -269,6 +346,7 @@ const limit = {
                         \\end{aligned}`
                 };
             },
+            //# Family: Standard Trig Limit tan(ax)/bx as x -> 0
             () => {
                 const a = Utils.getRnd(1, 9);
                 const b = Utils.getRnd(1, 9);
@@ -289,6 +367,7 @@ const limit = {
                         \\end{aligned}`
                 };
             },
+            //# Family: Standard Trig Limit (1 - cos(ax)) / bx as x -> 0
             () => {
                 const a = Utils.getRnd(1, 9);
                 const b = Utils.getRnd(1, 9);
@@ -306,70 +385,81 @@ const limit = {
                         \\end{aligned}`
                 };
             },
-            // Family: Standard Trig Limit
-            (a, b) => {
-                const valA = Math.abs(a);
-                // Use Utils.linear to ensure if b=1, we get "x" instead of "1x"
-                const denStr = Utils.linear(b, 0);
-
-                // 1. Simplify the fraction (a / b)
-                const common = Utils.gcd(valA, b);
-                let simA = valA / common;
-                let simB = b / common;
-
-                // Normalize signs (move negative to numerator)
-                if (simB < 0) {
-                    simA = -simA;
-                    simB = -simB;
-                }
-
-                const rawAns = `\\frac{${valA}}{${b}}`;
-                const finalAns = simB === 1 ? `${simA}` : `\\frac{${simA}}{${simB}}`;
-                const needsSimp = finalAns !== rawAns;
-
-                return {
-                    expr: `\\lim_{x \\to 0} \\frac{\\sin(${valA}x)}{${denStr}}`,
-                    ans: `= ${finalAns}`,
-                    sol: `\\begin{aligned} 
-                        L &= \\lim_{x \\to 0} \\frac{\\sin(${valA}x)}{${b}x} \\\\ 
-                        &= \\frac{${valA}}{${b}} \\cdot \\lim_{x \\to 0} \\frac{\\sin(${valA}x)}{${valA}x} \\\\ 
-                        &\\text{Using the identity } \\lim_{u \\to 0} \\frac{\\sin u}{u} = 1: \\\\ 
-                        &= \\frac{${valA}}{${b}} \\cdot (1) = ${rawAns}${needsSimp ? ` = ${finalAns}` : ""}
-                        \\end{aligned}`
+            //# Family: Logarithmic Growth vs. Linear Growth (ln(ax+b)/(cx+d)) as x -> inf)
+            (a, b, c, d, difficulty) => {
+                // Mock Utils if not present globally (safeguard for testing)
+                const Utils = {
+                    getRnd: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
                 };
-            },
-            //
-            (a, b, c) => {
-                const inner = Utils.linear(1, c); // Formats as "x + c" or "x - c"
+
+                // 1. Transform parameters (keeping log arguments positive for domain safety as x -> inf)
+                const randomizeCoeff = (val, canBeNegative = false) => {
+                    if (!canBeNegative) return val; 
+                    const rand = Math.random();
+                    return rand < 0.5 ? -val : val;
+                };
+
+                // 2. Generate coefficients for: \ln(num_a * x + num_b) / (den_c * x + den_d)
+                let num_a = a === 0 ? Utils.getRnd(1, 5) : a; 
+                let num_b = b === 0 ? Utils.getRnd(1, 9) : b; 
                 
+                let den_c = randomizeCoeff(c === 0 ? Utils.getRnd(1, 6) : c, true); 
+                let den_d = randomizeCoeff(d === 0 ? Utils.getRnd(1, 9) : d, true);
+
+                const limitTarget = "\\infty"; 
+
+                // 3. Polynomial/Linear String Formatter
+                const buildLinear = (c1, c0) => {
+                    let terms = [];
+                    if (c1 !== 0) {
+                        if (c1 === 1) terms.push("x");
+                        else if (c1 === -1) terms.push("-x");
+                        else terms.push(`${c1}x`);
+                    }
+                    if (c0 !== 0) {
+                        let sign = c0 > 0 ? (terms.length > 0 ? "+ " : "") : (terms.length > 0 ? "- " : "-");
+                        let absVal = Math.abs(c0);
+                        terms.push(`${sign}${absVal}`);
+                    }
+                    return terms.length > 0 ? terms.join(" ") : "0";
+                };
+
+                // Generate inner strings
+                const logArg = buildLinear(num_a, num_b);
+                const denominatorExpr = buildLinear(den_c, den_d);
+
+                // 4. Mathematical Evaluation
+                const finalAns = "0";
+
+                // 5. Structure Step-by-Step Formulaic LaTeX Solution
+                let solText = `\\begin{aligned}\n` +
+                            `L &= \\lim_{x \\to ${limitTarget}} \\dfrac{\\ln(${logArg})}{${denominatorExpr}} \\\\[8pt]\n` +
+                            `&\\text{Factor out } x \\text{ inside the natural logarithm and in the denominator:} \\\\[8pt]\n` +
+                            `&= \\lim_{x \\to ${limitTarget}} \\dfrac{\\ln \\left[ x \\left( ${num_a} + \\dfrac{${num_b}}{x} \\right) \\right]}{x \\left( ${den_c} + \\dfrac{${den_d}}{x} \\right)} \\\\[8pt]\n` +
+                            `&\\text{Apply the logarithmic identity } \\ln(u \\cdot v) = \\ln(u) + \\ln(v): \\\\[8pt]\n` +
+                            `&= \\lim_{x \\to ${limitTarget}} \\dfrac{\\ln(x) + \\ln \\left( ${num_a} + \\dfrac{${num_b}}{x} \\right)}{x \\left( ${den_c} + \\dfrac{${den_d}}{x} \\right)} \\\\[8pt]\n` +
+                            `&\\text{Split the fraction into two components:} \\\\[8pt]\n` +
+                            `&= \\lim_{x \\to ${limitTarget}} \\left[ \\dfrac{\\ln(x)}{x} \\cdot \\dfrac{1}{${den_c} + \\dfrac{${den_d}}{x}} + \\dfrac{\\ln \\left( ${num_a} + \\dfrac{${num_b}}{x} \\right)}{x \\left( ${den_c} + \\dfrac{${den_d}}{x} \\right)} \\right] \\\\[8pt]\n` +
+                            `&\\text{Using the standard formula } \\lim_{x \\to \\infty} \\dfrac{\\ln(x)}{x} = 0 \\text{ and evaluating } \\dfrac{\\text{constant}}{\\infty} = 0: \\\\[8pt]\n` +
+                            `&= \\left[ 0 \\cdot \\dfrac{1}{${den_c} + 0} \\right] + \\dfrac{\\ln(${num_a} + 0)}{\\infty} \\\\[8pt]\n` +
+                            `& = 0 + 0 \\\\\n` + 
+                            `&= 0\n` +
+                            `\\end{aligned}`;
+
                 return {
-                    expr: `\\lim_{x \\to \\infty} \\frac{\\ln(${inner})}{x}`,
-                    ans: `= 0`,
-                    sol: `\\begin{aligned} 
-                        &\\text{Recall the property that for large } x,\\\\
-                        &\\ln(x) \\text{ grows slower than any power } x^p. \\\\ 
-                        &\\text{Specifically, for } x+${c} > 1,\\\\
-                        &\\text{ we have the inequality: } 0 < \\ln(${inner}) < 2\\sqrt{${inner}}. \\\\ 
-                        &\\text{Divide the entire inequality by } x: \\\\ 
-                        &0 < \\frac{\\ln(${inner})}{x} < \\frac{2\\sqrt{x + ${c}}}{x} \\\\ 
-                        &\\text{Simplify the upper bound:} \\\\ 
-                        &\\frac{2\\sqrt{x + ${c}}}{x} = \\frac{2\\sqrt{x(1 + \\frac{${c}}{x})}}{x} = \\frac{2\\sqrt{1 + \\frac{${c}}{x}}}{\\sqrt{x}} \\\\ 
-                        &\\text{Taking the limit as } x \\to \\infty: \\\\ 
-                        &\\lim_{x \\to \\infty} 0 = 0 \\\\ 
-                        &\\lim_{x \\to \\infty} \\frac{2\\sqrt{1 + \\frac{${c}}{x}}}{\\sqrt{x}} = \\frac{2\\sqrt{1 + 0}}{\\infty} = 0 \\\\ 
-                        &\\text{By the Squeeze Theorem, since both bounds approach 0:} \\\\ 
-                        L &= 0
-                        \\end{aligned}`
+                    expr: `\\lim_{x \\to ${limitTarget}} \\dfrac{\\ln(${logArg})}{${denominatorExpr}}`,
+                    ans: `= ${finalAns}`,
+                    sol: solText
                 };
             },
-            // Family: Rational Function at Infinity (Equal Degrees)
+            
+            //# Family: Rational Function at Infinity (Equal Degrees) 
             (a, b, c) => {
                 // 1. Setup parameters
-                const n = Utils.getRnd(2, 4); // Randomize the highest power (x^2, x^3, or x^4)
+                const n = Utils.getRnd(2, 4); // Highest power (x^2, x^3, or x^4)
                 const d = Utils.getRnd(1, 5); // Denominator leading coefficient
                 
                 // 2. Formatting the Polynomials
-                // Handle the x^(n-1) term cleanly so "x^1" becomes "x"
                 const pow2 = n === 2 ? "x" : `x^{${n-1}}`;
                 const bAbs = Math.abs(b);
                 const bTerm = bAbs === 1 ? pow2 : `${bAbs}${pow2}`;
@@ -380,106 +470,200 @@ const limit = {
                 // Construct denominator: dx^n + c
                 const polyBottom = `${d === 1 ? "" : d}x^{${n}} ${c > 0 ? "+" : "-"} ${Math.abs(c)}`;
 
-                // 3. Calculate Final Answer
+                // 3. Logic for Clean Formatting & Simplification
                 const common = Utils.gcd(Math.abs(a), Math.abs(d));
                 const finalNum = a / common;
                 const finalDen = d / common;
-                
-                // Format answer as integer or fraction
+
+                // Build the dynamic final sequence block based on whether simplification occurs
+                let finalStepStr = "";
+                if (common === 1) {
+                    // Cannot be simplified (e.g., L = 1/3)
+                    if (finalDen === 1) {
+                        finalStepStr = `L &= ${finalNum}`;
+                    } else {
+                        finalStepStr = `L &= \\frac{${a}}{${d}}`;
+                    }
+                } else {
+                    // Can be simplified (e.g., L = 4/6 = 2/3 or L = 2/1 = 2)
+                    const simplifiedPart = finalDen === 1 ? `${finalNum}` : `\\frac{${finalNum}}{${finalDen}}`;
+                    finalStepStr = `L &= \\frac{${a}}{${d}} = ${simplifiedPart}`;
+                }
+
+                // Format final answer string
                 const finalAns = finalDen === 1 ? `${finalNum}` : `\\frac{${finalNum}}{${finalDen}}`;
 
                 return {
                     expr: `\\lim_{x \\to \\infty} \\frac{${polyTop}}{${polyBottom}}`,
                     ans: `= ${finalAns}`,
                     sol: `\\begin{aligned} 
-                        &\\text{To find the limit at infinity, divide every term by the highest power in the denominator, } x^{${n}}: \\\\ 
-                        L &= \\lim_{x \\to \\infty} \\frac{\\frac{${a}x^{${n}}}{x^{${n}}} ${b > 0 ? "+" : "-"} \\frac{${bAbs}x^{${n-1}}}{x^{${n}}}}{\\frac{${d}x^{${n}}}{x^{${n}}} ${c > 0 ? "+" : "-"} \\frac{${Math.abs(c)}}{x^{${n}}}} \\\\ 
-                        &= \\lim_{x \\to \\infty} \\frac{${a} ${b > 0 ? "+" : "-"} \\frac{${bAbs}}{x}}{${d} ${c > 0 ? "+" : "-"} \\frac{${Math.abs(c)}}{x^{${n}}}} \\\\ 
-                        &\\text{Since } \\lim_{x \\to \\infty} \\frac{k}{x^m} = 0 \\text{ for any constant } k \\text{ and } m > 0: \\\\ 
-                        L &= \\frac{${a} ${b > 0 ? "+" : "-"} 0}{${d} ${c > 0 ? "+" : "-"} 0} = \\frac{${a}}{${d}} \\\\ 
-                        &= ${finalAns}
+                        &\\text{To evaluate the limit at infinity, factor out the highest power } x^{${n}} \\text{ from both terms:} \\\\[1.2em]
+                        L &= \\lim_{x \\to \\infty} \\frac{x^{${n}} \\left( ${a} ${b > 0 ? "+" : "-"} \\frac{${bAbs}}{x} \\right)}{x^{${n}} \\left( ${d} ${c > 0 ? "+" : "-"} \\frac{${Math.abs(c)}}{x^{${n}}} \\right)} \\\\[1.2em]
+                        &\\text{Cancel out the common } x^{${n}} \\text{ term:} \\\\[1.2em]
+                        &= \\lim_{x \\to \\infty} \\frac{${a} ${b > 0 ? "+" : "-"} \\frac{${bAbs}}{x}}{${d} ${c > 0 ? "+" : "-"} \\frac{${Math.abs(c)}}{x^{${n}}}} \\\\[1.2em]
+                        &\\text{Since } \\lim_{x \\to \\infty} \\frac{k}{x^m} = 0 \\text{ for any constants } k \\text{ and } m > 0: \\\\[1.2em]
+                        &= \\frac{${a} ${b > 0 ? "+" : "-"} 0}{${d} ${c > 0 ? "+" : "-"} 0} \\\\[1.2em]
+                        ${finalStepStr}
                         \\end{aligned}`
                 };
             },
-            // Family: Exponential vs. Polynomial Growth (Growth Rate Comparison)
+            //# Family: Exponential vs. Polynomial Growth (Growth Rate Comparison) e^x vs x^n as x -> inf, ln(x^n) vs x as x -> inf, etc.
             () => {
-                // Randomize the power (n) between 2 and 6
-                const n = Utils.getRnd(2, 6);
+                // 1. Setup Parameters
+                const caseType = Utils.getRnd(1, 4); // Randomizes between 4 distinct limit types
+                const n = Utils.getRnd(2, 6);        // Randomize polynomial powers
+                const a = Utils.getRnd(2, 5);        // Random positive coefficient
+                const b = Utils.getRnd(1, 9);        // Random constant or linear coefficient
 
-                return {
-                    expr: `\\lim_{x \\to \\infty} \\frac{e^x}{x^{${n}}}`,
-                    ans: `= \\infty`,
-                    sol: `\\begin{aligned} 
-                        &\\text{Compare the growth rates as } x \\to \\infty: \\\\ 
-                        &\\text{ Numerator: } e^x \\text{ (Exponential growth)} \\\\ 
-                        &\\text{ Denominator: } x^{${n}} \\text{ (Polynomial growth)} \\\\ 
-                        &\\text{As } x \\text{ increases without bound, exponential growth} \\\\ 
-                        &\\text{eventually outpaces polynomial growth of any degree.} \\\\ 
-                        &\\text{Since } e^x \\gg x^{${n}} \\text{ for large } x: \\\\ 
-                        L &= \\infty 
-                        \\end{aligned}`
-                };
+                switch (caseType) {
+                    case 1:
+                        // TYPE 1: Exponential over Polynomial (Original Case)
+                        return {
+                            expr: `\\lim_{x \\to \\infty} \\frac{e^x}{x^{${n}}}`,
+                            ans: `= \\infty`,
+                            sol: `\\begin{aligned} 
+                                &\\text{Compare the growth rates of the functions as } x \\to \\infty: \\\\[1.2em]
+                                &\\bullet \\text{ Numerator: } e^x \\text{ exhibits exponential growth.} \\\\ 
+                                &\\bullet \\text{ Denominator: } x^{${n}} \\text{ exhibits polynomial growth.} \\\\[1.2em]
+                                &\\text{As } x \\text{ increases without bound, exponential growth always} \\\\ 
+                                &\\text{outpaces polynomial growth of any fixed degree } (e^x \\gg x^{${n}}). \\\\[1.2em]
+                                L &= \\infty 
+                                \\end{aligned}`
+                        };
+
+                    case 2:
+                        // TYPE 2: Polynomial over Exponential (Reciprocal Case -> Hits 0)
+                        return {
+                            expr: `\\lim_{x \\to \\infty} \\frac{x^{${n}}}{e^{${a === 1 ? "" : a}x}}`,
+                            ans: `= 0`,
+                            sol: `\\begin{aligned} 
+                                &\\text{Compare the growth rates of the functions as } x \\to \\infty: \\\\[1.2em]
+                                &\\bullet \\text{ Numerator: } x^{${n}} \\text{ grows polynomially.} \\\\ 
+                                &\\bullet \\text{ Denominator: } e^{${a === 1 ? "" : a}x} \\text{ grows exponentially.} \\\\[1.2em]
+                                &\\text{Because an exponential function grows significantly faster than any} \\\\ 
+                                &\\text{polynomial function in the long run } (e^{${a === 1 ? "" : a}x} \\gg x^{${n}}): \\\\[1.2em]
+                                L &= 0 
+                                \\end{aligned}`
+                        };
+
+                    case 3:
+                        // TYPE 3: Natural Logarithm vs Polynomial (Slow Growth -> Hits 0)
+                        return {
+                            expr: `\\lim_{x \\to \\infty} \\frac{\\ln(x^{${n}})}{x}`,
+                            ans: `= 0`,
+                            sol: `\\begin{aligned} 
+                                &\\text{First, simplify the numerator using logarithm properties:} \\\\[1.2em]
+                                L &= \\lim_{x \\to \\infty} \\frac{${n} \\ln(x)}{x} \\\\[1.2em]
+                                &\\text{Evaluate the growth rates. Logarithmic functions grow much slower} \\\\ 
+                                &\\text{than linear or polynomial functions as } x \\to \\infty \\text{ }(\\ln(x) \\ll x): \\\\[1.2em]
+                                L &= 0
+                                \\end{aligned}`
+                        };
+
+                    case 4:
+                        // TYPE 4: L'Hôpital's Rule Case with Exponential Functions
+                        return {
+                            expr: `\\lim_{x \\to \\infty} \\frac{e^{x} + ${b}}{${a}e^{x} - 1}`,
+                            ans: `= \\frac{1}{${a}}`,
+                            sol: `\\begin{aligned} 
+                                &\\text{Direct evaluation yields the indeterminate form } \\frac{\\infty}{\\infty}. \\\\[1.2em]
+                                &\\text{Factor out the dominant exponential term } e^x \\text{ from the numerator and denominator:} \\\\[1.2em]
+                                L &= \\lim_{x \\to \\infty} \\frac{e^x \\left( 1 + \\frac{${b}}{e^x} \\right)}{e^x \\left( ${a} - \\frac{1}{e^x} \\right)} \\\\[1.2em]
+                                &\\text{Cancel the common } e^x \\text{ factor:} \\\\[1.2em]
+                                &= \\lim_{x \\to \\infty} \\frac{1 + \\frac{${b}}{e^x}}{${a} - \\frac{1}{e^x}} \\\\[1.2em]
+                                &\\text{Since } \\lim_{x \\to \\infty} \\frac{k}{e^x} = 0 \\text{ for any constant } k: \\\\[1.2em]
+                                &= \\frac{1 + 0}{${a} - 0} \\\\[1.2em]
+                                L &= \\frac{1}{${a}}
+                                \\end{aligned}`
+                        };
+
+                    default:
+                        return { expr: "", ans: "", sol: "" };
+                }
             },
-            // Family: Polynomial vs. Exponential Growth (Flipped)
-            (a, b) => {
-                // Randomize the numerator power (n) between 2 and 5
-                const n = Utils.getRnd(2, 5);
+            //# Family: Limit Definition of Derivative (Radical) sqrt(c^2 + h) - c / h as h -> 0
+            (a, b, c, d) => {
+                let valC = Math.abs(a) > 0 ? Math.abs(a) : 4;
+                let sqC = valC * valC; 
+                let ansDen = 2 * valC;
                 
-                // Format the exponent: "e^{2x}" or just "e^x"
-                const exponent = b === 1 ? "x" : `${b}x`;
-
                 return {
-                    expr: `\\lim_{x \\to \\infty} \\frac{x^{${n}}}{e^{${exponent}}}`,
-                    ans: `= 0`,
-                    sol: `\\begin{aligned} 
-                        &\\text{Analyze the growth rates as } x \\to \\infty: \\\\ 
-                        &\\text{ Numerator: } x^{${n}} \\text{ (Polynomial growth)} \\\\ 
-                        &\\text{ Denominator: } e^{${exponent}} \\text{ (Exponential growth)} \\\\ 
-                        &\\text{Exponential functions grow significantly faster than polynomial} \\\\ 
-                        &\\text{functions as } x \\text{ approaches infinity.} \\\\ 
-                        &\\text{Since the denominator dominates ( } e^{${exponent}} \\gg x^{${n}} \\text{ ):} \\\\ 
-                        L &= 0 
-                        \\end{aligned}`
-                };
-            },
-            // Logarithmic vs Power growth: ln(x) / x^c
-            (c) => ({
-                expr: `\\lim_{x \\to \\infty} \\frac{\\ln x}{x^{${c}}}`,
-                ans: `= 0`,
-                sol: `\\begin{aligned} 
-                    &\\text{Let } x^c = e^u \\implies c \\ln x = u \\implies \\ln x = \\frac{u}{c}. \\\\ 
-                    &\\text{As } x \\to \\infty, u \\to \\infty. \\\\ 
-                    L &= \\lim_{u \\to \\infty} \\frac{u/c}{e^u} \\\\ 
-                    &= \\frac{1}{c} \\lim_{u \\to \\infty} \\frac{u}{e^u} \\\\ 
-                    &\\text{Since } e^u > \\frac{u^2}{2} \\text{ for large } u, \\\\ 
-                    L &= 0 \\quad (\\text{Exponential growth dominates polynomial growth})
+                    expr: `\\lim_{h \\to 0} \\frac{\\sqrt{${sqC} + h} - ${valC}}{h}`,
+                    ans: `= \\frac{1}{${ansDen}}`,
+                    sol: `\\begin{aligned}
+                        &\\text{This is the limit definition of the derivative for } f(x) = \\sqrt{x} \\text{ at } x = ${sqC}. \\\\
+                        &\\text{Multiply numerator and denominator by the conjugate:} \\\\
+                        &L = \\lim_{h \\to 0} \\frac{\\sqrt{${sqC} + h} - ${valC}}{h} \\cdot \\frac{\\sqrt{${sqC} + h} + ${valC}}{\\sqrt{${sqC} + h} + ${valC}} \\\\
+                        &= \\lim_{h \\to 0} \\frac{(${sqC} + h) - ${valC*valC}}{h(\\sqrt{${sqC} + h} + ${valC})} \\\\
+                        &= \\lim_{h \\to 0} \\frac{h}{h(\\sqrt{${sqC} + h} + ${valC})} \\\\
+                        &= \\lim_{h \\to 0} \\frac{1}{\\sqrt{${sqC} + h} + ${valC}} \\\\
+                        &= \\frac{1}{\\sqrt{${sqC} + 0} + ${valC}} = \\frac{1}{${valC} + ${valC}} = \\frac{1}{${ansDen}}
                     \\end{aligned}`
-            })
+                };
+            }
         ],
         med: [
-            // Family: Cubic-Radical Conjugate
+            //# Family: Cubic-Radical Conjugate x^3 + c / sqrt(x+k) - m as x -> targetVal
             () => {
-                const a = 1; // Centered at 1 for clean integers
-                // 1. Numerator parts
-                // x^3 - 1 factors into (x - 1)(x^2 + x + 1)
-                const quadraticPart = Utils.poly2(1, 1, 1); // "x^2 + x + 1"
-                const linearFactor = Utils.minusA(a);       // "(x - 1)"
-                // 2. Denominator parts
-                const conjugate = `(\\sqrt{x} + 1)`;
+                // 1. Randomize standard test configurations (Now including negative targets)
+                const options = [
+                    { targetVal: 1, k: 1, shift: 0, radicalStr: "x" },          
+                    { targetVal: 4, k: 2, shift: 0, radicalStr: "x" },          
+                    { targetVal: 2, k: 2, shift: 2, radicalStr: "x + 2" },      
+                    { targetVal: 3, k: 1, shift: -2, radicalStr: "x - 2" },     
+                    // --- NEW NEGATIVE CASES ---
+                    { targetVal: -1, k: 1, shift: 2, radicalStr: "x + 2" },     // lim_{x->-1} (x^3 + 1) / (sqrt(x+2) - 1)
+                    { targetVal: -1, k: 2, shift: 5, radicalStr: "x + 5" },     // lim_{x->-1} (x^3 + 1) / (sqrt(x+5) - 2)
+                    { targetVal: -2, k: 1, shift: 3, radicalStr: "x + 3" },     // lim_{x->-2} (x^3 + 8) / (sqrt(x+3) - 1)
+                    { targetVal: -3, k: 2, shift: 7, radicalStr: "x + 7" }      // lim_{x->-3} (x^3 + 27) / (sqrt(x+7) - 2)
+                ];
+
+                const config = options[Utils.getRnd(0, options.length - 1)];
+                const { targetVal, k, radicalStr } = config;
+
+                // 2. Compute expressions and factors based on targetVal
+                const cubicNum = Math.pow(targetVal, 3);
+                const targetValSquared = targetVal * targetVal;
+
+                // Smart string formatting for polynomial signs
+                const polyTop = `x^3 ${cubicNum < 0 ? "+" : "-"} ${Math.abs(cubicNum)}`;
+                const polyBottom = `\\sqrt{${radicalStr}} - ${k}`;
+                
+                // Formatting the linear factor (e.g., "x - -1" becomes "x + 1")
+                const linearFactor = targetVal < 0 ? `(x + ${Math.abs(targetVal)})` : `(x - ${targetVal})`; 
+                
+                // Formatting the quadratic part: x^2 + cx + c^2
+                const midSign = targetVal < 0 ? "-" : "+";
+                const midCoeff = Math.abs(targetVal) === 1 ? "x" : `${Math.abs(targetVal)}x`;
+                const quadraticPart = `x^2 ${midSign} ${midCoeff} + ${targetValSquared}`; 
+                
+                const conjugate = `\\left(\\sqrt{${radicalStr}} + ${k}\\right)`;
+
+                // 3. Compute limits numerically
+                const numEval = targetValSquared * 3; 
+                const denEval = k * 2;                
+                const finalAnswerVal = numEval * denEval;
+                const evaluatedRadical = targetVal + config.shift;
+
                 return {
-                    expr: `\\lim_{x \\to ${a}} \\frac{x^3 - 1}{\\sqrt{x} - 1}`,
-                    ans: `= 6`,
+                    expr: `\\lim_{x \\to ${targetVal}} \\frac{${polyTop}}{${polyBottom}}`,
+                    ans: `= ${finalAnswerVal}`,
                     sol: `\\begin{aligned} 
-                        &\\text{Direct substitution yields } \\frac{0}{0}. \\\\ 
-                        L &= \\lim_{x \\to ${a}} \\frac{${linearFactor}(${quadraticPart})}{\\sqrt{x} - 1} \\cdot \\frac{${conjugate}}{${conjugate}} \\\\ 
-                        &= \\lim_{x \\to ${a}} \\frac{${linearFactor}(${quadraticPart})${conjugate}}{x - 1} \\\\ 
-                        &= \\lim_{x \\to ${a}} (${quadraticPart})${conjugate} \\\\ 
-                        &= (1^2 + 1 + 1)(\\sqrt{1} + 1) \\\\ 
-                        &= (3)(2) = 6
+                        &\\text{Direct substitution yields the indeterminate form } \\frac{0}{0}. \\\\[1.2em]
+                        &\\text{Factor the sum/difference of cubes in the numerator and multiply} \\\\ 
+                        &\\text{by the conjugate } ${conjugate}: \\\\[1.2em]
+                        L &= \\lim_{x \\to ${targetVal}} \\frac{${linearFactor}\\left(${quadraticPart}\\right)}{${polyBottom}} \\cdot \\frac{${conjugate}}{${conjugate}} \\\\[1.2em]
+                        &= \\lim_{x \\to ${targetVal}} \\frac{${linearFactor}\\left(${quadraticPart}\\right)${conjugate}}{${linearFactor}} \\\\[1.2em]
+                        &\\text{Cancel out the common linear factor } ${linearFactor}: \\\\[1.2em]
+                        &= \\lim_{x \\to ${targetVal}} \\left(${quadraticPart}\\right)${conjugate} \\\\[1.2em]
+                        &\\text{Evaluate the limit by direct substitution:} \\\\[1.2em]
+                        &= \\left((${targetVal})^2 ${midSign} ${midCoeff.replace('x', `(${targetVal})`)} + ${targetValSquared}\\right)\\left(\\sqrt{${evaluatedRadical}} + ${k}\\right) \\\\[1.2em]
+                        &= (${numEval})(${denEval}) \\\\[1.2em]
+                        L &= ${finalAnswerVal}
                         \\end{aligned}`
                 };
             },
-            // Family: (ax^2+bx+c)/(px^2+qx+r)
+            //# Family: (ax^2+bx+c)/(px^2+qx+r)
             () => {
                 const { a, k1, k2, m, n, p, q } = Utils.generateNiceParams();
 
@@ -506,21 +690,25 @@ const limit = {
 
                 const finalAns = redDen === 1 ? `${redNum}` : `\\frac{${redNum}}{${redDen}}`;
 
+                // Dynamic final step to prevent redundant equals signs
+                let finalStepStr = "";
+                if (val_num === redNum && val_den === redDen) {
+                    finalStepStr = `&= ${finalAns}`;
+                } else {
+                    finalStepStr = `&= \\frac{${val_num}}{${val_den}} \\\\[1.2em]\n                        &= ${finalAns}`;
+                }
+
                 return {
-                    // Use the new poly2 helper here
                     expr: `\\lim_{x \\to ${a}} \\frac{${Utils.poly2(num_A, num_B, num_C)}}{${Utils.poly2(den_A, den_B, den_C)}}`,
-
                     ans: `= ${finalAns}`,
-
                     sol: `\\begin{aligned}
-                        L &= \\lim_{x \\to ${a}} \\frac{${k1 === 1 ? '' : k1}(${Utils.linear(m, p)})${Utils.minusA(a)}}{${k2 === 1 ? '' : k2}(${Utils.linear(n, q)})${Utils.minusA(a)}} \\\\
-                        &= \\lim_{x \\to ${a}} \\frac{${k1 === 1 ? '' : k1}(${Utils.linear(m, p)})}{${k2 === 1 ? '' : k2}(${Utils.linear(n, q)})} \\\\
-                        &= \\frac{${val_num}}{${val_den}} = ${finalAns}
+                        L &= \\lim_{x \\to ${a}} \\frac{${k1 === 1 ? '' : k1}(${Utils.linear(m, p)})${Utils.minusA(a)}}{${k2 === 1 ? '' : k2}(${Utils.linear(n, q)})${Utils.minusA(a)}} \\\\[1.2em]
+                        &= \\lim_{x \\to ${a}} \\frac{${k1 === 1 ? '' : k1}(${Utils.linear(m, p)})}{${k2 === 1 ? '' : k2}(${Utils.linear(n, q)})} \\\\[1.2em]
+                        ${finalStepStr}
                         \\end{aligned}`
                 };
             },
-            // Family: Algebraic Limit (Difference of Cubes & Conjugates)
-            // Form: lim_{x -> a} (x^3 - a^3) / (\sqrt{x} - \sqrt{a})
+            //# Form: lim_{x -> a} (x^3 - a^3) / (\sqrt{x} - \sqrt{a})
             () => {
                 // Pick k so that a = k^2 is a perfect square (avoids ugly square roots)
                 // Using k between 1 and 4 keeps the final answers reasonable (max 24,576)
@@ -554,7 +742,7 @@ const limit = {
                         \\end{aligned}`
                 };
             },
-            // Family: Advanced Trigonometric Substitution
+            //# Family: Advanced Trigonometric Substitution sin(x - c) / (x^2 - c^2) as x -> c
             () => {
                 // Generate a limit like: \lim_{x \to c} \frac{\sin(x - c)}{x^2 - c^2}
                 let c = Utils.getRnd(1, 5); 
@@ -588,9 +776,9 @@ const limit = {
                         \\end{aligned}`
                 };
             },
-            // Family: Quadratic Trigonometric Limits ( (1 - cos ax) / bx^2 )
+            //# Family: Quadratic Trigonometric Limits ( (1 - cos ax) / bx^2 )
             () => {
-                const a = Utils.getRnd(2, 8); // Now allowing 1 to test formatting
+                const a = Utils.getRnd(2, 8); 
                 const b = Utils.getRnd(2, 5);
 
                 // Math Logic: (a^2) / (2 * b)
@@ -603,25 +791,31 @@ const limit = {
                 const finalAns = finalDen === 1 ? `${finalNum}` : `\\frac{${finalNum}}{${finalDen}}`;
 
                 // Formatting coefficients nicely
-                const denomStr = Utils.poly2(b, 0, 0);       // Fixes the "1x^2" issue
-                const innerTrig = Utils.linear(a, 0);       // Fixes "cos(1x)" to "cos(x)"
+                const denomStr = Utils.poly2(b, 0, 0);       
+                const innerTrig = Utils.linear(a, 0);       
                 const aSquared = a * a;
+
+                // Check if the unreduced substitution fraction matches the final answer string
+                const initialFrac = `\\frac{${aSquared}}{${2 * b}}`;
+                const finalStepStr = (initialFrac === finalAns) 
+                    ? `&= ${finalAns}` 
+                    : `&= \\frac{${aSquared}}{${2 * b}} = ${finalAns}`;
 
                 return {
                     expr: `\\lim_{x \\to 0} \\frac{1 - \\cos(${innerTrig})}{${denomStr}}`,
                     ans: `= ${finalAns}`,
                     sol: `\\begin{aligned} 
-                        &\\text{Use the special limit } \\lim_{u \\to 0} \\frac{1 - \\cos u}{u^2} = \\frac{1}{2}. \\\\ 
-                        &\\text{We multiply to get } (${innerTrig})^2 = ${aSquared}x^2 \\text{ in the denominator:} \\\\ 
-                        L &= \\lim_{x \\to 0} \\frac{1 - \\cos(${innerTrig})}{${denomStr}} \\cdot \\frac{${aSquared}}{${aSquared}} \\\\ 
-                        &= \\frac{${aSquared}}{${b}} \\cdot \\lim_{x \\to 0} \\frac{1 - \\cos(${innerTrig})}{${aSquared}x^2} \\\\ 
-                        &\\text{Since } \\lim_{u \\to 0} \\frac{1 - \\cos u}{u^2} = \\frac{1}{2}: \\\\ 
-                        &= \\frac{${aSquared}}{${b}} \\cdot \\left( \\frac{1}{2} \\right) \\\\ 
-                        &= \\frac{${aSquared}}{${2 * b}} = ${finalAns}
+                        &\\text{Use the special limit } \\lim_{u \\to 0} \\frac{1 - \\cos u}{u^2} = \\frac{1}{2}. \\\\[1.2em]
+                        &\\text{We multiply to get } (${innerTrig})^2 = ${aSquared}x^2 \\text{ in the denominator:} \\\\[1.2em]
+                        L &= \\lim_{x \\to 0} \\frac{1 - \\cos(${innerTrig})}{${denomStr}} \\cdot \\frac{${aSquared}}{${aSquared}} \\\\[1.2em]
+                        &= \\frac{${aSquared}}{${b}} \\cdot \\lim_{x \\to 0} \\frac{1 - \\cos(${innerTrig})}{${aSquared}x^2} \\\\[1.2em]
+                        &\\text{Since } \\lim_{u \\to 0} \\frac{1 - \\cos u}{u^2} = \\frac{1}{2}: \\\\[1.2em]
+                        &= \\frac{${aSquared}}{${b}} \\cdot \\left( \\frac{1}{2} \\right) \\\\[1.2em]
+                        ${finalStepStr}
                         \\end{aligned}`
                 };
-            },
-            // Family: Ratio of Sines (sin ax / sin bx)
+            }, 
+            //# Family: Ratio of Sines (sin ax / sin bx)
             () => {
                 let a, b;
                 // Ensure a and b are different
@@ -652,38 +846,108 @@ const limit = {
                         \\end{aligned}`
                 };
             },
-            // (e^(bx)-1)/x
+            //# (e^(bx)-1)/x
             (a, b) => {
-                const pwr = b === 1 ? "x" : `${b}x`;
+                const bVal = Math.abs(b) > 1 ? Math.abs(b) : 2;
+                const pwr = bVal === 1 ? "x" : `${bVal}x`;
                 return {
                     expr: `\\lim_{x \\to 0} \\frac{e^{${pwr}} - 1}{x}`,
-                    ans: `= ${b}`,
+                    ans: `= ${bVal}`,
                     sol: `\\begin{aligned} 
                         &\\text{Use the standard limit } \\lim_{u \\to 0} \\frac{e^u - 1}{u} = 1. \\\\ 
-                        &\\text{Multiply and divide by } ${b}: \\\\ 
-                        L &= ${b} \\cdot \\lim_{x \\to 0} \\frac{e^{${pwr}} - 1}{${b}x} \\\\ 
+                        &\\text{Multiply and divide by } ${bVal}: \\\\ 
+                        L &= ${bVal} \\cdot \\lim_{x \\to 0} \\frac{e^{${pwr}} - 1}{${bVal}x} \\\\ 
                         &\\text{Let } u = ${pwr}. \\text{ As } x \\to 0, u \\to 0: \\\\ 
-                        L &= ${b} \\cdot \\lim_{u \\to 0} \\frac{e^u - 1}{u} \\\\ 
-                        &= ${b} \\cdot (1) = ${b} 
+                        L &= ${bVal} \\cdot \\lim_{u \\to 0} \\frac{e^u - 1}{u} \\\\ 
+                        &= ${bVal} \\cdot (1) = ${bVal} 
                         \\end{aligned}`
                 };
             },
-            (a, b) => {
-                const inner = Utils.linear(b, 1); // "1 + bx"
+            //# (1 + bx)^{1/x}
+            () => {
+                // Generate coefficients
+                let a = Utils.getSignedRnd(2, 6); // Inner coefficient
+                let b = Utils.getSignedRnd(2, 5); // Exponent numerator
+
+                // Smart string formatting
+                const signA = a < 0 ? "-" : "+";
+                const absA = Math.abs(a);
+                const inner = `1 ${signA} ${absA}x`;
+                const exponent = `${b}/x`;
+                const finalPower = a * b;
+
                 return {
-                    expr: `\\lim_{x \\to 0^+} \\left( ${inner} \\right)^{1/x}`,
-                    ans: `= e^{${b === 1 ? "" : b}}`,
+                    expr: `\\lim_{x \\to 0} \\left( ${inner} \\right)^{${exponent}}`,
+                    ans: `= e^{${finalPower}}`,
                     sol: `\\begin{aligned} 
-                        &\\text{Let } y = (${inner})^{1/x}. \\text{ Take the natural log of both sides:} \\\\ 
-                        \\ln y &= \\frac{1}{x} \\ln(${inner}) \\\\ 
-                        \\lim_{x \\to 0^+} \\ln y &= \\lim_{x \\to 0^+} \\frac{\\ln(1 + ${b}x)}{x} \\\\ 
-                        &\\text{Using } \\lim_{u \\to 0} \\frac{\\ln(1+u)}{u} = 1, \\text{ let } u = ${b}x: \\\\ 
-                        &= ${b} \\cdot \\lim_{u \\to 0} \\frac{\\ln(1+u)}{u} = ${b} \\\\ 
-                        &\\text{Since } \\lim \\ln y = ${b}, \\text{ then } L = e^{${b}}.
+                        &\\text{Direct substitution yields the indeterminate form } 1^{\\infty}. \\\\[1.2em]
+                        &\\text{Let } y = (${inner})^{${exponent}}. \\text{ Take the natural logarithm of both sides:} \\\\[1.2em] 
+                        \\ln y &= \\frac{${b}}{x} \\ln(${inner}) \\\\[1.2em] 
+                        \\lim_{x \\to 0} \\ln y &= \\lim_{x \\to 0} \\frac{${b} \\ln(1 ${signA} ${absA}x)}{x} \\\\[1.2em] 
+                        &\\text{To use the special limit } \\lim_{u \\to 0} \\frac{\\ln(1+u)}{u} = 1, \\text{ multiply by } \\frac{${a}}{${a}}: \\\\[1.2em] 
+                        &= \\lim_{x \\to 0} ${b} \\cdot ${a} \\cdot \\frac{\\ln(1 ${signA} ${absA}x)}{${a}x} \\\\[1.2em] 
+                        &\\text{Let } u = ${a}x. \\text{ As } x \\to 0, u \\to 0: \\\\[1.2em] 
+                        &= ${finalPower} \\cdot \\lim_{u \\to 0} \\frac{\\ln(1+u)}{u} \\\\[1.2em] 
+                        &= ${finalPower} \\cdot (1) = ${finalPower} \\\\[1.2em] 
+                        &\\text{Since } \\lim_{x \\to 0} \\ln y = ${finalPower}, \\text{ exponentiate to find } L: \\\\[1.2em]
+                        L &= e^{${finalPower}}
                         \\end{aligned}`
                 };
             },
-            // Family: Radical Conjugates at Infinity and Negative Infinity
+            //# Family: (1 + a/x)^(bx) as x -> Infinity
+            () => {
+                // Generate coefficients
+                let a = Utils.getSignedRnd(2, 6); // Inner fraction numerator
+                let b = Utils.getSignedRnd(1, 4); // Exponent coefficient
+
+                // Smart string formatting
+                const signA = a < 0 ? "-" : "+";
+                const absA = Math.abs(a);
+                const innerFrac = `\\frac{${absA}}{x}`;
+                const inner = `1 ${signA} ${innerFrac}`;
+                const exponent = b === 1 ? `x` : (b === -1 ? `-x` : `${b}x`);
+                const finalPower = a * b;
+
+                return {
+                    expr: `\\lim_{x \\to \\infty} \\left( ${inner} \\right)^{${exponent}}`,
+                    ans: `= e^{${finalPower}}`,
+                    sol: `\\begin{aligned} 
+                        &\\text{Direct substitution yields the indeterminate form } 1^{\\infty}. \\\\[1.2em]
+                        &\\text{Let } y = \\left(${inner}\\right)^{${exponent}}. \\text{ Take the natural logarithm:} \\\\[1.2em] 
+                        \\ln y &= ${exponent} \\ln\\left(${inner}\\right) \\\\[1.2em] 
+                        &\\text{Let } u = \\frac{${a}}{x}. \\text{ Then } x = \\frac{${a}}{u}. \\text{ As } x \\to \\infty, u \\to 0: \\\\[1.2em] 
+                        \\lim_{x \\to \\infty} \\ln y &= \\lim_{u \\to 0} ${b === 1 ? "" : b}\\left(\\frac{${a}}{u}\\right) \\ln(1 + u) \\\\[1.2em] 
+                        &= \\lim_{u \\to 0} ${finalPower} \\cdot \\frac{\\ln(1 + u)}{u} \\\\[1.2em] 
+                        &\\text{Using the special limit } \\lim_{u \\to 0} \\frac{\\ln(1+u)}{u} = 1: \\\\[1.2em] 
+                        &= ${finalPower} \\cdot (1) = ${finalPower} \\\\[1.2em] 
+                        &\\text{Since } \\lim_{x \\to \\infty} \\ln y = ${finalPower}, \\text{ exponentiate to find } L: \\\\[1.2em]
+                        L &= e^{${finalPower}}
+                        \\end{aligned}`
+                };
+            },
+
+            //# Family: The Logarithmic Identity ln(1 + bx) / x
+            () => {
+                const b = Utils.getRnd(2, 6);
+                const inner = Utils.linear(b, 1);
+                const b_val = b === 1 ? "" : b;
+
+                return {
+                    expr: `\\lim_{x \\to 0} \\frac{\\ln(${inner})}{x}`,
+                    ans: `= ${b}`,
+                    sol: `\\begin{aligned} 
+                        &\\text{Use the power property of logarithms, } n \\ln A = \\ln A^n: \\\\ 
+                        L &= \\lim_{x \\to 0} \\left[ \\frac{1}{x} \\ln(${inner}) \\right] = \\lim_{x \\to 0} \\ln\\left( (${inner})^{\\frac{1}{x}} \\right) \\\\ 
+                        &\\text{Since the natural logarithm is a continuous function, we can move} \\\\ 
+                        &\\text{the limit inside the logarithm:} \\\\ 
+                        L &= \\ln\\left( \\lim_{x \\to 0} (${inner})^{\\frac{1}{x}} \\right) \\\\ 
+                        &\\text{Using the definition of } e, \\lim_{u \\to 0} (1 + ku)^{1/u} = e^k: \\\\ 
+                        &\\text{Here, } k = ${b}, \\text{ so } \\lim_{x \\to 0} (${inner})^{\\frac{1}{x}} = e^{${b_val}} \\\\ 
+                        L &= \\ln(e^{${b}}) = ${b} 
+                        \\end{aligned}`
+                };
+            },
+            //# Family: Radical Conjugates at Infinity and Negative Infinity sqrt(x^2 + kx) -/+ x as x -> +/- Infinity
             (a, b) => {
                 // 1. Setup parameters
                 const k = 2 * b; // k is the coefficient of x, final answer involves k/2
@@ -695,7 +959,10 @@ const limit = {
                 const oppositeSign = isPosInf ? "+" : "-";
                 
                 // The expression: sqrt(x^2 + kx) - x (for pos) or sqrt(x^2 + kx) + x (for neg)
-                const innerTrinomial = `x^2 ${k > 0 ? "+" : ""} ${k}x`;
+                const sign = k >= 0 ? "+" : "-";
+                const absK = Math.abs(k);
+                const coeffStr = Math.abs(absK) === 1 ? "x" : `${Math.abs(absK)}x`;
+                const innerTrinomial = absK === 0 ? `x^2` : `x^2 ${absK >= 0 ? "+" : "-"} ${coeffStr}`;
                 const fullExpr = `\\sqrt{${innerTrinomial}} ${isPosInf ? "-" : "+"} x`;
 
                 // The limit evaluates to k/2 for pos inf, and -k/2 for neg inf
@@ -707,56 +974,312 @@ const limit = {
                     ans: `= ${finalAns}`,
                     sol: `\\begin{aligned} 
                         &\\text{Multiply by the conjugate: } \\frac{\\sqrt{${innerTrinomial}} ${oppositeSign} x}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} \\\\ 
-                        L &= \\lim_{x \\to ${limitTarget}} \\frac{(${innerTrinomial}) - x^2}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} = \\lim_{x \\to ${limitTarget}} \\frac{${k}x}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} \\\\ 
+                        L & = \\lim_{x \\to ${limitTarget}} \\frac{(${innerTrinomial}) - x^2}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} = \\lim_{x \\to ${limitTarget}} \\frac{${absK}x}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} \\\\ 
                         &\\text{Divide the numerator and denominator by } x. \\\\ 
-                        &\\text{Crucially, for } x < 0, \\sqrt{x^2} = |x| = -x. \\text{ Therefore } \\frac{\\sqrt{x^2+kx}}{x} = ${isPosInf ? "" : "-"} \\sqrt{1 + \\frac{${k}}{x}}. \\\\ 
-                        L &= \\lim_{x \\to ${limitTarget}} \\frac{${k}}{${isPosInf ? "" : "-"} \\sqrt{1 + \\frac{${k}}{x}} ${oppositeSign} 1} \\\\ 
+                        &\\text{Crucially, for } x < 0, \\sqrt{x^2} = |x| = -x. \\text{ Therefore } \\frac{\\sqrt{x^2+${absK}x}}{x} = ${isPosInf ? "" : "-"} \\sqrt{1 + \\frac{${absK}}{x}}. \\\\ 
+                        L & = \\lim_{x \\to ${limitTarget}} \\frac{${absK}}{${isPosInf ? "" : "-"} \\sqrt{1 + \\frac{${absK}}{x}} ${oppositeSign} 1} \\\\ 
                         &\\text{Evaluate as } x \\to ${limitTarget}: \\\\ 
-                        L &= \\frac{${k}}{${isPosInf ? "1 + 1" : "-1 - 1"}} = \\frac{${k}}{${isPosInf ? "2" : "-2"}} = ${finalAns}
+                        L & = \\frac{${absK}}{${isPosInf ? "1 + 1" : "-1 - 1"}} = \\frac{${absK}}{${isPosInf ? "2" : "-2"}} = ${finalAns}
                         \\end{aligned}`
                 };
             },
-            // Family: The General Exponential Limit (1 + b/x)^{ax}
+            //# Family: General Quadratic Radical Limits at Infinity/Negative Infinity sqrt(ax^2 + bx + c) +/- dx as x -> +/- Infinity
             (a, b) => {
-                // b is the numerator inside, a is the multiplier for the exponent
-                const exponent = a === 1 ? "x" : `${a}x`;
-                const resultPower = a * b;
+                // Helper function to find the greatest common divisor
+                const getGCD = (x, y) => {
+                    x = Math.abs(x);
+                    y = Math.abs(y);
+                    while (y) {
+                        const t = y;
+                        y = x % y;
+                        x = t;
+                    }
+                    return x;
+                };
+
+                // Helper function to format a fraction cleanly in LaTeX
+                const formatFraction = (num, den) => {
+                    if (num === 0) return "0";
+                    
+                    // Move negative sign to the front if denominator is negative
+                    if (den < 0) {
+                        num = -num;
+                        den = -den;
+                    }
+                    
+                    const gcd = getGCD(num, den);
+                    num /= gcd;
+                    den /= gcd;
+                    
+                    if (den === 1) return `${num}`;
+                    if (num < 0) return `-\\frac{${Math.abs(num)}}{${den}}`;
+                    return `\\frac{${num}}{${den}}`;
+                };
+
+                // 1. Setup common parameters
+                const innerC = Utils.getRnd(-5, 5); // constant term
+                const direction = Utils.getRnd(0, 1); // 0: Infinity, 1: Negative Infinity
+                const isPosInf = direction === 0;
+                const limitTarget = isPosInf ? "\\infty" : "-\\infty";
                 
-                // Formatting e^{result}
-                const finalAns = resultPower === 1 ? "e" : `e^{${resultPower}}`;
+                // Randomly decide which family of problem to generate
+                const isConjugateFamily = Utils.getRnd(0, 1) === 0; 
+                
+                if (isConjugateFamily) {
+                    // ==========================================
+                    // FAMILY 1: FINITE LIMITS (Conjugate Method)
+                    // ==========================================
+                    const outerCoeff = Math.abs(a) > 1 ? Math.abs(a) : 2; 
+                    const innerA = outerCoeff * outerCoeff; 
+                    const innerB = Math.sign(b) * (Math.abs(b) > 1 ? Math.abs(b) : 1); 
+
+                    const aTerm = innerA === 1 ? "x^2" : `${innerA}x^2`;
+                    const bAbs = Math.abs(innerB);
+                    const bTerm = bAbs === 1 ? "x" : `${bAbs}x`;
+                    const bSign = innerB >= 0 ? " + " : " - ";
+                    const cTerm = innerC === 0 ? "" : (innerC > 0 ? ` + ${innerC}` : ` - ${Math.abs(innerC)}`);
+                    const innerExpr = `${aTerm}${bSign}${bTerm}${cTerm}`;
+
+                    const origSign = isPosInf ? "-" : "+";
+                    const conjSign = isPosInf ? "+" : "-";
+                    const fullExpr = `\\sqrt{${innerExpr}} ${origSign} ${outerCoeff}x`;
+
+                    // Fraction calculations
+                    const rawNum = isPosInf ? innerB : -innerB;
+                    const rawDen = 2 * outerCoeff;
+                    const finalAnsStr = formatFraction(rawNum, rawDen);
+
+                    const sqrtDivText = isPosInf ? `\\sqrt{${innerA}} = ${outerCoeff}` : `-\\sqrt{${innerA}} = -${outerCoeff}`;
+                    const denomResultText = isPosInf ? `${outerCoeff} + ${outerCoeff}` : `-${outerCoeff} - ${outerCoeff}`;
+                    const rawFractionStr = `\\frac{${rawNum}}{${isPosInf ? rawDen : -rawDen}}`;
+
+                    return {
+                        expr: `\\lim_{x \\to ${limitTarget}} \\left( ${fullExpr} \\right)`,
+                        ans: `= ${finalAnsStr}`,
+                        sol: `\\begin{aligned}
+                        &\\text{Coefficients match, multiply by the conjugate: } \\frac{\\sqrt{${innerExpr}} ${conjSign} ${outerCoeff}x}{\\sqrt{${innerExpr}} ${conjSign} ${outerCoeff}x} \\\\
+                        L &= \\lim_{x \\to ${limitTarget}} \\frac{(${innerExpr}) - (${outerCoeff}x)^2}{\\sqrt{${innerExpr}} ${conjSign} ${outerCoeff}x}
+                            = \\lim_{x \\to ${limitTarget}} \\frac{${innerB}x + ${innerC}}{\\sqrt{${innerExpr}} ${conjSign} ${outerCoeff}x} \\\\
+                        &\\text{Divide numerator and denominator by } x. \\\\
+                        &\\text{As } x \\to ${limitTarget}, \\frac{\\sqrt{${innerA}x^2 + ${innerB}x + ${innerC}}}{x} \\to ${sqrtDivText}. \\\\
+                        L &= \\frac{${innerB}}{${denomResultText}} = ${finalAnsStr}
+                    \\end{aligned}`
+                    };
+
+                } else {
+                    // ==========================================
+                    // FAMILY 2: INFINITE LIMITS (Factoring Method)
+                    // ==========================================
+                    let innerA = Utils.getRnd(2, 7);
+                    let outerD = Utils.getRnd(-7, 7);
+                    if (outerD === 0) outerD = 2; // Prevent 0x
+                    
+                    // Ensure the coefficients DO NOT perfectly match to force the infinite case
+                    if (innerA === outerD * outerD) {
+                        innerA += 1; 
+                    }
+
+                    const innerB = Math.sign(b) * (Math.abs(b) > 1 ? Math.abs(b) : 1);
+                    
+                    const aTerm = `${innerA}x^2`;
+                    const bAbs = Math.abs(innerB);
+                    const bTerm = bAbs === 1 ? "x" : `${bAbs}x`;
+                    const bSign = innerB >= 0 ? " + " : " - ";
+                    const cTerm = innerC === 0 ? "" : (innerC > 0 ? ` + ${innerC}` : ` - ${Math.abs(innerC)}`);
+                    const innerExpr = `${aTerm}${bSign}${bTerm}${cTerm}`;
+
+                    const dSign = outerD > 0 ? "+" : "-";
+                    const dAbs = Math.abs(outerD);
+                    const fullExpr = `\\sqrt{${innerExpr}} ${dSign} ${dAbs}x`;
+
+                    // Mathematical evaluation
+                    const innerRootVal = isPosInf ? Math.sqrt(innerA) : -Math.sqrt(innerA);
+                    const limitFactor = innerRootVal + outerD; 
+                    
+                    let finalAnsStr;
+                    if (isPosInf) {
+                        finalAnsStr = limitFactor > 0 ? "\\infty" : "-\\infty";
+                    } else {
+                        finalAnsStr = limitFactor > 0 ? "-\\infty" : "\\infty"; 
+                    }
+                    
+                    const innerFactored = `${innerA}${bSign}\\frac{${bAbs}}{x}${cTerm === "" ? "" : (innerC > 0 ? ` + \\frac{${innerC}}{x^2}` : ` - \\frac{${Math.abs(innerC)}}{x^2}`)}`;
+                    const rootEvalStr = isPosInf ? `\\sqrt{${innerA}}` : `-\\sqrt{${innerA}}`;
+
+                    return {
+                        expr: `\\lim_{x \\to ${limitTarget}} \\left( ${fullExpr} \\right)`,
+                        ans: `= ${finalAnsStr}`,
+                        sol: `\\begin{aligned}
+                        &\\text{Because the coefficients do not cancel perfectly, we factor out } x: \\\\
+                        L &= \\lim_{x \\to ${limitTarget}} x \\left( \\frac{\\sqrt{${innerExpr}}}{x} ${dSign} ${dAbs} \\right) \\\\
+                        L &= \\lim_{x \\to ${limitTarget}} x \\left( ${isPosInf ? "" : "-"}\\sqrt{${innerFactored}} ${dSign} ${dAbs} \\right) \\\\
+                        &\\text{As } x \\to ${limitTarget}\\text{, the terms with } x \\text{ in the denominator approach } 0: \\\\
+                        L &= ${limitTarget} \\cdot \\left( ${rootEvalStr} ${dSign} ${dAbs} \\right) \\\\
+                        L &= ${finalAnsStr}
+                    \\end{aligned}`
+                    };
+                }
+            },
+            //# Family: Limit Definition of Derivative form (f(x+h)-f(x))/h as h -> 0
+            (a, b, c) => {
+                let val = Math.abs(c) > 1 ? Math.abs(c) : 3;
+                let valSq = val * val;
+                let twoVal = 2 * val;
+                
+                return {
+                    expr: `\\lim_{h \\to 0} \\frac{(${val} + h)^2 - ${valSq}}{h}`,
+                    ans: `= ${twoVal}`,
+                    sol: `\\begin{aligned}
+                        &\\text{Expand } (${val} + h)^2 = ${valSq} + ${twoVal}h + h^2: \\\\
+                        L &= \\lim_{h \\to 0} \\frac{${valSq} + ${twoVal}h + h^2 - ${valSq}}{h} \\\\
+                        &= \\lim_{h \\to 0} \\frac{${twoVal}h + h^2}{h} \\\\
+                        &= \\lim_{h \\to 0} (${twoVal} + h) = ${twoVal}
+                    \\end{aligned}`
+                };
+            },
+            //# Family: Tangent Substitution at Shifted Point (tan(k(x - c)) / (x - c) as x -> c
+            (a, b) => {
+                let k = Math.abs(b) > 1 ? Math.abs(b) : 2;
+                if (k < 2) k = 2;
+                
+                // Define an array of angle objects to handle both the limit target and the expression term
+                const angles = [
+                    { val: '\\frac{\\pi}{6}', term: 'x - \\frac{\\pi}{6}' },
+                    { val: '-\\frac{\\pi}{6}', term: 'x + \\frac{\\pi}{6}' },
+                    { val: '\\frac{\\pi}{4}', term: 'x - \\frac{\\pi}{4}' },
+                    { val: '-\\frac{\\pi}{4}', term: 'x + \\frac{\\pi}{4}' },
+                    { val: '\\frac{\\pi}{3}', term: 'x - \\frac{\\pi}{3}' },
+                    { val: '-\\frac{\\pi}{3}', term: 'x + \\frac{\\pi}{3}' },
+                    { val: '\\frac{\\pi}{2}', term: 'x - \\frac{\\pi}{2}' },
+                    { val: '-\\frac{\\pi}{2}', term: 'x + \\frac{\\pi}{2}' },
+                    { val: '\\pi', term: 'x - \\pi' },
+                    { val: '-\\pi', term: 'x + \\pi' }
+                ];
+                
+                // Select an angle. This uses 'a' to pick an index if 'a' is a random number.
+                // If 'a' is not a number, it will fallback to picking completely randomly.
+                let index = (typeof a === 'number' && !isNaN(a)) 
+                    ? Math.floor(Math.abs(a)) % angles.length 
+                    : Math.floor(Math.random() * angles.length);
+                    
+                let selected = angles[index];
+                let target = selected.val;
+                let term = selected.term;
+                
+                return {
+                    expr: `\\lim_{x \\to ${target}} \\frac{\\tan\\left[${k}\\left(${term}\\right)\\right]}{${term}}`,
+                    ans: `= ${k}`,
+                    sol: `\\begin{aligned}
+                        &\\text{Let } u = ${term}. \\text{ As } x \\to ${target},\\, u \\to 0. \\\\
+                        L &= \\lim_{u \\to 0} \\frac{\\tan(${k}u)}{u} \\\\
+                        &= ${k} \\cdot \\lim_{u \\to 0} \\frac{\\tan(${k}u)}{${k}u} \\\\
+                        &\\text{Using } \\lim_{\\theta \\to 0} \\frac{\\tan \\theta}{\\theta} = 1: \\\\
+                        &= ${k} \\cdot 1 = ${k}
+                    \\end{aligned}`
+                };
+            },
+            //# Family: Sine over Tangent at Shifted Point (sin(k(x - c)) / tan(m(x - c)) as x -> c
+            (a, b, c, d) => {
+                let k = Math.abs(a) > 1 ? Math.abs(a) : 2;
+                let m = Math.abs(b) > 1 ? Math.abs(b) : 3;
+                if (k === m) m = k + 1;
+                let common = Utils.gcd(k, m);
+                let sNum = k / common;
+                let sDen = m / common;
+                let finalAns = sDen === 1 ? `${sNum}` : `\\frac{${sNum}}{${sDen}}`;
+                
+                // Define an array of angle objects to handle both the limit target and the expression term
+                const angles = [
+                    { val: '\\frac{\\pi}{6}', term: 'x - \\frac{\\pi}{6}' },
+                    { val: '-\\frac{\\pi}{6}', term: 'x + \\frac{\\pi}{6}' },
+                    { val: '\\frac{\\pi}{4}', term: 'x - \\frac{\\pi}{4}' },
+                    { val: '-\\frac{\\pi}{4}', term: 'x + \\frac{\\pi}{4}' },
+                    { val: '\\frac{\\pi}{3}', term: 'x - \\frac{\\pi}{3}' },
+                    { val: '-\\frac{\\pi}{3}', term: 'x + \\frac{\\pi}{3}' },
+                    { val: '\\frac{\\pi}{2}', term: 'x - \\frac{\\pi}{2}' },
+                    { val: '-\\frac{\\pi}{2}', term: 'x + \\frac{\\pi}{2}' },
+                    { val: '\\pi', term: 'x - \\pi' },
+                    { val: '-\\pi', term: 'x + \\pi' }
+                ];
+                
+                // Select an angle using 'c' as the seed, or fallback to random if 'c' isn't numeric
+                let index = (typeof c === 'number' && !isNaN(c)) 
+                    ? Math.floor(Math.abs(c)) % angles.length 
+                    : Math.floor(Math.random() * angles.length);
+                    
+                let selected = angles[index];
+                let target = selected.val;
+                let term = selected.term;
+                
+                return {
+                    expr: `\\lim_{x \\to ${target}} \\frac{\\sin\\left[${k}\\left(${term}\\right)\\right]}{\\tan\\left[${m}\\left(${term}\\right)\\right]}`,
+                    ans: `= ${finalAns}`,
+                    sol: `\\begin{aligned}
+                        &\\text{Let } u = ${term}. \\text{ As } x \\to ${target},\\, u \\to 0. \\\\
+                        L &= \\lim_{u \\to 0} \\frac{\\sin(${k}u)}{\\tan(${m}u)} \\\\
+                        &\\text{Divide numerator and denominator by } u: \\\\
+                        &= \\frac{\\lim_{u \\to 0} \\frac{\\sin(${k}u)}{u}}{\\lim_{u \\to 0} \\frac{\\tan(${m}u)}{u}} \\\\
+                        &\\text{Using } \\lim_{\\theta \\to 0} \\frac{\\sin(k\\theta)}{\\theta} = k \\text{ and } \\lim_{\\theta \\to 0} \\frac{\\tan(k\\theta)}{\\theta} = k: \\\\
+                        &= \\frac{${k}}{${m}} ${common > 1 ? `= ${finalAns}` : ''}
+                    \\end{aligned}`
+                };
+            },
+            //# Family: Piecewise Absolute Value Limit (|x - c| / (x - c) as x -> c from the right and left
+            () => {
+                // Generate a random target, e.g., between -5 and 5
+                const c = Utils.getRnd(-5, 5);
+                
+                // Randomly pick the direction: right (+) or left (-)
+                const isRight = Math.random() > 0.5;
+                const dir = isRight ? '+' : '-';
+                
+                // The answer depends entirely on the direction of the approach
+                const ans = isRight ? '1' : '-1';
+                
+                // Format the internal expression cleanly (e.g. "x + 2" instead of "x - -2", or just "x" if c is 0)
+                const term = c > 0 ? `x - ${c}` : (c < 0 ? `x + ${Math.abs(c)}` : `x`);
+                
+                // Condition for the piecewise absolute value function
+                const condition = isRight ? `x > ${c}` : `x < ${c}`;
+                
+                // The numerator after applying the definition of absolute value
+                let evaluatedAbs;
+                if (isRight) {
+                    evaluatedAbs = term; // e.g., x + 2
+                } else {
+                    evaluatedAbs = c === 0 ? '-x' : `-(${term})`; // e.g., -(x + 2)
+                }
+                
+                return {
+                    expr: `\\lim_{x \\to ${c}^{${dir}}} \\frac{|${term}|}{${term}}`,
+                    ans: `= ${ans}`,
+                    sol: `\\text{For } ${condition}, \\, |${term}| = ${evaluatedAbs} \\implies \\frac{${evaluatedAbs}}{${term}} = ${ans}`
+                };
+            },
+            //# Family: Pythagorean Boundary Limits (k = 1 or 2)
+            () => {
+                const k = Utils.getRnd(1, 2);
+                const result = k === 1 ? "0" : "-1";
+                
+                // Logic to hide the power if it is 1
+                const powStr = k === 1 ? "" : `^{${k}}`;
 
                 return {
-                    expr: `\\lim_{x \\to \\infty} \\left( 1 + \\frac{${b}}{x} \\right)^{${exponent}}`,
-                    ans: `= ${finalAns}`,
+                    expr: `\\lim_{x \\to \\frac{\\pi}{2}} \\frac{\\sin^2 x - 1}{\\cos${powStr} x}`,
+                    ans: `= ${result}`,
                     sol: `\\begin{aligned} 
-                        &\\text{This is a } 1^\\infty \\text{ indeterminate form. Let } y = \\left( 1 + \\frac{${b}}{x} \\right)^{${exponent}}. \\\\ 
-                        &\\text{Take the natural logarithm of both sides:} \\\\ 
-                        \\ln y &= ${exponent} \\cdot \\ln\\left( 1 + \\frac{${b}}{x} \\right) \\\\ 
-                        &\\text{As } x \\to \\infty, \\text{ let } u = \\frac{1}{x}. \\text{ Then } u \\to 0: \\\\ 
-                        \\lim_{x \\to \\infty} \\ln y &= \\lim_{u \\to 0} \\frac{${a} \\ln(1 + ${b}u)}{u} \\\\ 
-                        &\\text{Using the fundamental limit } \\lim_{u \\to 0} \\frac{\\ln(1 + ku)}{u} = k: \\\\ 
-                        \\lim \\ln y &= ${a} \\cdot ${b} = ${resultPower} \\\\ 
-                        &\\text{Since } \\lim \\ln y = ${resultPower}, \\text{ we exponentiate to find } L: \\\\ 
-                        L &= e^{${resultPower}} ${resultPower === 1 ? "= e" : ""}
+                        &\\text{Using } \\sin^2 x - 1 = -\\cos^2 x: \\\\ 
+                        L &= \\lim_{x \\to \\frac{\\pi}{2}} \\frac{-\\cos^2 x}{\\cos${powStr} x} \\\\ 
+                        ${k === 1 
+                            ? `&= \\lim_{x \\to \\frac{\\pi}{2}} (-\\cos x) = 0` 
+                            : `&= \\lim_{x \\to \\frac{\\pi}{2}} (-1) = -1`
+                        }
                         \\end{aligned}`
-                };
-            },
-            (a, b, c) => ({
-                expr: `\\lim_{h \\to 0} \\frac{(${c}+h)^2 - ${c * c}}{h}`,
-                ans: `= ${2 * c}`,
-                sol: `\\begin{aligned} &= \\lim_{h\\to 0} \\frac{${c * c}+${2 * c}h+h^2-${c * c}}{h} = ${2 * c} \\end{aligned}`
-            }),
-            (a, b) => {
-                let ang = '\\frac{\\pi}{4}';
-                return {
-                    expr: `\\lim_{x \\to ${ang}} \\frac{\\tan(${b}(x - ${ang}))}{x - ${ang}}`,
-                    ans: `= ${b}`,
-                    sol: `\\text{Let } u = x - ${ang}. \\implies \\lim_{u \\to 0} \\frac{\\tan(${b}u)}{u} = ${b}`
                 };
             }
         ],
         hard: [
-            // Family: Advanced Trig Limit with Radicals ( sin^2(ax) / (1 - \sqrt{\cos bx}) )
+            //# Family: Advanced Trig Limit with Radicals ( sin^2(ax) / (1 - \sqrt{\cos bx}) )
             () => {
                 const a = Utils.getRnd(1, 5);
                 const b = Utils.getRnd(1, 5);
@@ -785,46 +1308,11 @@ const limit = {
                         &= 2 \\cdot \\frac{\\lim_{x \\to 0} \\left( \\frac{\\sin(${argA})}{x} \\right)^2}{\\lim_{x \\to 0} \\frac{1 - \\cos(${argB})}{x^2}} \\\\ 
                         &\\text{Recall that } \\lim_{x \\to 0} \\frac{\\sin ax}{x} = a \\text{ and } \\lim_{x \\to 0} \\frac{1 - \\cos bx}{x^2} = \\frac{b^2}{2}: \\\\ 
                         &= 2 \\cdot \\frac{(${a})^2}{\\frac{${b * b}}{2}} = 2 \\cdot \\left( ${a * a} \\cdot \\frac{2}{${b * b}} \\right) \\\\
-                        &= \\frac{${numVal}}{${denVal}} = ${finalAns}
+                        &= \\frac{${numVal}}{${denVal}} ${(common > 1 || denVal === 1) ? `= ${finalAns}` : ''}
                         \\end{aligned}`
                 };
             },
-
-            // The $x^x$ Power Limit
-            /*
-            () => ({
-                expr: `\\lim_{x \\to 0^+} x^x`,
-                ans: `= 1`,
-                sol: `\\begin{aligned} 
-                    L &= \\lim_{x \\to 0^+} e^{\\ln(x^x)} = e^{\\lim_{x \\to 0^+} (x \\ln x)} \\\\ 
-                    &\\text{Using the standard limit } \\lim_{x \\to 0^+} x \\ln x = 0: \\\\ 
-                    &= e^0 = 1 
-                    \\end{aligned}`
-            }),
-            */
-            // Family: The Logarithmic Identity ln(1 + bx) / x
-            () => {
-                const b = Utils.getRnd(2, 6);
-                const inner = Utils.linear(b, 1);
-                const b_val = b === 1 ? "" : b;
-
-                return {
-                    expr: `\\lim_{x \\to 0} \\frac{\\ln(${inner})}{x}`,
-                    ans: `= ${b}`,
-                    sol: `\\begin{aligned} 
-                        &\\text{Use the power property of logarithms, } n \\ln A = \\ln A^n: \\\\ 
-                        L &= \\lim_{x \\to 0} \\left[ \\frac{1}{x} \\ln(${inner}) \\right] = \\lim_{x \\to 0} \\ln\\left( (${inner})^{\\frac{1}{x}} \\right) \\\\ 
-                        &\\text{Since the natural logarithm is a continuous function, we can move} \\\\ 
-                        &\\text{the limit inside the logarithm:} \\\\ 
-                        L &= \\ln\\left( \\lim_{x \\to 0} (${inner})^{\\frac{1}{x}} \\right) \\\\ 
-                        &\\text{Using the definition of } e, \\lim_{u \\to 0} (1 + ku)^{1/u} = e^k: \\\\ 
-                        &\\text{Here, } k = ${b}, \\text{ so } \\lim_{x \\to 0} (${inner})^{\\frac{1}{x}} = e^{${b_val}} \\\\ 
-                        L &= \\ln(e^{${b}}) = ${b} 
-                        \\end{aligned}`
-                };
-            },
-
-            // Family: Cubic Sine Limit (sin(ax) - ax) / x^3
+            //# Family: Cubic Sine Limit (sin(ax) - ax) / x^3
             () => {
                 const a = Utils.getRnd(1, 4);
                 const a3 = a ** 3;
@@ -846,29 +1334,38 @@ const limit = {
                         L &= \\lim_{u \\to 0} \\frac{\\sin u - u}{u^3 / ${a3}} = ${a3} \\cdot \\lim_{u \\to 0} \\frac{\\sin u - u}{u^3} \\\\ 
                         &\\text{Recall the fundamental result: } \\lim_{u \\to 0} \\frac{u - \\sin u}{u^3} = \\frac{1}{6}. \\\\ 
                         &\\text{Therefore, } \\lim_{u \\to 0} \\frac{\\sin u - u}{u^3} = -\\frac{1}{6}. \\\\ 
-                        L &= ${a3} \\left( -\\frac{1}{6} \\right) = -\\frac{${a3}}{6} = ${finalAns}
+                        L &= ${a3} \\left( -\\frac{1}{6} \\right) = -\\frac{${a3}}{6} ${common > 1 ? `= ${finalAns}` : ''}
                         \\end{aligned}`
                 };
             },
-
-            () => {
-                const c = Utils.getRnd(1, 5);
-                return {
-                    expr: `\\lim_{x \\to ${c}^-} \\frac{|x - ${c}|}{x - ${c}}`,
-                    ans: `= -1`,
-                    sol: `\\text{For } x < ${c}, |x-${c}| = -(x-${c}) \\implies \\frac{-(x-${c})}{x-${c}} = -1`
-                };
-            },
-
+            //# Family: Squeeze Theorem with Oscillating Function (x^2 * sin(1/x) as x -> 0
             () => ({
                 expr: `\\lim_{x \\to 0} x^2 \\sin\\left(\\frac{1}{x}\\right)`,
                 ans: `= 0`,
                 sol: `\\text{Squeeze Theorem: } -x^2 \\le x^2\\sin(1/x) \\le x^2. \\text{ Both sides } \\to 0`
             }),
-
+            //# Family: Limit Requiring Substitution with Shifted Point (1 - cos(k(x - c))) / (x - c)^2 as x -> c
             () => {
                 const b = Utils.getRnd(1, 6);
-                const ang = '\\frac{\\pi}{2}';
+                
+                // Define an array of angle objects to properly format limit targets and substitution terms
+                const angles = [
+                    { val: '\\frac{\\pi}{6}', term: 'x - \\frac{\\pi}{6}' },
+                    { val: '-\\frac{\\pi}{6}', term: 'x + \\frac{\\pi}{6}' },
+                    { val: '\\frac{\\pi}{4}', term: 'x - \\frac{\\pi}{4}' },
+                    { val: '-\\frac{\\pi}{4}', term: 'x + \\frac{\\pi}{4}' },
+                    { val: '\\frac{\\pi}{3}', term: 'x - \\frac{\\pi}{3}' },
+                    { val: '-\\frac{\\pi}{3}', term: 'x + \\frac{\\pi}{3}' },
+                    { val: '\\frac{\\pi}{2}', term: 'x - \\frac{\\pi}{2}' },
+                    { val: '-\\frac{\\pi}{2}', term: 'x + \\frac{\\pi}{2}' },
+                    { val: '\\pi', term: 'x - \\pi' },
+                    { val: '-\\pi', term: 'x + \\pi' }
+                ];
+                
+                // Select an angle randomly
+                const selected = angles[Math.floor(Math.random() * angles.length)];
+                const target = selected.val;
+                const term = selected.term;
                 
                 // Result logic: (b^2)/2
                 const num = b * b;
@@ -879,20 +1376,24 @@ const limit = {
                 const finalDen = den / common;
                 const finalAns = finalDen === 1 ? `${finalNum}` : `\\frac{${finalNum}}{${finalDen}}`;
 
+                // Swap x - ang for our cleanly formatted term variable
+                const inner = b === 1 ? term : `${b}(${term})`;
+                const innerU = b === 1 ? `u` : `${b}u`;
+                
                 return {
-                    expr: `\\lim_{x \\to ${ang}} \\frac{1 - \\cos(${b === 1 ? "" : b}(x - ${ang}))}{(x - ${ang})^2}`,
+                    expr: `\\lim_{x \\to ${target}} \\frac{1 - \\cos(${inner})}{(${term})^2}`,
                     ans: `= ${finalAns}`,
-                    sol: `\\begin{aligned} 
-                        &\\text{Let } u = x - ${ang}. \\text{ As } x \\to ${ang}, u \\to 0: \\\\ 
-                        L &= \\lim_{u \\to 0} \\frac{1 - \\cos(${b === 1 ? "" : b}u)}{u^2} \\\\ 
-                        &\\text{To use the standard limit } \\lim_{\\theta \\to 0} \\frac{1 - \\cos \\theta}{\\theta^2} = \\frac{1}{2}, \\text{ we need } (${b}u)^2 \\text{ in the denominator:} \\\\ 
-                        L &= \\lim_{u \\to 0} \\left[ \\frac{1 - \\cos(${b}u)}{(${b}u)^2} \\cdot ${b}^2 \\right] \\\\ 
-                        &= ${b}^2 \\cdot \\lim_{u \\to 0} \\frac{1 - \\cos(${b}u)}{(${b}u)^2} \\\\ 
+                    sol: `\\begin{aligned}
+                        &\\text{Let } u = ${term}. \\text{ As } x \\to ${target}, u \\to 0: \\\\
+                        L &= \\lim_{u \\to 0} \\frac{1 - \\cos(${innerU})}{u^2} \\\\
+                        &\\text{To use the standard limit } \\lim_{\\theta \\to 0} \\frac{1 - \\cos \\theta}{\\theta^2} = \\frac{1}{2}, \\text{ we need } (${innerU})^2 \\text{ in the denominator:} \\\\
+                        L &= \\lim_{u \\to 0} \\left[ \\frac{1 - \\cos(${innerU})}{(${innerU})^2} \\cdot ${b}^2 \\right] \\\\
+                        &= ${b}^2 \\cdot \\lim_{u \\to 0} \\frac{1 - \\cos(${innerU})}{(${innerU})^2} \\\\
                         &= ${b * b} \\cdot \\frac{1}{2} = ${finalAns}
-                        \\end{aligned}`
+                    \\end{aligned}`
                 };
             },
-
+            //# Family: Sine over Linear with Shifted Point and Parity Twist (sin(k(x - c)) / (x - c) as x -> c, where k is an integer that creates a parity effect
             () => {
                 const b = Utils.getRnd(1, 6);
                 // Parity logic: sin(bu + bπ) = (-1)^b * sin(bu)
@@ -915,7 +1416,7 @@ const limit = {
                 };
             },
 
-            // The "x * sin(ax) / sin^2(bx)" family
+            //# The "x * sin(ax) / sin^2(bx)" family
             () => {
                 const a = Utils.getRnd(1, 5);
                 const b = Utils.getRnd(1, 5);
@@ -948,7 +1449,7 @@ const limit = {
                 };
             },
 
-            // Family: tan(ax) / sin(bx)
+            //# Family: tan(ax) / sin(bx)
             () => {
                 const a = Utils.getRnd(1, 5);
                 const b = Utils.getRnd(1, 5);
@@ -967,7 +1468,7 @@ const limit = {
                 };
             },
 
-            // Family: sin^2(ax) / (x * tan(bx))
+            //# Family: sin^2(ax) / (x * tan(bx))
             () => {
                 const a = Utils.getRnd(1, 5);
                 const b = Utils.getRnd(1, 5);
@@ -986,7 +1487,7 @@ const limit = {
                 };
             },
 
-            // Family: x^2 * sin(ax) / sin^3(bx)
+            //# Family: x^2 * sin(ax) / sin^3(bx)
             () => {
                 const a = Utils.getRnd(1, 5);
                 const b = Utils.getRnd(1, 5);
@@ -999,12 +1500,12 @@ const limit = {
                     ans: `= ${finalAns}`,
                     sol: `\\begin{aligned} 
                         L &= \\lim_{x \\to 0} \\left[ \\frac{\\sin(${a === 1 ? '' : a}x)}{x} \\cdot \\left(\\frac{x}{\\sin(${b === 1 ? '' : b}x)}\\right)^3 \\right] \\\\ 
-                        &= (${a}) \\cdot \\left(\\frac{1}{${b}}\\right)^3 = \\frac{${a}}{${b3}} = ${finalAns}
+                        &= (${a}) \\cdot \\left(\\frac{1}{${b}}\\right)^3 = \\frac{${a}}{${b3}} ${(common > 1 || b3 === 1) ? `= ${finalAns}` : ''}
                         \\end{aligned}`
                 };
             },
 
-            // Family: (sin ax * sin bx) / (x * tan cx)
+            //# Family: (sin ax * sin bx) / (x * tan cx)
             () => {
                 const a = Utils.getRnd(1, 5);
                 const b = Utils.getRnd(1, 5);
@@ -1018,30 +1519,12 @@ const limit = {
                     ans: `= ${finalAns}`,
                     sol: `\\begin{aligned} 
                         L &= \\lim_{x \\to 0} \\left[ \\frac{\\sin(${a === 1 ? '' : a}x)}{x} \\cdot \\frac{\\sin(${b === 1 ? '' : b}x)}{x} \\cdot \\frac{x}{\\tan(${c === 1 ? '' : c}x)} \\right] \\\\ 
-                        &= (${a}) \\cdot (${b}) \\cdot \\frac{1}{${c}} = \\frac{${num}}{${c}} = ${finalAns}
+                        &= (${a}) \\cdot (${b}) \\cdot \\frac{1}{${c}} = \\frac{${num}}{${c}} ${(common > 1 || c === 1) ? `= ${finalAns}` : ''}
                         \\end{aligned}`
                 };
             },
 
-            // Family: sin(n1*x)-sin(n2*x) / (cos x - 1) -> Divergence
-            () => {
-                const n1 = Utils.getRnd(2, 4);
-                let n2; do { n2 = Utils.getRnd(2, 5); } while (n1 === n2);
-                const diff = n1 - n2;
-                
-                return {
-                    expr: `\\lim_{x \\to 0} \\frac{\\sin ${n1}x - \\sin ${n2}x}{\\cos x - 1}`,
-                    ans: `\\text{DNE}`,
-                    sol: `\\begin{aligned} 
-                        &\\text{Using Taylor expansions or small-angle approx:} \\\\
-                        &\\sin(kx) \\approx kx, \\quad \\cos x - 1 \\approx -\\frac{x^2}{2} \\\\
-                        L &= \\lim_{x \\to 0} \\frac{${n1}x - ${n2}x}{-x^2/2} = \\lim_{x \\to 0} \\frac{${diff}x}{-x^2/2} = \\lim_{x \\to 0} \\frac{${-2 * diff}}{x} \\\\
-                        &\\text{As } x \\to 0, \\text{ the expression } \\frac{C}{x} \\text{ approaches } \\pm\\infty, \\text{ so the limit Does Not Exist.}
-                        \\end{aligned}`
-                };
-            },
-
-            // Family: (cos ax - cos bx) / x^2
+            //# Family: (cos ax - cos bx) / x^2
             () => {
                 const a = Utils.getRnd(1, 4);
                 let b; do { b = Utils.getRnd(1, 5); } while (a === b);
@@ -1084,7 +1567,7 @@ const limit = {
                 };
             },
 
-            // Family: (sin ax - sin bx) / (tan cx - tan dx)
+            //# Family: (sin ax - sin bx) / (tan cx - tan dx)
             () => {
                 const a = Utils.getRnd(1, 5);
                 let b; do { b = Utils.getRnd(1, 5); } while (a === b);
@@ -1129,7 +1612,7 @@ const limit = {
                 };
             },
 
-            // Family: (1 - cos ax)(b + cos x) / (x * tan cx)
+            //# Family: (1 - cos ax)(b + cos x) / (x * tan cx)
             () => {
                 const a = Utils.getRnd(1, 4);
                 const b = Utils.getRnd(1, 5);
@@ -1161,7 +1644,7 @@ const limit = {
                 };
             },
 
-            // Family: sin(k * pi * cos^2(ax)) / x^2
+            //# Family: sin(k * pi * cos^2(ax)) / x^2
             () => {
                 const k = Utils.getRnd(1, 4);
                 const a = Utils.getRnd(1, 3);
@@ -1198,7 +1681,7 @@ const limit = {
                 };
             },
 
-            // Family: Shifted Cubic Trig Limits
+            //# Family: Shifted Cubic Trig Limits
             () => {
                 const c = Utils.getRnd(1, 5);
                 const den = 2 * c;
@@ -1223,7 +1706,7 @@ const limit = {
                 };
             },
 
-            // Family: Pi/4 Tangent-Sine Ratio
+            //# Family: Pi/4 Tangent-Sine Ratio
             () => {
                 const k = Utils.getRnd(2, 5);
                 
@@ -1263,28 +1746,6 @@ const limit = {
                         L &= \\frac{\\sqrt{2}}{${k}} \\lim_{x \\to \\frac{\\pi}{4}} \\frac{\\sqrt{2}\\sin x + 1}{\\cos x (\\cos x + \\sin x)} \\\\
                         &= \\frac{\\sqrt{2}}{${k}} \\cdot \\frac{1 + 1}{\\frac{1}{\\sqrt{2}}(\\frac{1}{\\sqrt{2}} + \\frac{1}{\\sqrt{2}})} = \\frac{\\sqrt{2}}{${k}} \\cdot 2 \\\\ \\\\
                         &= \\frac{2\\sqrt{2}}{${k}} ${finalStep}
-                        \\end{aligned}`
-                };
-            },
-
-            // Family: Pythagorean Boundary Limits (k = 1 or 2)
-            () => {
-                const k = Utils.getRnd(1, 2);
-                const result = k === 1 ? "0" : "-1";
-                
-                // Logic to hide the power if it is 1
-                const powStr = k === 1 ? "" : `^{${k}}`;
-
-                return {
-                    expr: `\\lim_{x \\to \\frac{\\pi}{2}} \\frac{\\sin^2 x - 1}{\\cos${powStr} x}`,
-                    ans: `= ${result}`,
-                    sol: `\\begin{aligned} 
-                        &\\text{Using } \\sin^2 x - 1 = -\\cos^2 x: \\\\ 
-                        L &= \\lim_{x \\to \\frac{\\pi}{2}} \\frac{-\\cos^2 x}{\\cos${powStr} x} \\\\ 
-                        ${k === 1 
-                            ? `&= \\lim_{x \\to \\frac{\\pi}{2}} (-\\cos x) = 0` 
-                            : `&= \\lim_{x \\to \\frac{\\pi}{2}} (-1) = -1`
-                        }
                         \\end{aligned}`
                 };
             }
