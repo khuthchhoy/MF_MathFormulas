@@ -92,6 +92,13 @@ const Utils = {
             .replace(/([=\(\[])\s*\+\s*/g, '$1 ')
             .replace(/\s+/g, ' ')
             .trim();
+    },
+    // Generates a random integer that can safely be positive or negative
+    // Guarantees it will never return 0.
+    getSignedRnd: (min, max) => {
+        const val = Utils.getRnd(min, max);
+        const sign = Math.random() < 0.5 ? 1 : -1; 
+        return val * sign;
     }
 };
 window.Utils = Utils;
