@@ -950,23 +950,26 @@ const limit = {
             //# Family: Radical Conjugates at Infinity and Negative Infinity sqrt(x^2 + kx) -/+ x as x -> +/- Infinity
             (a, b) => {
                 // 1. Setup parameters
-                const k = 2 * b; // k is the coefficient of x, final answer involves k/2
+                const k = 2 * b; // k is the coefficient of x
                 const direction = Utils.getRnd(0, 1); // 0: Infinity, 1: Negative Infinity
                 const isPosInf = direction === 0;
                 
                 const limitTarget = isPosInf ? "\\infty" : "-\\infty";
-                const conjugateSign = isPosInf ? "-" : "+";
-                const oppositeSign = isPosInf ? "+" : "-";
+                const oppositeSign = isPosInf ? "+" : "-"; // Sign used for the conjugate
                 
-                // The expression: sqrt(x^2 + kx) - x (for pos) or sqrt(x^2 + kx) + x (for neg)
-                const sign = k >= 0 ? "+" : "-";
+                // 2. Build the inner trinomial and correctly handle the sign of k
                 const absK = Math.abs(k);
-                const coeffStr = Math.abs(absK) === 1 ? "x" : `${Math.abs(absK)}x`;
-                const innerTrinomial = absK === 0 ? `x^2` : `x^2 ${absK >= 0 ? "+" : "-"} ${coeffStr}`;
+                let innerTrinomial = "x^2";
+                if (k !== 0) {
+                    const sign = k > 0 ? "+" : "-";
+                    const coeffStr = absK === 1 ? "x" : `${absK}x`;
+                    innerTrinomial = `x^2 ${sign} ${coeffStr}`;
+                }
+
+                // The expression: sqrt(x^2 + kx) - x (for pos) or sqrt(x^2 + kx) + x (for neg)
                 const fullExpr = `\\sqrt{${innerTrinomial}} ${isPosInf ? "-" : "+"} x`;
 
                 // The limit evaluates to k/2 for pos inf, and -k/2 for neg inf
-                // Given our setup, the result magnitude is always b
                 const finalAns = isPosInf ? b : -b;
 
                 return {
@@ -974,12 +977,12 @@ const limit = {
                     ans: `= ${finalAns}`,
                     sol: `\\begin{aligned} 
                         &\\text{Multiply by the conjugate: } \\frac{\\sqrt{${innerTrinomial}} ${oppositeSign} x}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} \\\\ 
-                        L & = \\lim_{x \\to ${limitTarget}} \\frac{(${innerTrinomial}) - x^2}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} = \\lim_{x \\to ${limitTarget}} \\frac{${absK}x}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} \\\\ 
+                        L & = \\lim_{x \\to ${limitTarget}} \\frac{(${innerTrinomial}) - x^2}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} = \\lim_{x \\to ${limitTarget}} \\frac{${k}x}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} \\\\ 
                         &\\text{Divide the numerator and denominator by } x. \\\\ 
-                        &\\text{Crucially, for } x < 0, \\sqrt{x^2} = |x| = -x. \\text{ Therefore } \\frac{\\sqrt{x^2+${absK}x}}{x} = ${isPosInf ? "" : "-"} \\sqrt{1 + \\frac{${absK}}{x}}. \\\\ 
-                        L & = \\lim_{x \\to ${limitTarget}} \\frac{${absK}}{${isPosInf ? "" : "-"} \\sqrt{1 + \\frac{${absK}}{x}} ${oppositeSign} 1} \\\\ 
+                        &\\text{Crucially, for } x ${isPosInf ? ">" : "<"} 0, \\sqrt{x^2} = |x| = ${isPosInf ? "x" : "-x"}. \\text{ Therefore } \\frac{\\sqrt{${innerTrinomial}}}{x} = ${isPosInf ? "" : "-"} \\sqrt{1 + \\frac{${k}}{x}}. \\\\ 
+                        L & = \\lim_{x \\to ${limitTarget}} \\frac{${k}}{${isPosInf ? "" : "-"} \\sqrt{1 + \\frac{${k}}{x}} ${oppositeSign} 1} \\\\ 
                         &\\text{Evaluate as } x \\to ${limitTarget}: \\\\ 
-                        L & = \\frac{${absK}}{${isPosInf ? "1 + 1" : "-1 - 1"}} = \\frac{${absK}}{${isPosInf ? "2" : "-2"}} = ${finalAns}
+                        L & = \\frac{${k}}{${isPosInf ? "1 + 1" : "-1 - 1"}} = \\frac{${k}}{${isPosInf ? "2" : "-2"}} = ${finalAns}
                         \\end{aligned}`
                 };
             },
