@@ -949,43 +949,61 @@ const limit = {
             },
             //# Family: Radical Conjugates at Infinity and Negative Infinity sqrt(x^2 + kx) -/+ x as x -> +/- Infinity
             (a, b) => {
-                // 1. Setup parameters
-                const k = 2 * b; // k is the coefficient of x
-                const direction = Utils.getRnd(0, 1); // 0: Infinity, 1: Negative Infinity
-                const isPosInf = direction === 0;
-                
-                const limitTarget = isPosInf ? "\\infty" : "-\\infty";
-                const oppositeSign = isPosInf ? "+" : "-"; // Sign used for the conjugate
-                
-                // 2. Build the inner trinomial and correctly handle the sign of k
-                const absK = Math.abs(k);
-                let innerTrinomial = "x^2";
-                if (k !== 0) {
-                    const sign = k > 0 ? "+" : "-";
-                    const coeffStr = absK === 1 ? "x" : `${absK}x`;
-                    innerTrinomial = `x^2 ${sign} ${coeffStr}`;
-                }
-
-                // The expression: sqrt(x^2 + kx) - x (for pos) or sqrt(x^2 + kx) + x (for neg)
-                const fullExpr = `\\sqrt{${innerTrinomial}} ${isPosInf ? "-" : "+"} x`;
-
-                // The limit evaluates to k/2 for pos inf, and -k/2 for neg inf
-                const finalAns = isPosInf ? b : -b;
-
-                return {
-                    expr: `\\lim_{x \\to ${limitTarget}} \\left( ${fullExpr} \\right)`,
-                    ans: `= ${finalAns}`,
-                    sol: `\\begin{aligned} 
-                        &\\text{Multiply by the conjugate: } \\frac{\\sqrt{${innerTrinomial}} ${oppositeSign} x}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} \\\\ 
-                        L & = \\lim_{x \\to ${limitTarget}} \\frac{(${innerTrinomial}) - x^2}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} = \\lim_{x \\to ${limitTarget}} \\frac{${k}x}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} \\\\ 
-                        &\\text{Divide the numerator and denominator by } x. \\\\ 
-                        &\\text{Crucially, for } x ${isPosInf ? ">" : "<"} 0, \\sqrt{x^2} = |x| = ${isPosInf ? "x" : "-x"}. \\text{ Therefore } \\frac{\\sqrt{${innerTrinomial}}}{x} = ${isPosInf ? "" : "-"} \\sqrt{1 + \\frac{${k}}{x}}. \\\\ 
-                        L & = \\lim_{x \\to ${limitTarget}} \\frac{${k}}{${isPosInf ? "" : "-"} \\sqrt{1 + \\frac{${k}}{x}} ${oppositeSign} 1} \\\\ 
-                        &\\text{Evaluate as } x \\to ${limitTarget}: \\\\ 
-                        L & = \\frac{${k}}{${isPosInf ? "1 + 1" : "-1 - 1"}} = \\frac{${k}}{${isPosInf ? "2" : "-2"}} = ${finalAns}
-                        \\end{aligned}`
-                };
-            },
+                    // 1. Setup parameters
+                    const k = 2 * b; // k is the coefficient of x
+                    const direction = Utils.getRnd(0, 1); // 0: Infinity, 1: Negative Infinity
+                    const isPosInf = direction === 0;
+                    
+                    const limitTarget = isPosInf ? "\\infty" : "-\\infty";
+                    const oppositeSign = isPosInf ? "+" : "-"; // Sign used for the conjugate
+                    
+                    // --- FIX: Handle the k = 0 edge case immediately ---
+                    if (k === 0) {
+                        const simplStep = isPosInf 
+                            ? "\\text{For } x > 0, \\sqrt{x^2} = x. \\text{ Thus, } x - x = 0."
+                            : "\\text{For } x < 0, \\sqrt{x^2} = -x. \\text{ Thus, } -x + x = 0.";
+                        
+                        return {
+                            expr: `\\lim_{x \\to ${limitTarget}} \\left( \\sqrt{x^2} ${isPosInf ? "-" : "+"} x \\right)`,
+                            ans: `= 0`,
+                            sol: `\\begin{aligned} 
+                                L &= \\lim_{x \\to ${limitTarget}} \\left( \\sqrt{x^2} ${isPosInf ? "-" : "+"} x \\right) \\\\
+                                & ${simplStep} \\\\
+                                L &= 0
+                            \\end{aligned}`
+                        };
+                    }
+                    // ----------------------------------------------------
+        
+                    // 2. Build the inner trinomial and correctly handle the sign of k
+                    const absK = Math.abs(k);
+                    let innerTrinomial = "x^2";
+                    if (k !== 0) {
+                        const sign = k > 0 ? "+" : "-";
+                        const coeffStr = absK === 1 ? "x" : `${absK}x`;
+                        innerTrinomial = `x^2 ${sign} ${coeffStr}`;
+                    }
+        
+                    // The expression: sqrt(x^2 + kx) - x (for pos) or sqrt(x^2 + kx) + x (for neg)
+                    const fullExpr = `\\sqrt{${innerTrinomial}} ${isPosInf ? "-" : "+"} x`;
+        
+                    // The limit evaluates to k/2 for pos inf, and -k/2 for neg inf
+                    const finalAns = isPosInf ? b : -b;
+        
+                    return {
+                        expr: `\\lim_{x \\to ${limitTarget}} \\left( ${fullExpr} \\right)`,
+                        ans: `= ${finalAns}`,
+                        sol: `\\begin{aligned} 
+                            &\\text{Multiply by the conjugate: } \\frac{\\sqrt{${innerTrinomial}} ${oppositeSign} x}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} \\\\ 
+                            L & = \\lim_{x \\to ${limitTarget}} \\frac{(${innerTrinomial}) - x^2}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} = \\lim_{x \\to ${limitTarget}} \\frac{${k}x}{\\sqrt{${innerTrinomial}} ${oppositeSign} x} \\\\ 
+                            &\\text{Divide the numerator and denominator by } x. \\\\ 
+                            &\\text{Crucially, for } x ${isPosInf ? ">" : "<"} 0, \\sqrt{x^2} = |x| = ${isPosInf ? "x" : "-x"}. \\text{ Therefore } \\frac{\\sqrt{${innerTrinomial}}}{x} = ${isPosInf ? "" : "-"} \\sqrt{1 + \\frac{${k}}{x}}. \\\\ 
+                            L & = \\lim_{x \\to ${limitTarget}} \\frac{${k}}{${isPosInf ? "" : "-"} \\sqrt{1 + \\frac{${k}}{x}} ${oppositeSign} 1} \\\\ 
+                            &\\text{Evaluate as } x \\to ${limitTarget}: \\\\ 
+                            L & = \\frac{${k}}{${isPosInf ? "1 + 1" : "-1 - 1"}} = \\frac{${k}}{${isPosInf ? "2" : "-2"}} = ${finalAns}
+                            \\end{aligned}`
+                    };
+             },
             //# Family: General Quadratic Radical Limits at Infinity/Negative Infinity sqrt(ax^2 + bx + c) +/- dx as x -> +/- Infinity
             (a, b) => {
                 // Helper function to find the greatest common divisor
