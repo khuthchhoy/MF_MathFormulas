@@ -4300,7 +4300,8 @@ const algebra = {
 
                 solLines.push(`\\text{Step ${currentStep}: Solve the remaining irreducible quadratic component using the quadratic formula:}`);
                 solLines.push(`${formatPolyInt([1, p, q])} = 0`);
-                solLines.push(`x = \\frac{-${p < 0 ? `(${p})` : p} \\pm \\sqrt{${p}^2 - 4(1)(${q})}}{2(1)} = ${complexRootStr}`);
+               // solLines.push(`x = \\frac{-${p < 0 ? `(${p})` : p} \\pm \\sqrt{${p}^2 - 4(1)(${q})}}{2(1)} = ${complexRootStr}`);
+                solLines.push(`x = \\frac{-${p < 0 ? `(${p})` : p} \\pm \\sqrt{${p < 0 ? `(${p})` : p}^2 - 4(1)(${q})}}{2(1)} = ${complexRootStr}`);
 
                 finalAnsStr = mode === 1 
                     ? `x \\in \\left\\{ ${root1_str}, ${root2_str}, ${complexRootStr} \\right\\}` 
