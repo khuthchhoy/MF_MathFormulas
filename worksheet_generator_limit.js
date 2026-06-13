@@ -1006,141 +1006,149 @@ const limit = {
              },
             //# Family: General Quadratic Radical Limits at Infinity/Negative Infinity sqrt(ax^2 + bx + c) +/- dx as x -> +/- Infinity
             (a, b) => {
-                // Helper function to find the greatest common divisor
-                const getGCD = (x, y) => {
-                    x = Math.abs(x);
-                    y = Math.abs(y);
-                    while (y) {
-                        const t = y;
-                        y = x % y;
-                        x = t;
-                    }
-                    return x;
-                };
-
-                // Helper function to format a fraction cleanly in LaTeX
-                const formatFraction = (num, den) => {
-                    if (num === 0) return "0";
-                    
-                    // Move negative sign to the front if denominator is negative
-                    if (den < 0) {
-                        num = -num;
-                        den = -den;
-                    }
-                    
-                    const gcd = getGCD(num, den);
-                    num /= gcd;
-                    den /= gcd;
-                    
-                    if (den === 1) return `${num}`;
-                    if (num < 0) return `-\\frac{${Math.abs(num)}}{${den}}`;
-                    return `\\frac{${num}}{${den}}`;
-                };
-
-                // 1. Setup common parameters
-                const innerC = Utils.getRnd(-5, 5); // constant term
-                const direction = Utils.getRnd(0, 1); // 0: Infinity, 1: Negative Infinity
-                const isPosInf = direction === 0;
-                const limitTarget = isPosInf ? "\\infty" : "-\\infty";
-                
-                // Randomly decide which family of problem to generate
-                const isConjugateFamily = Utils.getRnd(0, 1) === 0; 
-                
-                if (isConjugateFamily) {
-                    // ==========================================
-                    // FAMILY 1: FINITE LIMITS (Conjugate Method)
-                    // ==========================================
-                    const outerCoeff = Math.abs(a) > 1 ? Math.abs(a) : 2; 
-                    const innerA = outerCoeff * outerCoeff; 
-                    const innerB = Math.sign(b) * (Math.abs(b) > 1 ? Math.abs(b) : 1); 
-
-                    const aTerm = innerA === 1 ? "x^2" : `${innerA}x^2`;
-                    const bAbs = Math.abs(innerB);
-                    const bTerm = bAbs === 1 ? "x" : `${bAbs}x`;
-                    const bSign = innerB >= 0 ? " + " : " - ";
-                    const cTerm = innerC === 0 ? "" : (innerC > 0 ? ` + ${innerC}` : ` - ${Math.abs(innerC)}`);
-                    const innerExpr = `${aTerm}${bSign}${bTerm}${cTerm}`;
-
-                    const origSign = isPosInf ? "-" : "+";
-                    const conjSign = isPosInf ? "+" : "-";
-                    const fullExpr = `\\sqrt{${innerExpr}} ${origSign} ${outerCoeff}x`;
-
-                    // Fraction calculations
-                    const rawNum = isPosInf ? innerB : -innerB;
-                    const rawDen = 2 * outerCoeff;
-                    const finalAnsStr = formatFraction(rawNum, rawDen);
-
-                    const sqrtDivText = isPosInf ? `\\sqrt{${innerA}} = ${outerCoeff}` : `-\\sqrt{${innerA}} = -${outerCoeff}`;
-                    const denomResultText = isPosInf ? `${outerCoeff} + ${outerCoeff}` : `-${outerCoeff} - ${outerCoeff}`;
-                    const rawFractionStr = `\\frac{${rawNum}}{${isPosInf ? rawDen : -rawDen}}`;
-
-                    return {
-                        expr: `\\lim_{x \\to ${limitTarget}} \\left( ${fullExpr} \\right)`,
-                        ans: `= ${finalAnsStr}`,
-                        sol: `\\begin{aligned}
-                        &\\text{Coefficients match, multiply by the conjugate: } \\frac{\\sqrt{${innerExpr}} ${conjSign} ${outerCoeff}x}{\\sqrt{${innerExpr}} ${conjSign} ${outerCoeff}x} \\\\
-                        L &= \\lim_{x \\to ${limitTarget}} \\frac{(${innerExpr}) - (${outerCoeff}x)^2}{\\sqrt{${innerExpr}} ${conjSign} ${outerCoeff}x}
-                            = \\lim_{x \\to ${limitTarget}} \\frac{${innerB}x + ${innerC}}{\\sqrt{${innerExpr}} ${conjSign} ${outerCoeff}x} \\\\
-                        &\\text{Divide numerator and denominator by } x. \\\\
-                        &\\text{As } x \\to ${limitTarget}, \\frac{\\sqrt{${innerA}x^2 + ${innerB}x + ${innerC}}}{x} \\to ${sqrtDivText}. \\\\
-                        L &= \\frac{${innerB}}{${denomResultText}} = ${finalAnsStr}
-                    \\end{aligned}`
+                    // Helper function to find the greatest common divisor
+                    const getGCD = (x, y) => {
+                        x = Math.abs(x);
+                        y = Math.abs(y);
+                        while (y) {
+                            const t = y;
+                            y = x % y;
+                            x = t;
+                        }
+                        return x;
                     };
-
-                } else {
-                    // ==========================================
-                    // FAMILY 2: INFINITE LIMITS (Factoring Method)
-                    // ==========================================
-                    let innerA = Utils.getRnd(2, 7);
-                    let outerD = Utils.getRnd(-7, 7);
-                    if (outerD === 0) outerD = 2; // Prevent 0x
+        
+                    // Helper function to format a fraction cleanly in LaTeX
+                    const formatFraction = (num, den) => {
+                        if (num === 0) return "0";
+                        
+                        // Move negative sign to the front if denominator is negative
+                        if (den < 0) {
+                            num = -num;
+                            den = -den;
+                        }
+                        
+                        const gcd = getGCD(num, den);
+                        num /= gcd;
+                        den /= gcd;
+                        
+                        if (den === 1) return `${num}`;
+                        if (num < 0) return `-\\frac{${Math.abs(num)}}{${den}}`;
+                        return `\\frac{${num}}{${den}}`;
+                    };
+        
+                    // 1. Setup common parameters
+                    const innerC = Utils.getRnd(-5, 5); // constant term
+                    const direction = Utils.getRnd(0, 1); // 0: Infinity, 1: Negative Infinity
+                    const isPosInf = direction === 0;
+                    const limitTarget = isPosInf ? "\\infty" : "-\\infty";
                     
-                    // Ensure the coefficients DO NOT perfectly match to force the infinite case
-                    if (innerA === outerD * outerD) {
-                        innerA += 1; 
-                    }
-
-                    const innerB = Math.sign(b) * (Math.abs(b) > 1 ? Math.abs(b) : 1);
+                    // Randomly decide which family of problem to generate
+                    const isConjugateFamily = Utils.getRnd(0, 1) === 0; 
                     
-                    const aTerm = `${innerA}x^2`;
-                    const bAbs = Math.abs(innerB);
-                    const bTerm = bAbs === 1 ? "x" : `${bAbs}x`;
-                    const bSign = innerB >= 0 ? " + " : " - ";
-                    const cTerm = innerC === 0 ? "" : (innerC > 0 ? ` + ${innerC}` : ` - ${Math.abs(innerC)}`);
-                    const innerExpr = `${aTerm}${bSign}${bTerm}${cTerm}`;
-
-                    const dSign = outerD > 0 ? "+" : "-";
-                    const dAbs = Math.abs(outerD);
-                    const fullExpr = `\\sqrt{${innerExpr}} ${dSign} ${dAbs}x`;
-
-                    // Mathematical evaluation
-                    const innerRootVal = isPosInf ? Math.sqrt(innerA) : -Math.sqrt(innerA);
-                    const limitFactor = innerRootVal + outerD; 
-                    
-                    let finalAnsStr;
-                    if (isPosInf) {
-                        finalAnsStr = limitFactor > 0 ? "\\infty" : "-\\infty";
+                    if (isConjugateFamily) {
+                        // ==========================================
+                        // FAMILY 1: FINITE LIMITS (Conjugate Method)
+                        // ==========================================
+                        const outerCoeff = Math.abs(a) > 1 ? Math.abs(a) : 2; 
+                        const innerA = outerCoeff * outerCoeff; 
+                        
+                        // FIX: Prevent 0x in strings
+                        let innerB = Math.sign(b) * (Math.abs(b) > 1 ? Math.abs(b) : 1);
+                        if (innerB === 0) innerB = 2; 
+        
+                        // FIX: Removed dead code because innerA >= 4
+                        const aTerm = `${innerA}x^2`; 
+                        const bAbs = Math.abs(innerB);
+                        const bTerm = bAbs === 1 ? "x" : `${bAbs}x`;
+                        const bSign = innerB > 0 ? " + " : " - "; 
+                        const cTerm = innerC === 0 ? "" : (innerC > 0 ? ` + ${innerC}` : ` - ${Math.abs(innerC)}`);
+                        const innerExpr = `${aTerm}${bSign}${bTerm}${cTerm}`;
+        
+                        const origSign = isPosInf ? "-" : "+";
+                        const conjSign = isPosInf ? "+" : "-";
+                        const fullExpr = `\\sqrt{${innerExpr}} ${origSign} ${outerCoeff}x`;
+        
+                        // Fraction calculations
+                        const rawNum = isPosInf ? innerB : -innerB;
+                        const rawDen = 2 * outerCoeff;
+                        const finalAnsStr = formatFraction(rawNum, rawDen);
+        
+                        const sqrtDivText = isPosInf ? `\\sqrt{${innerA}} = ${outerCoeff}` : `-\\sqrt{${innerA}} = -${outerCoeff}`;
+                        
+                        // FIX: Separated the visual unsimplified string from the evaluated denominator
+                        const denomSteps = isPosInf ? `${outerCoeff} + ${outerCoeff}` : `-${outerCoeff} - ${outerCoeff}`;
+                        const evaluatedDenom = isPosInf ? rawDen : -rawDen;
+        
+                        return {
+                            expr: `\\lim_{x \\to ${limitTarget}} \\left( ${fullExpr} \\right)`,
+                            ans: `= ${finalAnsStr}`,
+                            sol: `\\begin{aligned}
+                            &\\text{Coefficients match, multiply by the conjugate: } \\frac{\\sqrt{${innerExpr}} ${conjSign} ${outerCoeff}x}{\\sqrt{${innerExpr}} ${conjSign} ${outerCoeff}x} \\\\
+                            L &= \\lim_{x \\to ${limitTarget}} \\frac{(${innerExpr}) - (${outerCoeff}x)^2}{\\sqrt{${innerExpr}} ${conjSign} ${outerCoeff}x}
+                                = \\lim_{x \\to ${limitTarget}} \\frac{${innerB}x ${cTerm}}{\\sqrt{${innerExpr}} ${conjSign} ${outerCoeff}x} \\\\
+                            &\\text{Divide numerator and denominator by } x. \\\\
+                            &\\text{As } x \\to ${limitTarget}, \\frac{\\sqrt{${innerExpr}}}{x} \\to ${sqrtDivText}. \\\\
+                            L &= \\frac{${innerB}}{${denomSteps}} = \\frac{${innerB}}{${evaluatedDenom}} = ${finalAnsStr}
+                        \\end{aligned}`
+                        };
+        
                     } else {
-                        finalAnsStr = limitFactor > 0 ? "-\\infty" : "\\infty"; 
+                        // ==========================================
+                        // FAMILY 2: INFINITE LIMITS (Factoring Method)
+                        // ==========================================
+                        let innerA = Utils.getRnd(2, 7);
+                        let outerD = Utils.getRnd(-7, 7);
+                        if (outerD === 0) outerD = 2; // Prevent 0x
+                        
+                        // Ensure the coefficients DO NOT perfectly match to force the infinite case
+                        if (innerA === outerD * outerD) {
+                            innerA += 1; 
+                        }
+        
+                        // FIX: Prevent 0x in strings here as well
+                        let innerB = Math.sign(b) * (Math.abs(b) > 1 ? Math.abs(b) : 1);
+                        if (innerB === 0) innerB = 2;
+                        
+                        const aTerm = `${innerA}x^2`;
+                        const bAbs = Math.abs(innerB);
+                        const bTerm = bAbs === 1 ? "x" : `${bAbs}x`;
+                        const bSign = innerB > 0 ? " + " : " - ";
+                        const cTerm = innerC === 0 ? "" : (innerC > 0 ? ` + ${innerC}` : ` - ${Math.abs(innerC)}`);
+                        const innerExpr = `${aTerm}${bSign}${bTerm}${cTerm}`;
+        
+                        const dSign = outerD > 0 ? "+" : "-";
+                        const dAbs = Math.abs(outerD);
+                        const fullExpr = `\\sqrt{${innerExpr}} ${dSign} ${dAbs}x`;
+        
+                        // Mathematical evaluation
+                        const innerRootVal = isPosInf ? Math.sqrt(innerA) : -Math.sqrt(innerA);
+                        const limitFactor = innerRootVal + outerD; 
+                        
+                        let finalAnsStr;
+                        if (isPosInf) {
+                            finalAnsStr = limitFactor > 0 ? "\\infty" : "-\\infty";
+                        } else {
+                            finalAnsStr = limitFactor > 0 ? "-\\infty" : "\\infty"; 
+                        }
+                        
+                        const innerFactored = `${innerA}${bSign}\\frac{${bAbs}}{x}${cTerm === "" ? "" : (innerC > 0 ? ` + \\frac{${innerC}}{x^2}` : ` - \\frac{${Math.abs(innerC)}}{x^2}`)}`;
+                        const rootEvalStr = isPosInf ? `\\sqrt{${innerA}}` : `-\\sqrt{${innerA}}`;
+        
+                        return {
+                            expr: `\\lim_{x \\to ${limitTarget}} \\left( ${fullExpr} \\right)`,
+                            ans: `= ${finalAnsStr}`,
+                            sol: `\\begin{aligned}
+                            &\\text{Because the coefficients do not cancel perfectly, we factor out } x: \\\\
+                            L &= \\lim_{x \\to ${limitTarget}} x \\left( \\frac{\\sqrt{${innerExpr}}}{x} ${dSign} ${dAbs} \\right) \\\\
+                            L &= \\lim_{x \\to ${limitTarget}} x \\left( ${isPosInf ? "" : "-"}\\sqrt{${innerFactored}} ${dSign} ${dAbs} \\right) \\\\
+                            &\\text{As } x \\to ${limitTarget}\\text{, the terms with } x \\text{ in the denominator approach } 0: \\\\
+                            L &= ${limitTarget} \\cdot \\left( ${rootEvalStr} ${dSign} ${dAbs} \\right) \\\\
+                            L &= ${finalAnsStr}
+                        \\end{aligned}`
+                        };
                     }
-                    
-                    const innerFactored = `${innerA}${bSign}\\frac{${bAbs}}{x}${cTerm === "" ? "" : (innerC > 0 ? ` + \\frac{${innerC}}{x^2}` : ` - \\frac{${Math.abs(innerC)}}{x^2}`)}`;
-                    const rootEvalStr = isPosInf ? `\\sqrt{${innerA}}` : `-\\sqrt{${innerA}}`;
-
-                    return {
-                        expr: `\\lim_{x \\to ${limitTarget}} \\left( ${fullExpr} \\right)`,
-                        ans: `= ${finalAnsStr}`,
-                        sol: `\\begin{aligned}
-                        &\\text{Because the coefficients do not cancel perfectly, we factor out } x: \\\\
-                        L &= \\lim_{x \\to ${limitTarget}} x \\left( \\frac{\\sqrt{${innerExpr}}}{x} ${dSign} ${dAbs} \\right) \\\\
-                        L &= \\lim_{x \\to ${limitTarget}} x \\left( ${isPosInf ? "" : "-"}\\sqrt{${innerFactored}} ${dSign} ${dAbs} \\right) \\\\
-                        &\\text{As } x \\to ${limitTarget}\\text{, the terms with } x \\text{ in the denominator approach } 0: \\\\
-                        L &= ${limitTarget} \\cdot \\left( ${rootEvalStr} ${dSign} ${dAbs} \\right) \\\\
-                        L &= ${finalAnsStr}
-                    \\end{aligned}`
-                    };
-                }
-            },
+             },
             //# Family: Limit Definition of Derivative form (f(x+h)-f(x))/h as h -> 0
             (a, b, c) => {
                 let val = Math.abs(c) > 1 ? Math.abs(c) : 3;
