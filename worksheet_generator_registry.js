@@ -1,7 +1,7 @@
 // ❌ DELETE ALL 8 IMPORT LINES AT THE TOP!
 
 const ProblemRegistry = {
-    // arithmetic: window.arithmetic,
+    arithmetic: window.arithmetic,
     algebra: window.algebra,
     // trigonometry: window.trigonometry,
     limit: window.limit,
